@@ -15,10 +15,6 @@ A-share momentum research platform using SQLite bars and reproducible, project-s
 
 ## Results
 
-Sample output:
-
-![TopN Equity Curve](artifacts/projects/2026Q1_mom/topn_1_5.png)
-
 Main artifacts:
 - `artifacts/projects/2026Q1_mom/topn_1_5.png`
 - `artifacts/projects/2026Q1_mom/summary_metrics.csv`
