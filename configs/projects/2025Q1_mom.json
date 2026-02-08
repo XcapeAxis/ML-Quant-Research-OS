@@ -1,21 +1,63 @@
 {
   "freq": "1d",
   "calendar_code": "000001",
+  "start_date": "2016-01-01",
+  "end_date": null,
 
   "lookback": 20,
   "rebalance_every": 5,
   "topk": 5,
-
+  "topn_max": 5,
   "min_bars": 160,
   "max_codes_scan": 4000,
 
-  "topn_max": 5,
   "cash": 1000000,
-
   "commission": 0.0003,
   "stamp_duty": 0.001,
   "slippage": 0.0005,
+  "risk_free_rate": 0.03,
 
-  "auto_build_rank": 1,
-  "save": "auto"
+  "baselines": {
+    "benchmark_code": "000001",
+    "enable_equal_weight": true,
+    "random_trials": 200,
+    "random_seed": 42
+  },
+
+  "cost_sweep": {
+    "commission_grid": [0.0001, 0.0002, 0.0003, 0.0005, 0.001],
+    "slippage_grid": [0.0001, 0.0003, 0.0005, 0.001, 0.002]
+  },
+
+  "walk_forward": {
+    "windows": [
+      { "name": "2016-2019", "start": "2016-01-01", "end": "2019-12-31" },
+      { "name": "2020-2022", "start": "2020-01-01", "end": "2022-12-31" },
+      { "name": "2023-2025", "start": "2023-01-01", "end": "2025-12-31" }
+    ]
+  },
+
+  "report": {
+    "format": "md",
+    "include_sections": [
+      "overview",
+      "metrics",
+      "coverage",
+      "baselines",
+      "cost",
+      "walk_forward"
+    ]
+  },
+
+  "tradability": {
+    "require_positive_volume": false,
+    "min_volume": 0
+  },
+
+  "risk_overlay": {
+    "enabled": false,
+    "vol_target": 0.18,
+    "rolling_days": 20,
+    "max_leverage": 1.0
+  }
 }

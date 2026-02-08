@@ -1,31 +1,31 @@
-import time
-import pandas as pd
-from pathlib import Path
+from __future__ import annotations
+
 import subprocess
+import sys
+import time
+from pathlib import Path
 
-# 记录开始时间
-start_time = time.time()
 
-# 运行回测命令，使用500支股票
-command = [
-    "python", "scripts/steps/11_update_bars.py",
-    "--project", "test_performance",
-    "--max-codes-scan", "500",
-    "--no-show"
-]
+ROOT = Path(__file__).resolve().parents[2]
 
-print(f"Running command: {' '.join(command)}")
-result = subprocess.run(command, capture_output=True, text=True)
 
-# 记录结束时间
-end_time = time.time()
+def main() -> None:
+    project = "test_performance"
+    rank_cmd = [sys.executable, "scripts/steps/20_build_rank.py", "--project", project, "--max-codes-scan", "500"]
+    bt_cmd = [sys.executable, "scripts/steps/30_bt_rebalance.py", "--project", project, "--no-show", "--save", "auto"]
 
-# 计算耗时
-elapsed_time = end_time - start_time
+    start = time.time()
+    subprocess.run(rank_cmd, cwd=ROOT, check=False)
+    result = subprocess.run(bt_cmd, cwd=ROOT, check=False, capture_output=True, text=True)
+    elapsed = time.time() - start
 
-print(f"\n=== Performance Test Results ===")
-print(f"Elapsed time: {elapsed_time:.2f} seconds")
-print(f"Return code: {result.returncode}")
-print(f"\nCommand output (last 10 lines):")
-for line in result.stdout.strip().split('\n')[-10:]:
-    print(line)
+    print("=== Performance Test ===")
+    print(f"Elapsed seconds: {elapsed:.2f}")
+    print(f"Backtest return code: {result.returncode}")
+    lines = result.stdout.strip().splitlines()
+    for line in lines[-10:]:
+        print(line)
+
+
+if __name__ == "__main__":
+    main()

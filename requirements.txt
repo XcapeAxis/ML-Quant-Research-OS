@@ -3,6 +3,7 @@ numpy
 pandas
 matplotlib
 tqdm
+pyarrow
 
 # data
 akshare
@@ -10,3 +11,4 @@ akshare
 # dev
 pytest
 ruff
+streamlit

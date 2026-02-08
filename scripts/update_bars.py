@@ -1,46 +1,43 @@
 from __future__ import annotations
 
 import argparse
-import json
 from pathlib import Path
-
-
-def load_config(config_path: Path) -> dict:
-    try:
-        return json.loads(config_path.read_text(encoding="utf-8"))
-    except FileNotFoundError:
-        raise FileNotFoundError(
-            f"Config file not found: {config_path}. Provide --config to set a valid path."
-        )
+import subprocess
+import sys
 
 
 def main() -> None:
-    # Placeholder CLI entrypoint.
-    # Implement: incremental download/update bars, save to data/raw or data/processed.
-    parser = argparse.ArgumentParser(description="Incremental download/update bars")
-    parser.add_argument(
-        "--config",
-        type=Path,
-        default=Path("configs/default.json"),
-        help="Path to config file",
-    )
+    parser = argparse.ArgumentParser(description="Wrapper for scripts/steps/11_update_bars.py")
+    parser.add_argument("--project", type=str, default="2026Q1_mom")
+    parser.add_argument("--config", type=Path, default=None)
+    parser.add_argument("--mode", type=str, default="incremental", choices=["incremental", "backfill"])
+    parser.add_argument("--start-date", type=str, default=None)
+    parser.add_argument("--end-date", type=str, default=None)
+    parser.add_argument("--workers", type=int, default=None)
+    parser.add_argument("--freq", type=str, default=None)
     args = parser.parse_args()
 
-    try:
-        cfg = load_config(args.config)
-    except FileNotFoundError as exc:
-        print(f"[ERROR] {exc}")
-        return
+    root = Path(__file__).resolve().parents[1]
+    cmd = [
+        sys.executable,
+        str(root / "scripts" / "steps" / "11_update_bars.py"),
+        "--project",
+        args.project,
+        "--mode",
+        args.mode,
+    ]
+    if args.config:
+        cmd.extend(["--config", str(args.config)])
+    if args.start_date:
+        cmd.extend(["--start-date", args.start_date])
+    if args.end_date:
+        cmd.extend(["--end-date", args.end_date])
+    if args.workers is not None:
+        cmd.extend(["--workers", str(args.workers)])
+    if args.freq:
+        cmd.extend(["--freq", args.freq])
 
-    try:
-        print(
-            "[update_bars] config loaded:",
-            cfg["bar_freq"],
-            cfg["start_date"],
-            cfg["end_date"],
-        )
-    except KeyError as exc:
-        print(f"[ERROR] Missing required config field: {exc}")
+    raise SystemExit(subprocess.run(cmd, cwd=root).returncode)
 
 
 if __name__ == "__main__":
