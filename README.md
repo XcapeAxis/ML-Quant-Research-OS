@@ -47,3 +47,12 @@ Each run is reproducible through:
 Run any task with one entrypoint:
 - `python -m quant_mvp run --project 2026Q1_mom --task rank`
 - `python -m quant_mvp run --project 2026Q1_mom --task backtest -- --no-show --save auto`
+
+## Recent Fixes
+
+- 2026-02-08: fixed AkShare Chinese-column compatibility in:
+  - `scripts/steps/11_update_bars.py` (`_fetch_akshare_daily`)
+  - `scripts/steps/10_symbols.py` (`build_symbols`, `_is_st`)
+- Added offline regression tests in `tests/test_akshare_column_mapping.py`.
+- Validation command:
+  - `py -3.14 -m pytest -q`

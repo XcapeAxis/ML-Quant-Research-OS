@@ -28,8 +28,8 @@ def _board(code: str) -> str:
 
 
 def _is_st(name: str) -> bool:
-    upper = str(name or "").upper()
-    return "ST" in upper or "退" in upper
+    text = str(name or "")
+    return "ST" in text.upper() or "退" in text
 
 
 def _valid_mainboard(code: str) -> bool:
@@ -50,21 +50,25 @@ def build_symbols(project: str, target_size: int | None = None) -> tuple[Path, P
     df = ak.stock_info_a_code_name()
     df.columns = [str(col).lower() for col in df.columns]
 
-    rename_map = {}
+    rename_map: dict[str, str] = {}
     for col in df.columns:
-        if col in {"代码", "code"}:
+        if col in {"code", "证券代码", "股票代码", "a股代码"}:
             rename_map[col] = "code"
-        if col in {"名称", "name"}:
+        if col in {"name", "证券简称", "股票简称", "a股简称"}:
             rename_map[col] = "name"
     df = df.rename(columns=rename_map)
 
     if "code" not in df.columns:
-        candidates = [c for c in df.columns if "code" in c]
+        candidates = [c for c in df.columns if "code" in str(c) or "代码" in str(c)]
         if not candidates:
             raise RuntimeError(f"Cannot find code column in {df.columns.tolist()}")
         df = df.rename(columns={candidates[0]: "code"})
     if "name" not in df.columns:
-        df["name"] = ""
+        name_candidates = [c for c in df.columns if "name" in str(c) or "简称" in str(c)]
+        if name_candidates:
+            df = df.rename(columns={name_candidates[0]: "name"})
+        else:
+            df["name"] = ""
 
     df["code"] = df["code"].astype(str).str.zfill(6)
     df["name"] = df["name"].fillna("")

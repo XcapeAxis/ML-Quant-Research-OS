@@ -46,21 +46,22 @@ def _fetch_akshare_daily(code: str, start_yyyymmdd: str, end_yyyymmdd: str, freq
     if df is None or df.empty:
         return pd.DataFrame()
 
-    rename_map = {}
+    aliases: dict[str, set[str]] = {
+        "datetime": {"日期", "date", "datetime", "time"},
+        "open": {"开盘", "open"},
+        "high": {"最高", "high"},
+        "low": {"最低", "low"},
+        "close": {"收盘", "close"},
+        "volume": {"成交量", "volume"},
+    }
+    rename_map: dict[str, str] = {}
     for col in df.columns:
-        low = str(col).lower()
-        if "日期" in str(col) or low in {"date", "datetime", "time"}:
-            rename_map[col] = "datetime"
-        elif "开盘" in str(col) or low == "open":
-            rename_map[col] = "open"
-        elif "最高" in str(col) or low == "high":
-            rename_map[col] = "high"
-        elif "最低" in str(col) or low == "low":
-            rename_map[col] = "low"
-        elif "收盘" in str(col) or low == "close":
-            rename_map[col] = "close"
-        elif "成交量" in str(col) or low == "volume":
-            rename_map[col] = "volume"
+        col_text = str(col).strip()
+        low = col_text.lower()
+        for target, names in aliases.items():
+            if col_text in names or low in names:
+                rename_map[col] = target
+                break
 
     df = df.rename(columns=rename_map)
     required = {"datetime", "open", "high", "low", "close"}
