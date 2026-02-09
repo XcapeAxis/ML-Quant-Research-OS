@@ -15,13 +15,13 @@ import textwrap
 ROOT = Path.cwd()
 
 DIRS = [
-    "src/quant_mvp",
-    "src/quant_mvp/data",
-    "src/quant_mvp/features",
-    "src/quant_mvp/signals",
-    "src/quant_mvp/backtest",
-    "src/quant_mvp/metrics",
-    "src/quant_mvp/utils",
+    "quant_mvp",
+    "quant_mvp/data",
+    "quant_mvp/features",
+    "quant_mvp/signals",
+    "quant_mvp/backtest",
+    "quant_mvp/metrics",
+    "quant_mvp/utils",
     "configs",
     "scripts",
     "notebooks",
@@ -59,7 +59,7 @@ FILES = {
            - `python scripts/run_backtest.py --config configs/default.json`
 
         ## Project Structure
-        - `src/quant_mvp/` core library
+        - `quant_mvp/` core library
         - `scripts/` CLI entrypoints
         - `configs/` experiment configs (tracked)
         - `data/` local datasets (NOT tracked except placeholders)
@@ -203,7 +203,7 @@ FILES = {
         if __name__ == "__main__":
             main()
         """),
-    "src/quant_mvp/__init__.py": "__all__ = []\n",
+    "quant_mvp/__init__.py": "__all__ = []\n",
     "docs/DECISIONS.md": textwrap.dedent("""\
         # Engineering Decisions
 

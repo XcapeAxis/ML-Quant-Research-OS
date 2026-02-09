@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
-if str(ROOT / "src") not in sys.path:
-    sys.path.insert(0, str(ROOT / "src"))
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from quant_mvp.backtest_engine import BacktestConfig, rank_targets, run_rebalance_backtest, summarize_equity
 from quant_mvp.config import load_config
