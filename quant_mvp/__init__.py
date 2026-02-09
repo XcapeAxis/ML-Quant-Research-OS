@@ -1,9 +1,14 @@
-from __future__ import annotations
+"""Quant MVP package."""
 
-from pathlib import Path
-import pkgutil
+from .config import load_config
+from .manifest import update_run_manifest
+from .project import ProjectPaths, resolve_project_paths
+from .universe import load_universe_codes
 
-__path__ = pkgutil.extend_path(__path__, __name__)  # type: ignore[name-defined]
-_src_pkg = Path(__file__).resolve().parents[1] / "src" / "quant_mvp"
-if _src_pkg.exists():
-    __path__.append(str(_src_pkg))  # type: ignore[attr-defined]
+__all__ = [
+    "ProjectPaths",
+    "load_config",
+    "load_universe_codes",
+    "resolve_project_paths",
+    "update_run_manifest",
+]

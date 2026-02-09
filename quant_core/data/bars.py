@@ -1,4 +1,4 @@
-# src/quant_core/data/bars.py
+# quant_core/data/bars.py
 import pandas as pd
 from .db import get_conn, init_db
 

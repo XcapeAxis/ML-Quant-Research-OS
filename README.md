@@ -30,7 +30,7 @@ Each run is reproducible through:
 
 ## Repository Structure
 
-- `src/quant_mvp/`: shared config, universe, manifest, ranking, backtest, reporting utilities
+- `quant_mvp/`: shared config, universe, manifest, ranking, backtest, reporting utilities
 - `scripts/steps/`: pipeline stages
 - `scripts/audit_db.py`: database coverage audit
 - `configs/projects/`: project configs
