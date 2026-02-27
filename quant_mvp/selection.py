@@ -1,76 +1,71 @@
+"""Stock selection module implementing the limit-up screening strategy.
+
+Core idea: identify stocks with frequent historical limit-up events, then rank
+by proximity to their most recent breakout start-point. Combined with universe
+filters (STAR/BJ exclusion, ST exclusion, new-stock exclusion, limit-up/down
+exclusion) and Tuesday-only rebalancing.
+"""
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Callable
+from dataclasses import dataclass, field
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-from .db import load_close_volume_panel
+from .db import load_close_volume_panel, load_ohlcv_panel
 
+
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
 
 @dataclass
-class SelectionConfig:
-    """Configuration for stock selection."""
+class LimitUpScreeningConfig:
+    """Parameters for the limit-up screening selection strategy."""
 
     stock_num: int = 6
-    rebalance_weekday: int = 1  # 0=Monday, 1=Tuesday
-    lookback: int = 60
-    topk_multiplier: int = 2
-    min_bars: int = 20
-    max_codes_scan: int = 1000
+    rebalance_weekday: int = 1  # 0=Mon, 1=Tue
+    limit_days_window: int = 750  # ~3 years of trading days
+    top_pct_limit_up: float = 0.10  # keep top 10% by limit-up count
+    limit_up_threshold: float = 0.095  # daily return >= this => proxy limit-up
+    init_pool_size: int = 1000  # pre-filter universe to this size
+    min_bars: int = 160
+    max_codes_scan: int = 4000
+    topk_multiplier: int = 2  # rank 2*stock_num candidates
     require_positive_volume: bool = True
 
+
+# ---------------------------------------------------------------------------
+# Filters (reusable across strategies)
+# ---------------------------------------------------------------------------
 
 def get_tuesday_rebalance_dates(
     calendar: pd.DatetimeIndex,
     weekday: int = 1,
 ) -> list[pd.Timestamp]:
-    """Get rebalance dates that fall on specified weekday (default Tuesday).
-
-    Args:
-        calendar: Trading calendar DatetimeIndex
-        weekday: Day of week (0=Monday, 1=Tuesday, ..., 6=Sunday)
-
-    Returns:
-        List of timestamps that match the specified weekday
-    """
+    """Return trading dates that fall on *weekday* (default Tuesday)."""
     return [pd.Timestamp(dt) for dt in calendar if dt.weekday() == weekday]
 
 
 def filter_kcbj_stock(codes: list[str]) -> list[str]:
-    """Filter out STAR Market (科创板) and Beijing Exchange (北交所) stocks.
-
-    Args:
-        codes: List of stock codes
-
-    Returns:
-        Filtered list excluding codes starting with '4', '8', or '68'
-    """
+    """Exclude STAR Market and Beijing Exchange stocks."""
     return [
-        code for code in codes
-        if not (code.startswith("4") or code.startswith("8") or code.startswith("68"))
+        c for c in codes
+        if not (c.startswith("4") or c.startswith("8") or c.startswith("68"))
     ]
 
 
 def filter_st_stock_by_name(codes: list[str], names: dict[str, str] | None = None) -> list[str]:
-    """Filter out ST and delisting stocks by name patterns.
-
-    Args:
-        codes: List of stock codes
-        names: Optional mapping of code to name for ST filtering
-
-    Returns:
-        Filtered list excluding ST stocks
-    """
+    """Exclude ST / *ST / delisting stocks by name pattern."""
     if names is None:
         return codes
     return [
-        code for code in codes
-        if code in names
-        and "ST" not in names[code]
-        and "*" not in names[code]
-        and "退" not in names[code]
+        c for c in codes
+        if c in names
+        and "ST" not in names[c]
+        and "*" not in names[c]
+        and "\u9000" not in names[c]  # Chinese character for "delisting"
     ]
 
 
@@ -80,26 +75,14 @@ def filter_new_stock(
     current_date: pd.Timestamp,
     min_days: int = 375,
 ) -> list[str]:
-    """Filter out newly listed stocks (次新股).
-
-    Args:
-        codes: List of stock codes
-        listing_dates: Mapping of code to listing date
-        current_date: Current date for comparison
-        min_days: Minimum days since listing (default 375 days)
-
-    Returns:
-        Filtered list excluding new stocks
-    """
+    """Exclude stocks listed fewer than *min_days* ago."""
     result = []
-    for code in codes:
-        if code in listing_dates:
-            days_since_listing = (current_date - listing_dates[code]).days
-            if days_since_listing >= min_days:
-                result.append(code)
+    for c in codes:
+        if c in listing_dates:
+            if (current_date - listing_dates[c]).days >= min_days:
+                result.append(c)
         else:
-            # If no listing date info, include by default
-            result.append(code)
+            result.append(c)
     return result
 
 
@@ -107,257 +90,295 @@ def filter_limit_up_down(
     codes: list[str],
     close: pd.Series,
     prev_close: pd.Series,
-    limit_pct: float = 0.099,
+    limit_pct: float = 0.095,
 ) -> list[str]:
-    """Filter out stocks that are limit-up or limit-down.
-
-    Approximates limit up/down using daily return threshold since
-    actual limit prices may not be available.
-
-    Args:
-        codes: List of stock codes to filter
-        close: Current close prices
-        prev_close: Previous close prices
-        limit_pct: Return threshold to consider as limit (default 9.9%)
-
-    Returns:
-        Filtered list excluding limit-up and limit-down stocks
-    """
+    """Exclude stocks that are at limit-up or limit-down today."""
     result = []
-    for code in codes:
-        if code not in close or code not in prev_close:
+    for c in codes:
+        if c not in close or c not in prev_close:
             continue
-        if pd.isna(close[code]) or pd.isna(prev_close[code]) or prev_close[code] == 0:
+        if pd.isna(close[c]) or pd.isna(prev_close[c]) or prev_close[c] == 0:
             continue
-        ret = close[code] / prev_close[code] - 1.0
+        ret = close[c] / prev_close[c] - 1.0
         if abs(ret) < limit_pct:
-            result.append(code)
+            result.append(c)
     return result
 
 
-def compute_momentum_score(
+# ---------------------------------------------------------------------------
+# Limit-up history analysis
+# ---------------------------------------------------------------------------
+
+def _detect_limit_up_days(
     close: pd.DataFrame,
-    lookback: int = 60,
-) -> pd.Series:
-    """Compute momentum score as percentage change over lookback period.
+    open_df: pd.DataFrame,
+    threshold: float = 0.095,
+) -> pd.DataFrame:
+    """Return a boolean DataFrame (dates x codes) marking proxy limit-up days.
 
-    Args:
-        close: Close price DataFrame (dates x codes)
-        lookback: Number of periods for momentum calculation
-
-    Returns:
-        Series of momentum scores indexed by code
+    A day is considered limit-up when ``close / prev_close - 1 >= threshold``.
+    Using close-to-close return avoids needing exchange-provided high_limit.
     """
-    momentum = close.pct_change(lookback, fill_method=None)
-    return momentum.iloc[-1] if not momentum.empty else pd.Series(dtype=float)
+    prev_close = close.shift(1)
+    daily_ret = close / prev_close - 1.0
+    return daily_ret >= threshold
 
 
-def compute_start_point_score(
+def count_limit_up_history(
     close: pd.DataFrame,
-    high: pd.DataFrame | None = None,
-    lookback: int = 60,
+    open_df: pd.DataFrame,
+    window: int,
+    threshold: float = 0.095,
 ) -> pd.Series:
-    """Compute start-point score based on price relative to recent low.
+    """Count limit-up days in the trailing *window* for each code.
 
-    This is a simplified approximation of the "start point" concept from
-    the original strategy. Returns lower values for stocks closer to
-    their recent lows (potential breakout candidates).
-
-    Args:
-        close: Close price DataFrame (dates x codes)
-        high: Optional high price DataFrame
-        lookback: Number of periods for calculation
-
-    Returns:
-        Series of start-point scores indexed by code (lower = closer to low)
+    Returns a Series indexed by code with the count of limit-up days.
     """
-    recent_low = close.tail(lookback).min()
-    current = close.iloc[-1]
-    # Ratio of current price to recent low (lower = closer to breakout point)
-    ratio = current / recent_low.replace(0, np.nan)
-    return ratio
+    limit_up = _detect_limit_up_days(close, open_df, threshold)
+    tail = limit_up.tail(window)
+    return tail.sum().astype(int)
 
 
-def rank_by_momentum_and_start_point(
+def filter_top_limit_up(
+    codes: list[str],
+    limit_up_counts: pd.Series,
+    top_pct: float = 0.10,
+) -> list[str]:
+    """Keep top *top_pct* of *codes* ranked by limit-up count (descending).
+
+    Stocks with zero limit-up days are always excluded.
+    """
+    sub = limit_up_counts.reindex(codes).fillna(0).astype(int)
+    sub = sub[sub > 0].sort_values(ascending=False)
+    if sub.empty:
+        return []
+    n_keep = max(1, int(len(sub) * top_pct))
+    return sub.head(n_keep).index.tolist()
+
+
+# ---------------------------------------------------------------------------
+# Start-point scoring
+# ---------------------------------------------------------------------------
+
+def compute_start_point_scores(
     close: pd.DataFrame,
-    high: pd.DataFrame | None = None,
-    momentum_lookback: int = 60,
-    start_point_lookback: int = 60,
-    momentum_weight: float = 0.6,
+    open_df: pd.DataFrame,
+    low_df: pd.DataFrame,
+    codes: list[str],
+    window: int,
+    threshold: float = 0.095,
 ) -> pd.Series:
-    """Rank stocks by combined momentum and start-point scores.
+    """Compute start-point bias score for each code.
 
-    Args:
-        close: Close price DataFrame (dates x codes)
-        high: Optional high price DataFrame
-        momentum_lookback: Periods for momentum calculation
-        start_point_lookback: Periods for start-point calculation
-        momentum_weight: Weight for momentum vs start-point (0-1)
+    Algorithm per stock:
+      1. In the trailing *window*, find all proxy limit-up days.
+      2. Take the most recent one.
+      3. Scan backward from that day for the first day where close < open.
+      4. Record that day's low as the *start price*.
+      5. Score = current_close / start_price  (lower = closer to breakout origin).
 
-    Returns:
-        Series of combined scores indexed by code (higher = better)
+    Stocks without a valid start-point are assigned NaN.
     """
-    momentum = compute_momentum_score(close, momentum_lookback)
-    start_point = compute_start_point_score(close, high, start_point_lookback)
+    limit_up = _detect_limit_up_days(close, open_df, threshold)
+    tail_limit = limit_up.tail(window)
+    tail_close = close.tail(window)
+    tail_open = open_df.tail(window)
+    tail_low = low_df.tail(window)
 
-    # Normalize both scores to 0-1 range
-    momentum_norm = (momentum - momentum.min()) / (momentum.max() - momentum.min() + 1e-10)
-    start_point_norm = (start_point - start_point.min()) / (start_point.max() - start_point.min() + 1e-10)
+    current_close = close.iloc[-1]
+    scores: dict[str, float] = {}
 
-    # Combined score: higher momentum + lower start_point (closer to low)
-    # Invert start_point so lower values (closer to low) get higher scores
-    combined = momentum_weight * momentum_norm + (1 - momentum_weight) * (1 - start_point_norm)
+    for code in codes:
+        if code not in tail_limit.columns:
+            continue
+        lu_series = tail_limit[code]
+        lu_dates = lu_series[lu_series].index
+        if lu_dates.empty:
+            continue
 
-    return combined.sort_values(ascending=False)
+        latest_lu = lu_dates[-1]
+        latest_lu_pos = tail_close.index.get_loc(latest_lu)
 
+        start_price = np.nan
+        for j in range(latest_lu_pos, -1, -1):
+            dt_j = tail_close.index[j]
+            c_j = tail_close.loc[dt_j, code]
+            o_j = tail_open.loc[dt_j, code]
+            if pd.notna(c_j) and pd.notna(o_j) and c_j < o_j:
+                start_price = float(tail_low.loc[dt_j, code])
+                break
+
+        if pd.isna(start_price) or start_price <= 0:
+            continue
+
+        cur = current_close.get(code, np.nan)
+        if pd.isna(cur) or cur <= 0:
+            continue
+
+        scores[code] = cur / start_price
+
+    return pd.Series(scores, dtype=float)
+
+
+# ---------------------------------------------------------------------------
+# Main selection entry-point
+# ---------------------------------------------------------------------------
 
 @dataclass
 class SelectionResult:
-    """Result of stock selection process."""
+    """Output of the selection pipeline (compatible with downstream rank format)."""
 
-    rank_df: pd.DataFrame
+    rank_df: pd.DataFrame  # columns: date, code, score, rank
+    candidate_count_df: pd.DataFrame
     rebalance_dates: list[pd.Timestamp]
     used_codes: list[str]
 
 
-def build_jq_selection(
-    db_path,
+def build_limit_up_screening_rank(
+    db_path: Path,
     freq: str,
     universe_codes: list[str],
-    cfg: SelectionConfig,
+    cfg: LimitUpScreeningConfig,
     start_date: str | None = None,
     end_date: str | None = None,
     stock_names: dict[str, str] | None = None,
     listing_dates: dict[str, pd.Timestamp] | None = None,
 ) -> SelectionResult:
-    """Build stock selection using momentum + start-point ranking.
+    """Build ranked stock list using the limit-up screening strategy.
 
-    This implements a simplified version of the original strategy's
-    selection logic, adapted for local SQLite data.
+    Pipeline per rebalance date:
+      1. Universe filters (STAR/BJ, ST, new stock, limit-up/down, volume).
+      2. Sort by smallest market-cap proxy (not available -- use full filtered pool).
+      3. Count historical limit-up days in trailing window; keep top fraction.
+      4. Score by start-point bias (ascending = preferred).
+      5. Output top ``stock_num * topk_multiplier`` candidates with rank.
 
     Args:
-        db_path: Path to SQLite database
-        freq: Data frequency (e.g., '1d')
-        universe_codes: List of candidate stock codes
-        cfg: Selection configuration
-        start_date: Optional start date filter
-        end_date: Optional end date filter
-        stock_names: Optional mapping of code to name for ST filtering
-        listing_dates: Optional mapping of code to listing date
+        db_path: Path to SQLite market database.
+        freq: Bar frequency (e.g. ``'1d'``).
+        universe_codes: Pre-filtered universe code list.
+        cfg: Strategy configuration.
+        start_date: Optional start date for data loading.
+        end_date: Optional end date for data loading.
+        stock_names: Optional code-to-name map for ST filtering.
+        listing_dates: Optional code-to-listing-date map.
 
     Returns:
-        SelectionResult containing ranked stocks and rebalance dates
+        SelectionResult with rank_df, candidate_count_df, rebalance_dates, used_codes.
     """
     if cfg.stock_num <= 0:
         raise ValueError("stock_num must be positive")
 
-    # Load price data
-    codes = sorted(set(universe_codes))[:cfg.max_codes_scan]
-    close, volume = load_close_volume_panel(
-        db_path=db_path, freq=freq, codes=codes, start=start_date, end=end_date,
-    )
+    codes = sorted(set(universe_codes))[: cfg.max_codes_scan]
+    ohlcv = load_ohlcv_panel(db_path=db_path, freq=freq, codes=codes, start=start_date, end=end_date)
+    close = ohlcv["close"]
+    open_df = ohlcv["open"]
+    low_df = ohlcv["low"]
+    volume = ohlcv["volume"]
 
-    # Filter by minimum bars requirement
-    enough_history = close.count() >= cfg.min_bars
-    eligible_codes = enough_history[enough_history].index.tolist()
-    if not eligible_codes:
+    enough = close.count() >= cfg.min_bars
+    eligible = enough[enough].index.tolist()
+    if not eligible:
         raise RuntimeError("No codes satisfy min_bars in universe.")
 
-    close = close[eligible_codes]
-    volume = volume[eligible_codes]
+    close = close[eligible]
+    open_df = open_df[eligible]
+    low_df = low_df[eligible]
+    volume = volume[eligible]
 
-    # Get Tuesday rebalance dates
     calendar = close.index.sort_values()
-    if len(calendar) <= cfg.lookback:
-        raise RuntimeError("Not enough trading days for lookback.")
+    if len(calendar) <= cfg.limit_days_window:
+        raise RuntimeError("Not enough trading days for limit_days_window.")
 
     rebalance_dates = get_tuesday_rebalance_dates(calendar, cfg.rebalance_weekday)
+    if not rebalance_dates:
+        raise RuntimeError("No rebalance dates found in calendar.")
 
     rows_topk: list[dict[str, object]] = []
+    rows_counts: list[dict[str, object]] = []
 
     for dt in rebalance_dates:
-        # Get available codes for this date
-        available_codes = close.loc[dt].dropna().index.tolist()
+        dt_idx = calendar.get_loc(dt)
+        if dt_idx < cfg.limit_days_window:
+            continue
 
-        # Apply filters
-        filtered_codes = available_codes
-
-        # Filter KCB/BJ stocks
-        filtered_codes = filter_kcbj_stock(filtered_codes)
-
-        # Filter ST stocks if names provided
+        available = close.loc[dt].dropna().index.tolist()
+        filtered = filter_kcbj_stock(available)
         if stock_names:
-            filtered_codes = filter_st_stock_by_name(filtered_codes, stock_names)
-
-        # Filter new stocks if listing dates provided
+            filtered = filter_st_stock_by_name(filtered, stock_names)
         if listing_dates:
-            filtered_codes = filter_new_stock(
-                filtered_codes, listing_dates, dt, min_days=375,
+            filtered = filter_new_stock(filtered, listing_dates, dt, min_days=375)
+
+        if dt_idx >= 1:
+            prev_dt = calendar[dt_idx - 1]
+            filtered = filter_limit_up_down(
+                filtered,
+                close.loc[dt],
+                close.loc[prev_dt],
+                limit_pct=cfg.limit_up_threshold,
             )
 
-        # Filter by volume if required
         if cfg.require_positive_volume:
             vol = volume.loc[dt].fillna(0.0)
-            filtered_codes = [c for c in filtered_codes if vol.get(c, 0) > 0]
+            filtered = [c for c in filtered if vol.get(c, 0) > 0]
 
-        if len(filtered_codes) < cfg.stock_num * cfg.topk_multiplier:
+        rows_counts.append({
+            "date": dt,
+            "candidate_count_raw": len(available),
+            "candidate_count": len(filtered),
+        })
+
+        if len(filtered) < cfg.stock_num:
             continue
 
-        # Get historical data for scoring
-        dt_idx = close.index.get_loc(dt)
-        hist_start = max(0, dt_idx - cfg.lookback)
-        hist_close = close.iloc[hist_start:dt_idx + 1][filtered_codes]
+        pool = filtered[: cfg.init_pool_size]
 
-        if hist_close.empty or len(hist_close) < cfg.min_bars:
-            continue
+        hist_start = max(0, dt_idx - cfg.limit_days_window)
+        hist_close = close.iloc[hist_start : dt_idx + 1]
+        hist_open = open_df.iloc[hist_start : dt_idx + 1]
+        hist_low = low_df.iloc[hist_start : dt_idx + 1]
 
-        # Rank by momentum + start-point
-        scores = rank_by_momentum_and_start_point(
-            hist_close,
-            momentum_lookback=cfg.lookback,
-            start_point_lookback=cfg.lookback,
+        lu_counts = count_limit_up_history(
+            hist_close[pool], hist_open[pool],
+            window=cfg.limit_days_window,
+            threshold=cfg.limit_up_threshold,
         )
+        screened = filter_top_limit_up(pool, lu_counts, top_pct=cfg.top_pct_limit_up)
+        if len(screened) < cfg.stock_num:
+            continue
 
-        # Take top 2*stock_num
+        sp_scores = compute_start_point_scores(
+            hist_close, hist_open, hist_low,
+            codes=screened,
+            window=cfg.limit_days_window,
+            threshold=cfg.limit_up_threshold,
+        )
+        sp_scores = sp_scores.dropna().sort_values(ascending=True)
+
         top_count = cfg.stock_num * cfg.topk_multiplier
-        top = scores.head(top_count)
+        top = sp_scores.head(top_count)
 
         for rank, (code, score) in enumerate(top.items(), start=1):
-            rows_topk.append(
-                {
-                    "date": dt,
-                    "code": str(code).zfill(6),
-                    "score": float(score),
-                    "rank": rank,
-                },
-            )
+            rows_topk.append({
+                "date": dt,
+                "code": str(code).zfill(6),
+                "score": float(score),
+                "rank": rank,
+            })
 
     rank_df = pd.DataFrame(rows_topk)
+    candidate_df = pd.DataFrame(rows_counts)
 
     if rank_df.empty:
-        raise RuntimeError("Rank dataframe is empty. Check coverage/min_bars settings.")
+        raise RuntimeError("Rank dataframe is empty. Check coverage / min_bars / limit_days_window.")
 
     rank_df["date"] = pd.to_datetime(rank_df["date"])
+    if not candidate_df.empty:
+        candidate_df["date"] = pd.to_datetime(candidate_df["date"])
 
     return SelectionResult(
         rank_df=rank_df.sort_values(["date", "rank", "code"]).reset_index(drop=True),
+        candidate_count_df=candidate_df.sort_values("date").reset_index(drop=True) if not candidate_df.empty else candidate_df,
         rebalance_dates=rebalance_dates,
-        used_codes=eligible_codes,
+        used_codes=eligible,
     )
-
-
-def rank_targets_jq(rank_df: pd.DataFrame, stock_num: int) -> dict[pd.Timestamp, list[str]]:
-    """Convert rank DataFrame to targets dictionary.
-
-    Args:
-        rank_df: Rank DataFrame with columns date, code, rank
-        stock_num: Number of stocks to select per rebalance
-
-    Returns:
-        Dictionary mapping dates to lists of stock codes
-    """
-    out: dict[pd.Timestamp, list[str]] = {}
-    for dt, group in rank_df.groupby("date"):
-        chosen = group[group["rank"] <= stock_num]["code"].astype(str).str.zfill(6).tolist()
-        out[pd.Timestamp(dt)] = chosen
-    return out

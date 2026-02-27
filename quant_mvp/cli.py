@@ -13,7 +13,7 @@ TASK_TO_SCRIPT = {
     "update": "scripts/steps/11_update_bars.py",
     "rank": "scripts/steps/20_build_rank.py",
     "backtest": "scripts/steps/30_bt_rebalance.py",
-    "strategy": "scripts/strategy_jq.py",
+    "strategy": "scripts/run_limit_up_screening.py",
     "baselines": "scripts/steps/31_bt_baselines.py",
     "cost": "scripts/steps/32_cost_sweep.py",
     "walk_forward": "scripts/steps/33_walk_forward.py",

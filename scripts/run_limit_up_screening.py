@@ -1,7 +1,8 @@
-"""
-Original strategy: Tuesday rebalance, equal-weight N names, stop-loss / take-profit /
-market stop-loss, no-trade months (cash), blacklist after stop-loss.
-Standalone runnable script; uses quant_mvp and project config.
+"""Limit-Up Screening Strategy -- standalone entry point.
+
+Runs the full pipeline: build Tuesday-rebalance rank via limit-up screening,
+then backtest with stop-loss, take-profit, market stop-loss, no-trade months,
+and post-stop-loss blacklist. Uses quant_mvp library and project config.
 """
 from __future__ import annotations
 
@@ -79,8 +80,8 @@ def _index_daily_ratio(db_path: Path, freq: str, calendar_code: str, start: str,
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run original strategy: Tuesday rebalance, stop-loss, no-trade months.")
-    parser.add_argument("--project", type=str, default="2026Q1_jq")
+    parser = argparse.ArgumentParser(description="Run limit-up screening strategy: Tuesday rebalance, stop-loss, no-trade months.")
+    parser.add_argument("--project", type=str, default="2026Q1_limit_up")
     parser.add_argument("--config", type=Path, default=None)
     parser.add_argument("--save", type=str, default="auto")
     parser.add_argument("--no-show", action="store_true")
@@ -196,9 +197,9 @@ def main() -> None:
         },
     )
 
-    print(f"[strategy_jq] project={args.project} metrics={metrics_path}")
+    print(f"[limit_up_screening] project={args.project} metrics={metrics_path}")
     if plot_path:
-        print(f"[strategy_jq] plot={plot_path}")
+        print(f"[limit_up_screening] plot={plot_path}")
 
 
 if __name__ == "__main__":

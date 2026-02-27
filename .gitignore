@@ -50,3 +50,7 @@ artifacts/projects/2026Q1_mom/**
 !artifacts/projects/2026Q1_mom/topn_1_5.png
 !artifacts/projects/2026Q1_mom/summary_metrics.csv
 !artifacts/projects/2026Q1_mom/report.md
+
+# IDE / tool-specific
+.trae/
+*.plan.md

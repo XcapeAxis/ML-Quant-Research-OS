@@ -1,6 +1,7 @@
+# Internal reference only -- original strategy specification. Not for execution.
+# This file is kept as a logical reference for the strategy rules and is not
+# intended to be run directly. All platform-specific APIs have been redacted.
 
-from jqdata import *
-from jqfactor import *
 import numpy as np
 import pandas as pd
 from datetime import time

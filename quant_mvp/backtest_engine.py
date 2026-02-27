@@ -261,7 +261,7 @@ def run_rebalance_backtest_with_stoploss(
                     avg_cost[c] = float(close.loc[ts, c])
             delta = target - weights
             buy_notional = float(delta[delta > 0].sum()) * value
-            sell_notional = float((-delta[delta < 0].sum()) * value
+            sell_notional = float((-delta[delta < 0]).sum()) * value
             trading_notional = buy_notional + sell_notional
             fee_buy = _commission_fee(buy_notional, cfg.commission + cfg.slippage, min_comm)
             fee_sell = _commission_fee(sell_notional, cfg.commission + cfg.slippage, min_comm) + sell_notional * cfg.stamp_duty

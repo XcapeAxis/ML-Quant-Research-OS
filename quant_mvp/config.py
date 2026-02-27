@@ -11,6 +11,7 @@ from .project import ProjectPaths, resolve_project_paths
 DEFAULT_CONFIG: dict[str, Any] = {
     "db_path": None,
     "freq": "1d",
+    "strategy_mode": "momentum",  # "momentum" | "limit_up_screening"
     "lookback": 20,
     "rebalance_every": 5,
     "topk": 5,
@@ -26,6 +27,20 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "end_date": None,
     "universe_size_target": None,
     "risk_free_rate": 0.03,
+    # Limit-up screening strategy defaults
+    "stock_num": 6,
+    "limit_days_window": 750,
+    "top_pct_limit_up": 0.10,
+    "limit_up_threshold": 0.095,
+    "init_pool_size": 1000,
+    "rebalance_weekday": 1,
+    # Stop-loss / take-profit defaults
+    "stoploss_limit": 0.91,
+    "take_profit_ratio": 2.0,
+    "market_stoploss_ratio": 0.93,
+    "loss_black_days": 20,
+    "no_trade_months": [1, 4],
+    "min_commission": 5.0,
     "baselines": {
         "benchmark_code": "000001",
         "enable_equal_weight": True,
