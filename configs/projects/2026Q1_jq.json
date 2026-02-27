@@ -1,0 +1,49 @@
+{
+  "name": "2026Q1_jq",
+  "description": "Original momentum + stop-loss strategy (JQ-style)",
+  "strategy": "jq",
+
+  "freq": "1d",
+  "calendar_code": "000001",
+  "start_date": "2016-01-01",
+  "end_date": null,
+  "universe_size_target": 1000,
+
+  "stock_num": 6,
+  "rebalance_weekday": 1,
+  "lookback": 60,
+  "topk_multiplier": 2,
+  "min_bars": 20,
+  "max_codes_scan": 1000,
+  "require_positive_volume": true,
+
+  "stoploss_limit": 0.91,
+  "take_profit_ratio": 2.0,
+  "market_stoploss_ratio": 0.93,
+  "loss_black_days": 20,
+  "no_trade_months": [1, 4],
+
+  "cash": 1000000,
+  "commission": 0.0001,
+  "stamp_duty": 0.0005,
+  "slippage": 0.002,
+  "min_commission": 5.0,
+  "risk_free_rate": 0.03,
+  "benchmark_code": "399101",
+
+  "risk_overlay": {
+    "enabled": false,
+    "vol_target": 0.18,
+    "rolling_days": 20,
+    "max_leverage": 1.0
+  },
+
+  "report": {
+    "format": "md",
+    "include_sections": [
+      "overview",
+      "metrics",
+      "coverage"
+    ]
+  }
+}

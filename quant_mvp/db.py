@@ -100,6 +100,56 @@ def load_close_volume_panel(
     return close, volume
 
 
+def load_ohlcv_panel(
+    db_path: Path,
+    freq: str,
+    codes: list[str],
+    start: str | None = None,
+    end: str | None = None,
+) -> dict[str, pd.DataFrame]:
+    """Load OHLCV data as a dictionary of DataFrames.
+
+    Returns a dict with keys: open, high, low, close, volume
+    Each value is a DataFrame with dates as index and codes as columns.
+    """
+    if not codes:
+        raise ValueError("codes cannot be empty")
+
+    frames: list[pd.DataFrame] = []
+    with get_conn(db_path) as conn:
+        for chunk in _chunked(codes, 800):
+            placeholders = ",".join(["?"] * len(chunk))
+            sql = (
+                f"SELECT symbol, datetime, open, high, low, close, volume FROM bars "
+                f"WHERE freq=? AND symbol IN ({placeholders})"
+            )
+            params: list[str] = [freq, *chunk]
+            if start:
+                sql += " AND datetime >= ?"
+                params.append(start)
+            if end:
+                sql += " AND datetime <= ?"
+                params.append(end)
+            sql += " ORDER BY datetime, symbol"
+            df = pd.read_sql(sql, conn, params=params)
+            if not df.empty:
+                frames.append(df)
+
+    if not frames:
+        raise RuntimeError("No bars found for requested codes.")
+
+    raw = pd.concat(frames, ignore_index=True)
+    raw["datetime"] = pd.to_datetime(raw["datetime"])
+    raw["symbol"] = raw["symbol"].astype(str).str.zfill(6)
+
+    result = {}
+    for col in ["open", "high", "low", "close", "volume"]:
+        pivot = raw.pivot(index="datetime", columns="symbol", values=col).sort_index()
+        result[col] = pivot.astype(float)
+
+    return result
+
+
 def list_db_codes(db_path: Path, freq: str) -> set[str]:
     with get_conn(db_path) as conn:
         rows = conn.execute("SELECT DISTINCT symbol FROM bars WHERE freq=?", (freq,)).fetchall()
