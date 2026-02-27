@@ -12,7 +12,23 @@ A-share momentum and stock-selection research platform using SQLite bars and rep
 
 ## Quickstart
 
-### Basic Momentum Strategy
+### Option 1: Original Strategy (Momentum + Stop-Loss)
+
+Run the complete strategy with a single command:
+
+```bash
+python scripts/strategy_jq.py --project 2026Q1_jq
+```
+
+This implements the original design with:
+- Tuesday-only rebalancing
+- Stop-loss at 0.91 (~9% loss threshold)
+- Take-profit at 2.0x (100% gain)
+- Market stop-loss at 0.93 (index close/open ratio)
+- No-trade months: January and April (hold cash)
+- 20-day blacklist after stop-loss triggers
+
+### Option 2: Plain Momentum Pipeline
 
 1. Build and freeze universe, then update bars:
    ```bash
@@ -31,22 +47,6 @@ A-share momentum and stock-selection research platform using SQLite bars and rep
    python scripts/audit_db.py --project 2026Q1_mom
    python scripts/steps/40_make_report.py --project 2026Q1_mom
    ```
-
-### Original Strategy (Momentum + Stop-Loss)
-
-Run the complete strategy with a single command:
-
-```bash
-python scripts/strategy_jq.py --project 2026Q1_jq
-```
-
-This implements the original design with:
-- Tuesday-only rebalancing
-- Stop-loss at 0.91 (~9% loss threshold)
-- Take-profit at 2.0x (100% gain)
-- Market stop-loss at 0.93 (index close/open ratio)
-- No-trade months: January and April (hold cash)
-- 20-day blacklist after stop-loss triggers
 
 ## Strategy Details
 
@@ -75,15 +75,15 @@ The original strategy is an original design featuring:
 
 ## Results
 
-Main artifacts for momentum strategy:
-- `artifacts/projects/2026Q1_mom/topn_1_5.png`
-- `artifacts/projects/2026Q1_mom/summary_metrics.csv`
-- `artifacts/projects/2026Q1_mom/report.md`
-
 Main artifacts for original strategy:
 - `artifacts/projects/2026Q1_jq/rank_jq.parquet`
 - `artifacts/projects/2026Q1_jq/equity_jq.csv`
 - `artifacts/projects/2026Q1_jq/metrics_jq.json`
+
+Main artifacts for momentum strategy:
+- `artifacts/projects/2026Q1_mom/topn_1_5.png`
+- `artifacts/projects/2026Q1_mom/summary_metrics.csv`
+- `artifacts/projects/2026Q1_mom/report.md`
 
 ## Reproducibility
 
@@ -96,31 +96,21 @@ Each run is reproducible through:
 ## Project Structure
 
 ```
-.
-├── quant_mvp/              # Core library modules
-│   ├── backtest_engine.py  # Backtesting with stop-loss support
-│   ├── selection.py        # Stock selection and ranking
-│   ├── ranking.py          # Momentum ranking utilities
-│   ├── db.py               # SQLite database operations
-│   ├── universe.py         # Universe building
-│   ├── reporting.py        # Report generation
-│   └── ...
-├── scripts/
-│   ├── strategy_jq.py      # Main strategy entry point
-│   ├── steps/              # Pipeline stages
-│   │   ├── 10_symbols.py
-│   │   ├── 11_update_bars.py
-│   │   ├── 20_build_rank.py
-│   │   ├── 30_bt_rebalance.py
-│   │   └── ...
-│   └── audit_db.py         # Database coverage audit
-├── configs/projects/       # Project configurations
-├── data/projects/          # Project data and metadata
-├── artifacts/projects/     # Generated outputs
-├── docs/                   # Documentation
-│   ├── factors.md          # Factor library
-│   └── projects/           # Project notes
-└── tests/                  # Unit and smoke tests
+configs/projects/     Project JSON configs (e.g. 2026Q1_mom.json, 2026Q1_jq.json)
+data/
+  market.db           SQLite bars (symbol, datetime, freq, open, high, low, close, volume)
+  projects/<name>/
+    meta/             universe_codes.txt, run_manifest.json, db_coverage_*
+    signals/          rank_topK.parquet, rank_candidates.parquet
+    features/         Factor parquets (e.g. mom20.parquet)
+artifacts/projects/   summary_metrics.csv, topn_1_5.png, report.md
+quant_mvp/            Config, db, universe, manifest, ranking, backtest_engine, reporting
+scripts/
+  strategy_jq.py      Main strategy entry (Tuesday rebalance, stop-loss, no-trade months)
+  steps/              10_symbols, 11_update_bars, 20_build_rank, 30_bt_rebalance, 31–34, 40_make_report
+  audit_db.py         Database coverage audit
+  tools/              Optional utilities
+docs/                 Methodology and factor notes
 ```
 
 ## Configuration
