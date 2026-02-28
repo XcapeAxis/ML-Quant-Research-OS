@@ -27,11 +27,13 @@ else:
     st.info(f"Missing metrics file: {metrics_path}")
 
 st.subheader("Equity Curve")
-curve_path = artifact_dir / "topn_1_5.png"
+curve_path = artifact_dir / "equity_curve.png"
+if not curve_path.exists():
+    curve_path = artifact_dir / "topn_1_5.png"
 if curve_path.exists():
     st.image(str(curve_path))
 else:
-    st.info(f"Missing curve image: {curve_path}")
+    st.info(f"Missing curve image: equity_curve.png or topn_1_5.png")
 
 st.subheader("Run Manifest")
 manifest_path = meta_dir / "run_manifest.json"

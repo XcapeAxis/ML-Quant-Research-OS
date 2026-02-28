@@ -160,8 +160,10 @@ def main() -> None:
 
     save_plot = str(args.save).strip().lower()
     plot_path = None
+    dd_plot_path = None
     if save_plot == "auto" or (save_plot == "" and args.no_show):
-        plot_path = paths.artifacts_dir / "topn_1_5.png"
+        plot_path = paths.artifacts_dir / "equity_curve.png"
+        dd_plot_path = paths.artifacts_dir / "drawdown_curve.png"
     elif save_plot not in {"", "none", "false"}:
         candidate = Path(args.save)
         plot_path = candidate if candidate.is_absolute() else (ROOT / candidate)
@@ -178,6 +180,20 @@ def main() -> None:
         plt.legend()
         plt.tight_layout()
         plt.savefig(plot_path, dpi=200)
+        plt.close()
+
+    if dd_plot_path is not None and len(equity) > 1:
+        peak = equity.cummax()
+        drawdown = (equity / peak) - 1.0
+        plt.figure(figsize=(12, 5))
+        plt.fill_between(drawdown.index, drawdown.values, 0, alpha=0.4, color="coral")
+        plt.plot(drawdown.index, drawdown.values, color="darkred", linewidth=0.8)
+        plt.title(f"{args.project}: Drawdown from peak")
+        plt.xlabel("Date")
+        plt.ylabel("Drawdown")
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig(dd_plot_path, dpi=200)
         plt.close()
 
     update_run_manifest(

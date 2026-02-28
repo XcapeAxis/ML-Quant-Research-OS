@@ -84,6 +84,24 @@ def _save_single_curve_plot(equity: pd.Series, out_path: Path, title: str, label
     plt.close()
 
 
+def _save_drawdown_plot(equity: pd.Series, out_path: Path, title: str) -> None:
+    if len(equity) < 2:
+        return
+    peak = equity.cummax()
+    drawdown = (equity / peak) - 1.0
+    plt.figure(figsize=(12, 5))
+    plt.fill_between(drawdown.index, drawdown.values, 0, alpha=0.4, color="coral")
+    plt.plot(drawdown.index, drawdown.values, color="darkred", linewidth=0.8)
+    plt.title(title)
+    plt.xlabel("Date")
+    plt.ylabel("Drawdown")
+    plt.grid(True)
+    plt.tight_layout()
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(out_path, dpi=200)
+    plt.close()
+
+
 def _index_daily_ratio(db_path: Path, freq: str, calendar_code: str, start: str, end: str) -> pd.Series | None:
     """Load index close/open ratio per day for market stop-loss."""
     try:
@@ -236,6 +254,8 @@ def _run_limit_up_screening(args, cfg: dict, paths) -> None:
     plot_path = _resolve_plot_path(args, paths, "equity_curve.png")
     if plot_path is not None:
         _save_single_curve_plot(equity, plot_path, f"{args.project}: Strategy equity curve", f"Top{stock_num}")
+        dd_path = paths.artifacts_dir / "drawdown_curve.png"
+        _save_drawdown_plot(equity, dd_path, f"{args.project}: Drawdown from peak")
 
     update_run_manifest(args.project, {
         "strategy_mode": "limit_up_screening",

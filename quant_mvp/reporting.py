@@ -58,12 +58,21 @@ def generate_report_markdown(project: str) -> Path:
     lines.append("")
     lines.append("## Backtest Curve")
     lines.append("")
-    plot_path = paths.artifacts_dir / "topn_1_5.png"
-    if plot_path.exists():
-        lines.append("![TopN Equity Curve](topn_1_5.png)")
+    equity_plot = paths.artifacts_dir / "equity_curve.png"
+    fallback_plot = paths.artifacts_dir / "topn_1_5.png"
+    if equity_plot.exists():
+        lines.append("![Equity Curve](equity_curve.png)")
+    elif fallback_plot.exists():
+        lines.append("![Equity Curve](topn_1_5.png)")
     else:
-        lines.append("_topn_1_5.png not found._")
+        lines.append("_equity_curve.png / topn_1_5.png not found._")
     lines.append("")
+    dd_plot = paths.artifacts_dir / "drawdown_curve.png"
+    if dd_plot.exists():
+        lines.append("## Drawdown")
+        lines.append("")
+        lines.append("![Drawdown](drawdown_curve.png)")
+        lines.append("")
     lines.append("## Summary Metrics")
     lines.append("")
     lines.append(_metrics_markdown(paths.artifacts_dir / "summary_metrics.csv"))
