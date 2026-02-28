@@ -57,14 +57,83 @@ def sharpe_ratio(daily_returns: pd.Series, risk_free_rate: float) -> float:
     return float((ret - risk_free_rate) / vol)
 
 
+def downside_deviation(daily_returns: pd.Series) -> float:
+    """Annualized volatility of negative returns only (for Sortino)."""
+    if daily_returns.empty:
+        return 0.0
+    neg = daily_returns[daily_returns < 0]
+    if len(neg) < 2:
+        return 0.0
+    return float(neg.std(ddof=0) * np.sqrt(252.0))
+
+
+def sortino_ratio(daily_returns: pd.Series, risk_free_rate: float) -> float:
+    dd = downside_deviation(daily_returns)
+    if dd <= 0:
+        return 0.0
+    ret = annualized_return(daily_returns)
+    return float((ret - risk_free_rate) / dd)
+
+
+def calmar_ratio(annualized_return: float, max_drawdown: float) -> float:
+    """Annualized return / abs(max_drawdown). Returns 0 when max_drawdown is 0."""
+    if max_drawdown == 0 or (max_drawdown > 0 and annualized_return <= 0):
+        return 0.0
+    return float(annualized_return / abs(max_drawdown))
+
+
+def win_rate(daily_returns: pd.Series) -> float:
+    """Fraction of trading days with positive daily return."""
+    if daily_returns.empty:
+        return 0.0
+    return float((daily_returns > 0).sum() / len(daily_returns))
+
+
+def max_drawdown_duration(equity: pd.Series) -> float:
+    """Number of days from peak to trough during the worst drawdown."""
+    if len(equity) < 2:
+        return 0.0
+    peak = equity.cummax()
+    in_dd = equity < peak
+    if not in_dd.any():
+        return 0.0
+    runs: list[int] = []
+    count = 0
+    for v in in_dd.values:
+        if v:
+            count += 1
+        else:
+            if count > 0:
+                runs.append(count)
+            count = 0
+    if count > 0:
+        runs.append(count)
+    return float(max(runs)) if runs else 0.0
+
+
+def return_skewness(daily_returns: pd.Series) -> float:
+    """Skewness of daily returns (0 for empty or < 3 obs)."""
+    if daily_returns.empty or len(daily_returns) < 3:
+        return 0.0
+    return float(daily_returns.skew())
+
+
 def summarize_equity(equity: pd.Series, cfg: BacktestConfig) -> dict[str, float]:
     daily_returns = equity.pct_change().fillna(0.0)
+    ann_ret = annualized_return(daily_returns)
+    ann_vol = annualized_volatility(daily_returns)
+    md = max_drawdown(equity)
     return {
         "total_return": float(equity.iloc[-1] / equity.iloc[0] - 1.0) if len(equity) > 1 else 0.0,
-        "annualized_return": annualized_return(daily_returns),
-        "annualized_volatility": annualized_volatility(daily_returns),
-        "max_drawdown": max_drawdown(equity),
+        "annualized_return": ann_ret,
+        "annualized_volatility": ann_vol,
+        "max_drawdown": md,
         "sharpe_ratio": sharpe_ratio(daily_returns, cfg.risk_free_rate),
+        "calmar_ratio": calmar_ratio(ann_ret, md),
+        "sortino_ratio": sortino_ratio(daily_returns, cfg.risk_free_rate),
+        "win_rate": win_rate(daily_returns),
+        "max_drawdown_duration": max_drawdown_duration(equity),
+        "return_skewness": return_skewness(daily_returns),
         "days": float(len(equity)),
         "final_equity": float(equity.iloc[-1]) if not equity.empty else float(cfg.cash),
     }
