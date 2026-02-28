@@ -113,7 +113,14 @@ def main() -> None:
         require_positive_volume=require_positive_volume,
         min_volume=min_volume,
     )
-    rank_df = rank_result.rank_df
+    rank_df = rank_result.rank_df.copy()
+    if cfg.get("start_date"):
+        rank_df = rank_df[rank_df["date"] >= pd.Timestamp(cfg["start_date"])]
+    if cfg.get("end_date"):
+        rank_df = rank_df[rank_df["date"] <= pd.Timestamp(cfg["end_date"])]
+    if rank_df.empty:
+        raise RuntimeError("No rank dates in config start_date/end_date range.")
+
     rank_path = paths.signals_dir / f"rank_top{stock_num}.parquet"
     rank_df.to_parquet(rank_path, index=False)
 
