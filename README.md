@@ -1,9 +1,8 @@
 # MyQuantJournal
 
 A reproducible, project-scoped **China A-share quantitative research platform**
-built on local SQLite market data and a modular Python pipeline. Ships with an
-original **Limit-Up Screening** strategy as the primary research workflow, plus
-a classic momentum pipeline for comparison.
+built on local SQLite market data and a modular Python pipeline. It implements
+an original **Limit-Up Screening** strategy as the main research workflow.
 
 ---
 
@@ -13,8 +12,6 @@ a classic momentum pipeline for comparison.
 - [Features](#features)
 - [Quickstart](#quickstart)
 - [Strategy Overview](#strategy-overview)
-  - [Limit-Up Screening (primary)](#limit-up-screening-primary)
-  - [Momentum Pipeline (alternative)](#momentum-pipeline-alternative)
 - [Strategy Parameters](#strategy-parameters)
 - [Repository Structure](#repository-structure)
 - [Configuration](#configuration)
@@ -51,7 +48,7 @@ a classic momentum pipeline for comparison.
 |------|-----------|
 | **Data** | AkShare integration for A-share daily OHLCV; incremental & backfill modes; SQLite WAL storage |
 | **Universe** | Configurable filters: mainboard only, exclude STAR/ChiNext/BSE/ST/new stocks; frozen universe file |
-| **Selection** | Limit-up history screening, start-point scoring, Tuesday rebalance calendar; also classic momentum rank |
+| **Selection** | Limit-up history screening, start-point scoring, Tuesday rebalance calendar |
 | **Backtest** | Equal-weight rebalance engine with transaction costs (commission, stamp duty, slippage, min commission) |
 | **Risk Controls** | Per-position stop-loss & take-profit, market-wide stop-loss (index close/open), no-trade months, post-stop-loss blacklist |
 | **Analysis** | Cost sensitivity sweep (5x5 grid), walk-forward validation, baseline & random controls |
@@ -72,7 +69,7 @@ a classic momentum pipeline for comparison.
   pip install -r requirements.txt
   ```
 
-### Option 1: Limit-Up Screening Strategy (recommended)
+### Quickstart: Limit-Up Screening Strategy
 
 ```bash
 # 1. Build and freeze universe
@@ -94,20 +91,9 @@ python scripts/audit_db.py --project 2026Q1_limit_up
 python scripts/steps/40_make_report.py --project 2026Q1_limit_up
 ```
 
-Or run the strategy as a single standalone script:
+Or run the full strategy as a single script:
 ```bash
 python scripts/run_limit_up_screening.py --project 2026Q1_limit_up --no-show --save auto
-```
-
-### Option 2: Classic Momentum Pipeline
-
-```bash
-python scripts/steps/10_symbols.py --project 2026Q1_mom
-python scripts/steps/11_update_bars.py --project 2026Q1_mom --mode incremental
-python scripts/steps/20_build_rank.py --project 2026Q1_mom
-python scripts/steps/30_bt_rebalance.py --project 2026Q1_mom --no-show --save auto
-python scripts/audit_db.py --project 2026Q1_mom
-python scripts/steps/40_make_report.py --project 2026Q1_mom
 ```
 
 ---
@@ -139,12 +125,6 @@ risk through multi-layer controls.
 - **No-trade months**: January & April -- clear to cash at month end
 - **Blacklist**: 20-day cool-off after any stop-loss trigger
 
-### Momentum Pipeline (alternative)
-
-Classic N-day momentum rank with configurable lookback and rebalance frequency.
-Uses the plain rebalance engine (no stop-loss). Supports TopN sweep for
-parameter exploration.
-
 ---
 
 ## Strategy Parameters
@@ -171,16 +151,6 @@ parameter exploration.
 | `min_commission` | 5.0 | Minimum commission (CNY) |
 | `cash` | 1,000,000 | Initial capital (CNY) |
 
-### Momentum
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `strategy_mode` | `"momentum"` | Strategy selector |
-| `lookback` | 20 | Momentum lookback period |
-| `rebalance_every` | 5 | Rebalance every N trading days |
-| `topk` | 5 | Top-K stocks per rebalance |
-| `topn_max` | 5 | TopN sweep range |
-
 ---
 
 ## Repository Structure
@@ -197,7 +167,7 @@ MyQuantJournal/
 │   ├── universe.py             Universe load/save
 │   ├── manifest.py             Run manifest tracking
 │   ├── selection.py            Limit-up screening strategy logic
-│   ├── ranking.py              Momentum ranking
+│   ├── ranking.py              Ranking (limit-up screening)
 │   ├── backtest_engine.py      Backtest engines (plain & stop-loss)
 │   ├── factors.py              Factor library
 │   └── reporting.py            Report generation
@@ -206,8 +176,8 @@ MyQuantJournal/
 │   ├── steps/
 │   │   ├── 10_symbols.py           Universe construction
 │   │   ├── 11_update_bars.py       Bar data fetch & update
-│   │   ├── 20_build_rank.py        Ranking (momentum or limit-up)
-│   │   ├── 30_bt_rebalance.py      Backtest (plain or stop-loss)
+│   │   ├── 20_build_rank.py        Ranking (limit-up screening)
+│   │   ├── 30_bt_rebalance.py      Backtest (with stop-loss)
 │   │   ├── 31_bt_baselines.py      Baseline & random controls
 │   │   ├── 32_cost_sweep.py        Cost sensitivity analysis
 │   │   ├── 33_walk_forward.py      Walk-forward validation
@@ -216,8 +186,7 @@ MyQuantJournal/
 │   ├── audit_db.py                 Database coverage audit
 │   └── tools/                      Optional utilities
 ├── configs/projects/               Project JSON configs
-│   ├── 2026Q1_limit_up.json        Limit-up screening config
-│   └── 2026Q1_mom.json             Momentum config
+│   └── 2026Q1_limit_up.json        Limit-up screening config
 ├── data/
 │   ├── market.db                   SQLite OHLCV database
 │   └── projects/<name>/
@@ -232,7 +201,6 @@ MyQuantJournal/
 │   └── DECISIONS.md                          Architecture decisions
 ├── dashboard/app.py               Streamlit dashboard
 ├── tests/                         Unit & smoke tests
-├── archive/                       Historical reference files
 ├── requirements.txt
 ├── pyproject.toml
 └── README.md
@@ -336,14 +304,10 @@ Universe Definition (10_symbols.py)
 Data Update (11_update_bars.py)  ──▶  SQLite market.db
         │
         ▼
-Stock Ranking (20_build_rank.py)
-  ├── momentum mode: build_momentum_rank
-  └── limit_up_screening mode: build_limit_up_screening_rank
+Stock Ranking (20_build_rank.py)  ── limit_up_screening rank
         │
         ▼
-Backtest (30_bt_rebalance.py)
-  ├── momentum mode: run_topn_suite (plain rebalance)
-  └── limit_up_screening mode: run_rebalance_backtest_with_stoploss
+Backtest (30_bt_rebalance.py)  ── run_rebalance_backtest_with_stoploss
         │
         ▼
 Reporting (40_make_report.py)  ──▶  Markdown report + artifacts
