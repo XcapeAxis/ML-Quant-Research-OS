@@ -21,7 +21,7 @@ def main() -> None:
     parser.add_argument(
         "--rank-path",
         type=Path,
-        default=Path("data/projects/2026Q1_mom/signals/rank_top5.parquet"),
+        default=Path("data/projects/2026Q1_limit_up/signals/rank_top6.parquet"),
         help="Path to rank parquet file",
     )
     args = parser.parse_args()

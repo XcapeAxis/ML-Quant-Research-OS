@@ -13,7 +13,7 @@ projects_root = root / "artifacts" / "projects"
 projects = sorted([p.name for p in projects_root.glob("*") if p.is_dir()]) if projects_root.exists() else []
 
 st.title("Quant MVP Dashboard")
-project = st.selectbox("Project", options=projects or ["2026Q1_mom"])
+project = st.selectbox("Project", options=projects or ["2026Q1_limit_up"])
 
 artifact_dir = root / "artifacts" / "projects" / project
 meta_dir = root / "data" / "projects" / project / "meta"

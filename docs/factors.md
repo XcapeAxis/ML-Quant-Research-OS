@@ -34,6 +34,6 @@ All factors are generated through the unified interface:
 ## Usage
 
 - script:
-  - `python scripts/steps/34_build_factors.py --project 2026Q1_mom`
+  - `python scripts/steps/34_build_factors.py --project 2026Q1_limit_up`
 - unified CLI:
-  - `python -m quant_mvp run --project 2026Q1_mom --task factors`
+  - `python -m quant_mvp run --project 2026Q1_limit_up --task factors`

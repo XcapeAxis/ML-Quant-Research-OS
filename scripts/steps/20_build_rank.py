@@ -140,7 +140,7 @@ def _run_limit_up_screening(cfg: dict, paths, universe: list[str]) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build project-scoped stock ranking.")
-    parser.add_argument("--project", type=str, default="2026Q1_mom")
+    parser.add_argument("--project", type=str, default="2026Q1_limit_up")
     parser.add_argument("--config", type=Path, default=None)
     parser.add_argument("--freq", type=str, default=None)
     parser.add_argument("--lookback", type=int, default=None)

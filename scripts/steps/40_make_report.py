@@ -15,7 +15,7 @@ from quant_mvp.reporting import generate_report_markdown
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate project-scoped markdown report.")
-    parser.add_argument("--project", type=str, default="2026Q1_mom")
+    parser.add_argument("--project", type=str, default="2026Q1_limit_up")
     parser.add_argument("--config", type=Path, default=None)
     _ = parser.parse_args()
     args = _

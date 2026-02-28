@@ -24,7 +24,7 @@ def test_config_merge_priority(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     cfg, _ = load_config(
-        project="2026Q1_mom",
+        project="2026Q1_limit_up",
         config_path=config_path,
         overrides={"lookback": 30, "baselines": {"random_trials": 10}},
     )

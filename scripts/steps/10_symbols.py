@@ -92,7 +92,7 @@ def build_symbols(project: str, target_size: int | None = None) -> tuple[Path, P
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build universe symbols and freeze project universe.")
-    parser.add_argument("--project", type=str, default="2026Q1_mom")
+    parser.add_argument("--project", type=str, default="2026Q1_limit_up")
     parser.add_argument("--config", type=Path, default=None)
     _ = parser.parse_args()
     args = _

@@ -189,7 +189,7 @@ def run_update(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Update bars into SQLite (project-scoped).")
-    parser.add_argument("--project", type=str, default="2026Q1_mom")
+    parser.add_argument("--project", type=str, default="2026Q1_limit_up")
     parser.add_argument("--config", type=Path, default=None, help="Optional config path override.")
     parser.add_argument("--mode", type=str, default="incremental", choices=["incremental", "backfill"])
     parser.add_argument("--freq", type=str, default=None)

@@ -61,7 +61,7 @@ def run_audit(project: str, config_path: Path | None = None) -> tuple[Path, Path
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Audit SQLite coverage against frozen universe.")
-    parser.add_argument("--project", type=str, default="2026Q1_mom")
+    parser.add_argument("--project", type=str, default="2026Q1_limit_up")
     parser.add_argument("--config", type=Path, default=None)
     args = parser.parse_args()
 

@@ -36,20 +36,21 @@ logs/**
 # Keep data ignored by default, but allow selected showcase metadata
 data/**
 !data/projects/
-!data/projects/2026Q1_mom/
-data/projects/2026Q1_mom/**
-!data/projects/2026Q1_mom/meta/
-data/projects/2026Q1_mom/meta/**
-!data/projects/2026Q1_mom/meta/run_manifest.json
+!data/projects/2026Q1_limit_up/
+data/projects/2026Q1_limit_up/**
+!data/projects/2026Q1_limit_up/meta/
+data/projects/2026Q1_limit_up/meta/**
+!data/projects/2026Q1_limit_up/meta/run_manifest.json
 
 # Keep artifacts ignored by default, but allow selected showcase outputs
 artifacts/**
 !artifacts/projects/
-!artifacts/projects/2026Q1_mom/
-artifacts/projects/2026Q1_mom/**
-!artifacts/projects/2026Q1_mom/topn_1_5.png
-!artifacts/projects/2026Q1_mom/summary_metrics.csv
-!artifacts/projects/2026Q1_mom/report.md
+!artifacts/projects/2026Q1_limit_up/
+artifacts/projects/2026Q1_limit_up/**
+!artifacts/projects/2026Q1_limit_up/equity_curve.png
+!artifacts/projects/2026Q1_limit_up/drawdown_curve.png
+!artifacts/projects/2026Q1_limit_up/summary_metrics.csv
+!artifacts/projects/2026Q1_limit_up/report.md
 
 # IDE / tool-specific
 .trae/

@@ -27,7 +27,7 @@ def _parse_grid(value: str | None) -> list[float] | None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run commission/slippage cost sweep (5x5 default).")
-    parser.add_argument("--project", type=str, default="2026Q1_mom")
+    parser.add_argument("--project", type=str, default="2026Q1_limit_up")
     parser.add_argument("--config", type=Path, default=None)
     parser.add_argument("--commission-grid", type=str, default=None)
     parser.add_argument("--slippage-grid", type=str, default=None)
