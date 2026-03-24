@@ -1,0 +1,16 @@
+{
+  "default_gate": "AUTO",
+  "max_recommended_subagents": 3,
+  "min_breadth_for_split": 2,
+  "min_independence_for_split": 0.65,
+  "max_file_overlap_for_split": 0.4,
+  "min_score_for_auto": 1.8,
+  "weights": {
+    "breadth": 0.7,
+    "independence": 0.8,
+    "validation_load": 0.7,
+    "risk_isolation": 0.5,
+    "file_overlap_penalty": 0.9,
+    "coordination_penalty": 0.8
+  }
+}

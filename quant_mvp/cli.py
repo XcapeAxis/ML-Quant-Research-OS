@@ -6,6 +6,16 @@ import subprocess
 import sys
 from pathlib import Path
 
+from .agent.subagent_controller import (
+    archive_subagent,
+    block_subagent,
+    cancel_subagent,
+    merge_subagent,
+    plan_subagents,
+    retire_subagent,
+    sync_subagent_memory,
+)
+from .agent.subagent_models import SubagentTaskProfile
 from .agent.runner import run_agent_cycle
 from .factors import build_factors_for_project
 from .memory.writeback import bootstrap_memory_files, generate_handoff, sync_project_state, write_verify_snapshot
@@ -99,6 +109,48 @@ def main() -> None:
 
     handoff_parser = sub.add_parser("generate_handoff", help="Regenerate tracked handoff and migration prompt files")
     handoff_parser.add_argument("--project", type=str, required=True)
+
+    subagent_plan_parser = sub.add_parser("subagent_plan", help="Evaluate and optionally instantiate a controlled subagent plan")
+    subagent_plan_parser.add_argument("--project", type=str, required=True)
+    subagent_plan_parser.add_argument("--task-summary", type=str, required=True)
+    subagent_plan_parser.add_argument("--gate", type=str, choices=["OFF", "AUTO", "FORCE"], default="AUTO")
+    subagent_plan_parser.add_argument("--breadth", type=int, default=1)
+    subagent_plan_parser.add_argument("--independence", type=float, default=0.0)
+    subagent_plan_parser.add_argument("--file-overlap", type=float, default=1.0)
+    subagent_plan_parser.add_argument("--validation-load", type=float, default=0.0)
+    subagent_plan_parser.add_argument("--coordination-cost", type=float, default=0.0)
+    subagent_plan_parser.add_argument("--risk-isolation", type=float, default=0.0)
+    subagent_plan_parser.add_argument("--focus-tag", action="append", default=[])
+    subagent_plan_parser.add_argument("--activate", action="store_true")
+
+    subagent_sync_parser = sub.add_parser("subagent_sync", help="Refresh tracked subagent registry and summaries")
+    subagent_sync_parser.add_argument("--project", type=str, required=True)
+
+    subagent_retire_parser = sub.add_parser("subagent_retire", help="Retire a subagent and keep the event in tracked memory")
+    subagent_retire_parser.add_argument("--project", type=str, required=True)
+    subagent_retire_parser.add_argument("--id", type=str, required=True)
+    subagent_retire_parser.add_argument("--summary", type=str, required=True)
+
+    subagent_archive_parser = sub.add_parser("subagent_archive", help="Archive a subagent and keep the event in tracked memory")
+    subagent_archive_parser.add_argument("--project", type=str, required=True)
+    subagent_archive_parser.add_argument("--id", type=str, required=True)
+    subagent_archive_parser.add_argument("--summary", type=str, required=True)
+
+    subagent_block_parser = sub.add_parser("subagent_block", help="Mark a subagent as blocked and keep the event in tracked memory")
+    subagent_block_parser.add_argument("--project", type=str, required=True)
+    subagent_block_parser.add_argument("--id", type=str, required=True)
+    subagent_block_parser.add_argument("--summary", type=str, required=True)
+
+    subagent_cancel_parser = sub.add_parser("subagent_cancel", help="Cancel a subagent and keep the event in tracked memory")
+    subagent_cancel_parser.add_argument("--project", type=str, required=True)
+    subagent_cancel_parser.add_argument("--id", type=str, required=True)
+    subagent_cancel_parser.add_argument("--summary", type=str, required=True)
+
+    subagent_merge_parser = sub.add_parser("subagent_merge", help="Merge one subagent into another and preserve lineage")
+    subagent_merge_parser.add_argument("--project", type=str, required=True)
+    subagent_merge_parser.add_argument("--id", type=str, required=True)
+    subagent_merge_parser.add_argument("--into", type=str, required=True)
+    subagent_merge_parser.add_argument("--summary", type=str, required=True)
 
     verify_parser = sub.add_parser("verify_snapshot", help="Write the latest verification snapshot into tracked memory")
     verify_parser.add_argument("--project", type=str, required=True)
@@ -208,6 +260,62 @@ def main() -> None:
     if args.command == "generate_handoff":
         result = generate_handoff(args.project, repo_root=find_repo_root())
         print(json.dumps({key: str(value) for key, value in result.items()}, ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "subagent_plan":
+        result = plan_subagents(
+            project=args.project,
+            profile=SubagentTaskProfile(
+                task_summary=args.task_summary,
+                breadth=args.breadth,
+                independence=args.independence,
+                file_overlap=args.file_overlap,
+                validation_load=args.validation_load,
+                coordination_cost=args.coordination_cost,
+                risk_isolation=args.risk_isolation,
+                focus_tags=list(args.focus_tag),
+            ),
+            gate_mode=args.gate,
+            activate=args.activate,
+            repo_root=find_repo_root(),
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "subagent_sync":
+        result = sync_subagent_memory(args.project, repo_root=find_repo_root())
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "subagent_retire":
+        result = retire_subagent(args.project, subagent_id=args.id, summary=args.summary, repo_root=find_repo_root())
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "subagent_archive":
+        result = archive_subagent(args.project, subagent_id=args.id, summary=args.summary, repo_root=find_repo_root())
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "subagent_block":
+        result = block_subagent(args.project, subagent_id=args.id, summary=args.summary, repo_root=find_repo_root())
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "subagent_cancel":
+        result = cancel_subagent(args.project, subagent_id=args.id, summary=args.summary, repo_root=find_repo_root())
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "subagent_merge":
+        result = merge_subagent(
+            args.project,
+            subagent_id=args.id,
+            into_subagent_id=args.into,
+            summary=args.summary,
+            repo_root=find_repo_root(),
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
         return
 
     if args.command == "verify_snapshot":

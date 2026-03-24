@@ -5,5 +5,9 @@
 - current_blocker: missing_research_inputs: No bars found for requested codes.
 - current_real_capability_boundary: Engineering guardrails work; real default-project research remains blocked on data coverage.
 - next_priority_action: Restore a usable validated bar snapshot for the frozen default universe.
-- last_verified_capability: Tracked memory migration, handoff generation, and 48 test cases passed on 2026-03-25.
+- last_verified_capability: Subagent governance layer, tracked registry, and 54 test cases passed on 2026-03-25.
 - last_failed_capability: Dry-run blocked by missing research inputs: No bars found for requested codes.
+- subagent_gate_mode: AUTO
+- subagent_active: none
+- subagent_blocked: none
+- subagent_recent_event: plan

@@ -6,6 +6,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Iterable
 
+from ..agent.subagent_policy import load_subagent_roles
+from ..agent.subagent_registry import default_subagent_state, render_subagent_registry, summarize_subagent_state
 from ..project import resolve_project_paths
 from .ledger import append_jsonl, to_jsonable
 from .templates import (
@@ -46,13 +48,19 @@ def _write_text(path: Path, text: str) -> Path:
 def _read_json(path: Path, default: dict[str, Any] | None = None) -> dict[str, Any]:
     if not path.exists():
         return dict(default or {})
-    return json.loads(path.read_text(encoding="utf-8"))
+    text = path.read_text(encoding="utf-8").strip()
+    if not text:
+        return dict(default or {})
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        return dict(default or {})
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(to_jsonable(payload), ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
-    path.write_text(path.read_text(encoding="utf-8").rstrip() + "\n", encoding="utf-8")
+    text = json.dumps(to_jsonable(payload), ensure_ascii=False, indent=2, sort_keys=True).rstrip() + "\n"
+    path.write_text(text, encoding="utf-8")
     return path
 
 
@@ -61,6 +69,10 @@ def _git_value(root: Path, *args: str) -> str:
         return subprocess.check_output(["git", *args], cwd=root, text=True, stderr=subprocess.DEVNULL).strip()
     except Exception:
         return "unknown"
+
+
+def _subagent_roles_path(root: Path) -> Path:
+    return root / "configs" / "subagent_roles.yaml"
 
 
 def _normalize_list(values: Iterable[str] | None) -> list[str]:
@@ -224,7 +236,7 @@ def _compact_legacy_ledger_entry(project: str, raw_line: str, state: dict[str, A
 
 
 def _default_session_state(project: str, *, root: Path, paths) -> dict[str, Any]:
-    return {
+    base = {
         "project": project,
         "current_task": "Keep the Phase 1 Research OS reproducible with tracked long-term memory and honest runtime artifacts.",
         "current_phase": "Phase 1 Research OS",
@@ -261,6 +273,8 @@ def _default_session_state(project: str, *, root: Path, paths) -> dict[str, Any]
         "branch": _git_value(root, "rev-parse", "--abbrev-ref", "HEAD"),
         "last_updated": _utc_now(),
     }
+    base.update(default_subagent_state(paths))
+    return base
 
 
 def _merge_state(base: dict[str, Any], updates: dict[str, Any]) -> dict[str, Any]:
@@ -273,6 +287,7 @@ def _merge_state(base: dict[str, Any], updates: dict[str, Any]) -> dict[str, Any
 
 
 def _render_project_state(state: dict[str, Any]) -> str:
+    subagents = summarize_subagent_state(state)
     lines = [
         "# Project State",
         "",
@@ -283,6 +298,10 @@ def _render_project_state(state: dict[str, Any]) -> str:
         f"- next_priority_action: {state.get('next_priority_action', 'unknown')}",
         f"- last_verified_capability: {state.get('last_verified_capability', 'unknown')}",
         f"- last_failed_capability: {state.get('last_failed_capability', 'unknown')}",
+        f"- subagent_gate_mode: {subagents['gate_mode']}",
+        f"- subagent_active: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
+        f"- subagent_blocked: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
+        f"- subagent_recent_event: {subagents['last_event'].get('action', 'none recorded')}",
     ]
     return "\n".join(lines)
 
@@ -299,6 +318,7 @@ def _render_hypothesis_queue(hypotheses: list[dict[str, str]]) -> str:
 
 def _render_verify_last(state: dict[str, Any]) -> str:
     verify = state.get("verify_last", {}) or {}
+    subagents = summarize_subagent_state(state)
     passed = _normalize_list(verify.get("passed_commands"))
     failed = _normalize_list(verify.get("failed_commands"))
     lines = [
@@ -316,6 +336,10 @@ def _render_verify_last(state: dict[str, Any]) -> str:
             f"- default_project_data_status: {verify.get('default_project_data_status', 'unknown')}",
             f"- conclusion_boundary_engineering: {verify.get('conclusion_boundary_engineering', 'unknown')}",
             f"- conclusion_boundary_research: {verify.get('conclusion_boundary_research', 'unknown')}",
+            f"- subagent_gate_mode: {subagents['gate_mode']}",
+            f"- active_subagents: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
+            f"- blocked_subagents: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
+            f"- recent_subagent_event: {subagents['last_event'].get('action', 'none recorded')}",
         ],
     )
     return "\n".join(lines)
@@ -323,6 +347,7 @@ def _render_verify_last(state: dict[str, Any]) -> str:
 
 def _render_handoff(state: dict[str, Any], paths) -> str:
     failure = state.get("last_failure", {}) or {}
+    subagents = summarize_subagent_state(state)
     lines = [
         "# Handoff Next Chat",
         "",
@@ -346,6 +371,13 @@ def _render_handoff(state: dict[str, Any], paths) -> str:
         "## Current Real Capability Boundary",
         state.get("current_capability_boundary", "unknown"),
         "",
+        "## Subagent Status",
+        f"- gate_mode: {subagents['gate_mode']}",
+        f"- active: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
+        f"- blocked: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
+        f"- recent_transition: {subagents['last_event'].get('action', 'none recorded')}",
+        f"- continue_using_subagents: {'yes' if subagents['should_expand'] else 'no'}",
+        "",
         "## Next Highest-Priority Action",
         state.get("next_priority_action", "unknown"),
         "",
@@ -361,6 +393,7 @@ def _render_handoff(state: dict[str, Any], paths) -> str:
 def _render_migration_prompt(state: dict[str, Any], paths) -> str:
     failure = state.get("last_failure", {}) or {}
     verify = state.get("verify_last", {}) or {}
+    subagents = summarize_subagent_state(state)
     lines = [
         "# Migration Prompt Next Chat",
         "",
@@ -390,6 +423,13 @@ def _render_migration_prompt(state: dict[str, Any], paths) -> str:
         "## Current Blocker",
         state.get("current_blocker", "unknown"),
         "",
+        "## Subagent Status",
+        f"- gate_mode: {subagents['gate_mode']}",
+        f"- active: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
+        f"- blocked: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
+        f"- recent_transition: {subagents['last_event'].get('action', 'none recorded')}",
+        f"- continue_using_subagents: {'yes' if subagents['should_expand'] else 'no'}",
+        "",
         "## Next Highest-Priority Action",
         state.get("next_priority_action", "unknown"),
         "",
@@ -413,9 +453,14 @@ def _render_migration_prompt(state: dict[str, Any], paths) -> str:
             "## Tracked Memory Location",
             str(paths.memory_dir),
             "",
+            "## Subagent Tracked Files",
+            f"- {paths.subagent_registry_path}",
+            f"- {paths.subagent_ledger_path}",
+            "",
             "## Runtime Artifacts Location",
             f"- {paths.meta_dir}",
             f"- {paths.artifacts_dir}",
+            f"- {paths.subagent_artifacts_dir}",
             "",
             "## Current Real Capability Boundary",
             state.get("current_capability_boundary", "unknown"),
@@ -518,6 +563,9 @@ def _migrate_legacy_memory(paths, state: dict[str, Any]) -> dict[str, Any]:
 
 def _refresh_derived_memory(paths, state: dict[str, Any]) -> None:
     state = dict(state)
+    state.update({key: state.get(key) for key in default_subagent_state(paths).keys() if key in state})
+    for key, value in default_subagent_state(paths).items():
+        state.setdefault(key, value)
     state["head"] = _git_value(paths.root, "rev-parse", "HEAD")
     state["branch"] = _git_value(paths.root, "rev-parse", "--abbrev-ref", "HEAD")
     state["tracked_memory_dir"] = str(paths.memory_dir)
@@ -530,6 +578,10 @@ def _refresh_derived_memory(paths, state: dict[str, Any]) -> None:
     _write_text(paths.verify_last_path, _render_verify_last(state))
     _write_text(paths.handoff_path, _render_handoff(state, paths))
     _write_text(paths.migration_prompt_path, _render_migration_prompt(state, paths))
+    _write_text(
+        paths.subagent_registry_path,
+        render_subagent_registry(state, role_templates=load_subagent_roles(_subagent_roles_path(paths.root))),
+    )
     _write_json(paths.session_state_path, state)
 
 
@@ -548,9 +600,12 @@ def bootstrap_memory_files(project: str, *, repo_root: Path | None = None) -> di
         "migration_prompt_next_chat": paths.migration_prompt_path,
         "verify_last": paths.verify_last_path,
         "session_state": paths.session_state_path,
+        "subagent_registry": paths.subagent_registry_path,
+        "subagent_ledger": paths.subagent_ledger_path,
         "memory_dir": paths.memory_dir,
         "runtime_meta_dir": paths.meta_dir,
         "runtime_cycles_dir": paths.runtime_cycles_dir,
+        "runtime_subagent_artifacts_dir": paths.subagent_artifacts_dir,
     }
 
     state = _read_json(paths.session_state_path, default=_default_session_state(project, root=paths.root, paths=paths))
@@ -561,15 +616,27 @@ def bootstrap_memory_files(project: str, *, repo_root: Path | None = None) -> di
     _write_if_missing(paths.verify_last_path, VERIFY_LAST_TEMPLATE)
     if not paths.experiment_ledger_path.exists():
         paths.experiment_ledger_path.write_text("", encoding="utf-8")
+    if not paths.subagent_ledger_path.exists():
+        paths.subagent_ledger_path.write_text("", encoding="utf-8")
     _refresh_derived_memory(paths, state)
     return tracked_files
 
 
 def _load_state(project: str, *, repo_root: Path | None = None) -> tuple[Any, dict[str, Any]]:
-    files = bootstrap_memory_files(project, repo_root=repo_root)
+    bootstrap_memory_files(project, repo_root=repo_root)
     paths = resolve_project_paths(project, root=repo_root)
     state = _read_json(paths.session_state_path, default=_default_session_state(project, root=paths.root, paths=paths))
     return paths, state
+
+
+def load_machine_state(project: str, *, repo_root: Path | None = None) -> tuple[Any, dict[str, Any]]:
+    return _load_state(project, repo_root=repo_root)
+
+
+def save_machine_state(project: str, state: dict[str, Any], *, repo_root: Path | None = None) -> Path:
+    paths, _ = _load_state(project, repo_root=repo_root)
+    _refresh_derived_memory(paths, state)
+    return paths.session_state_path
 
 
 def sync_project_state(project: str, summary: dict[str, Any], *, repo_root: Path | None = None) -> Path:

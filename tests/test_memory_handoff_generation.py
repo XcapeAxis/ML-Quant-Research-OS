@@ -11,6 +11,7 @@ REQUIRED_SECTIONS = [
     "## Unconfirmed Questions",
     "## Recent Critical Failure",
     "## Current Blocker",
+    "## Subagent Status",
     "## Next Highest-Priority Action",
     "## Avoid Repeating Work",
     "## Required Verification First",

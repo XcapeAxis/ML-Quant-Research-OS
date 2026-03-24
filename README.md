@@ -18,6 +18,7 @@ Implemented in this refactor:
 - leakage, walk-forward, cost-sensitivity, and promotion-gate modules
 - AGENTS files plus tracked project memory under `memory/projects/<project>/` and runtime artifacts under `data/` / `artifacts/`
 - a dry-run agent cycle that writes plan / execution / evaluation / reflection to disk
+- a subagent governance layer with `OFF/AUTO/FORCE` gate, lifecycle tracking, and tracked/runtime separation
 - contract tests for strategy consistency, Tuesday rebalance, leakage guards, and memory writeback
 
 Not implemented yet:
@@ -86,6 +87,12 @@ python -m quant_mvp memory_sync --project 2026Q1_limit_up
 python -m quant_mvp generate_handoff --project 2026Q1_limit_up
 ```
 
+Evaluate whether subagents are worth enabling for a task:
+
+```bash
+python -m quant_mvp subagent_plan --project 2026Q1_limit_up --task-summary "Assess future data and validation split after bars are restored" --breadth 2 --independence 0.7 --file-overlap 0.2 --validation-load 0.8 --coordination-cost 0.3 --risk-isolation 0.5
+```
+
 Attempt promotion:
 
 ```bash
@@ -117,6 +124,8 @@ Tracked project memory for the default project:
 - [MIGRATION_PROMPT_NEXT_CHAT.md](memory/projects/2026Q1_limit_up/MIGRATION_PROMPT_NEXT_CHAT.md)
 - [VERIFY_LAST.md](memory/projects/2026Q1_limit_up/VERIFY_LAST.md)
 - [SESSION_STATE.json](memory/projects/2026Q1_limit_up/SESSION_STATE.json)
+- [SUBAGENT_REGISTRY.md](memory/projects/2026Q1_limit_up/SUBAGENT_REGISTRY.md)
+- [SUBAGENT_LEDGER.jsonl](memory/projects/2026Q1_limit_up/SUBAGENT_LEDGER.jsonl)
 
 Runtime/high-noise outputs:
 - `data/projects/<project>/meta/`

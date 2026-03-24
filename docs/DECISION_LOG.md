@@ -11,3 +11,4 @@
 - Move durable project memory into git-tracked `memory/projects/<project>/`.
 - Keep raw cycle payloads, manifests, and other high-noise outputs under ignored runtime directories.
 - Add handoff, migration prompt, verify snapshot, and machine-state files so sessions can migrate without rereading the whole repository.
+- Add a policy-driven subagent governance layer with `OFF / AUTO / FORCE` gate, lifecycle tracking, tracked registry/ledger, and runtime payload isolation under `artifacts/projects/<project>/subagents/`.

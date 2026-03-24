@@ -26,6 +26,33 @@ def test_smoke_project_pipeline(limit_up_project) -> None:
         [sys.executable, "-m", "quant_mvp", "research_audit", "--project", project, "--config", config],
         [sys.executable, "-m", "quant_mvp", "memory_bootstrap", "--project", project],
         [sys.executable, "-m", "quant_mvp", "memory_sync", "--project", project, "--config", config],
+        [
+            sys.executable,
+            "-m",
+            "quant_mvp",
+            "subagent_plan",
+            "--project",
+            project,
+            "--task-summary",
+            "Split fixture data and validation work into low-overlap packages",
+            "--breadth",
+            "3",
+            "--independence",
+            "0.9",
+            "--file-overlap",
+            "0.15",
+            "--validation-load",
+            "0.8",
+            "--coordination-cost",
+            "0.2",
+            "--risk-isolation",
+            "0.6",
+            "--focus-tag",
+            "data",
+            "--focus-tag",
+            "validation",
+            "--activate",
+        ],
         [sys.executable, "-m", "quant_mvp", "agent_cycle", "--project", project, "--config", config, "--dry-run"],
         [sys.executable, "-m", "quant_mvp", "promote_candidate", "--project", project, "--config", config],
         [sys.executable, "-m", "quant_mvp", "generate_handoff", "--project", project],
@@ -65,6 +92,8 @@ def test_smoke_project_pipeline(limit_up_project) -> None:
         memory / "MIGRATION_PROMPT_NEXT_CHAT.md",
         memory / "VERIFY_LAST.md",
         memory / "SESSION_STATE.json",
+        memory / "SUBAGENT_REGISTRY.md",
+        memory / "SUBAGENT_LEDGER.jsonl",
         artifacts / "summary_metrics.csv",
         artifacts / "equity_curve.png",
         artifacts / "promotion_gate.json",
@@ -78,3 +107,5 @@ def test_smoke_project_pipeline(limit_up_project) -> None:
             assert path.stat().st_size > 0, f"empty file: {path}"
     assert (meta / "agent_cycles").exists()
     assert any((meta / "agent_cycles").iterdir())
+    assert ctx["paths"].subagent_artifacts_dir.exists()
+    assert any(ctx["paths"].subagent_artifacts_dir.iterdir())

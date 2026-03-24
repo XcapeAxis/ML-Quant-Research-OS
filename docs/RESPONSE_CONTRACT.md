@@ -6,6 +6,11 @@
 - Keep the whole reply under 20 lines.
 - Do not inline long file contents or full diffs.
 - Use paths plus the highest-signal command result only.
+- If subagents matter for the current turn, add only one short extra block:
+  - `Subagent Gate`
+  - `Active`
+  - `Next merge/retire action`
+- Do not expand every subagent history inside `CHECKPOINT`.
 
 ## EVIDENCE
 - Use only when the user explicitly asks to verify one specific claim or one specific file/command/result.
@@ -18,3 +23,4 @@
 ## Memory Boundary Reminder
 - Durable tracked memory belongs under `memory/projects/<project>/`.
 - Runtime/high-noise outputs belong under `data/projects/<project>/meta/` and `artifacts/projects/<project>/`.
+- Subagent runtime payloads belong under `artifacts/projects/<project>/subagents/<subagent_id>/`.

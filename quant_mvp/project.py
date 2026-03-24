@@ -50,7 +50,10 @@ class ProjectPaths:
     migration_prompt_path: Path
     verify_last_path: Path
     session_state_path: Path
+    subagent_registry_path: Path
+    subagent_ledger_path: Path
     runtime_cycles_dir: Path
+    subagent_artifacts_dir: Path
 
     def ensure_dirs(self) -> None:
         self.memory_dir.mkdir(parents=True, exist_ok=True)
@@ -61,6 +64,7 @@ class ProjectPaths:
         self.artifacts_dir.mkdir(parents=True, exist_ok=True)
         self.logs_dir.mkdir(parents=True, exist_ok=True)
         self.runtime_cycles_dir.mkdir(parents=True, exist_ok=True)
+        self.subagent_artifacts_dir.mkdir(parents=True, exist_ok=True)
 
 
 def resolve_project_paths(project: str, root: Path | None = None) -> ProjectPaths:
@@ -91,5 +95,8 @@ def resolve_project_paths(project: str, root: Path | None = None) -> ProjectPath
         migration_prompt_path=memory_dir / "MIGRATION_PROMPT_NEXT_CHAT.md",
         verify_last_path=memory_dir / "VERIFY_LAST.md",
         session_state_path=memory_dir / "SESSION_STATE.json",
+        subagent_registry_path=memory_dir / "SUBAGENT_REGISTRY.md",
+        subagent_ledger_path=memory_dir / "SUBAGENT_LEDGER.jsonl",
         runtime_cycles_dir=meta_dir / "agent_cycles",
+        subagent_artifacts_dir=(repo_root / "artifacts" / "projects" / name / "subagents"),
     )

@@ -5,3 +5,4 @@
 - Default values must come from schema modules, not ad-hoc literals.
 - New code must keep leakage checks and memory writeback reachable from the CLI.
 - Tracked memory belongs under `memory/projects/<project>/`; runtime payloads stay under `data/` and `artifacts/`.
+- Subagent governance belongs in `quant_mvp/agent/*` with tracked summaries in `memory/projects/<project>/SUBAGENT_*`.

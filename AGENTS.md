@@ -8,10 +8,12 @@
 ## Response Contract
 - Follow `docs/RESPONSE_CONTRACT.md`.
 - Default to `CHECKPOINT` replies unless the user explicitly asks for targeted evidence or full forensics.
+- When subagents are relevant, keep the reply to one short gate/status note instead of narrating every subagent.
 
 ## Memory Layers
 - Git-tracked long-term memory lives under `memory/projects/<project>/`.
 - Runtime/high-noise artifacts live under `data/projects/<project>/meta/` and `artifacts/projects/<project>/`.
+- Subagent runtime payloads live under `artifacts/projects/<project>/subagents/<subagent_id>/`.
 - Durable memory must not exist only inside ignored runtime directories.
 
 ## Non-Negotiables
@@ -22,6 +24,7 @@
 
 ## Required Verification
 - Run contract tests for strategy specs, weekday rebalance, memory writeback, and leakage guards.
+- Run subagent policy and lifecycle tests when touching the subagent governance layer.
 - Run `python -m quant_mvp research_audit --project <project>`.
 - Run `python -m quant_mvp data_validate --project <project>` when data changes.
 - Run `python -m quant_mvp agent_cycle --project <project> --dry-run` before trusting the control plane.

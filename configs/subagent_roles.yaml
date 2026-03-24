@@ -1,0 +1,92 @@
+{
+  "data_steward": {
+    "responsibilities": [
+      "Own provider, ingestion, cleaning, and data coverage diagnostics without changing strategy logic."
+    ],
+    "allowed_paths": [
+      "quant_mvp/data",
+      "scripts/steps/10_symbols.py",
+      "scripts/steps/11_update_bars.py",
+      "scripts/steps/12_clean_bars.py",
+      "data/projects/<project>/meta"
+    ],
+    "expected_artifacts": [
+      "data quality reports",
+      "coverage diagnostics",
+      "provider-specific runtime notes"
+    ]
+  },
+  "strategy_auditor": {
+    "responsibilities": [
+      "Check strategy entrypoints, defaults, and documentation for drift."
+    ],
+    "allowed_paths": [
+      "quant_mvp/research_core.py",
+      "quant_mvp/selection.py",
+      "quant_mvp/ranking.py",
+      "scripts/run_limit_up_screening.py",
+      "docs"
+    ],
+    "expected_artifacts": [
+      "spec drift findings",
+      "contract test targets"
+    ]
+  },
+  "validation_guard": {
+    "responsibilities": [
+      "Own leakage, robustness, baseline, and promotion-gate verification work."
+    ],
+    "allowed_paths": [
+      "quant_mvp/validation",
+      "quant_mvp/promotion.py",
+      "tests"
+    ],
+    "expected_artifacts": [
+      "validation summaries",
+      "promotion gate notes",
+      "verification runtime artifacts"
+    ]
+  },
+  "memory_curator": {
+    "responsibilities": [
+      "Keep tracked memory, handoff, and migration prompts concise and accurate."
+    ],
+    "allowed_paths": [
+      "quant_mvp/memory",
+      "memory/projects/<project>",
+      "docs"
+    ],
+    "expected_artifacts": [
+      "tracked memory summaries",
+      "handoff snapshots"
+    ]
+  },
+  "tooling_scout": {
+    "responsibilities": [
+      "Investigate missing tools, policy files, and reproducibility boundaries before anything is added."
+    ],
+    "allowed_paths": [
+      "configs",
+      "docs",
+      "quant_mvp/agent"
+    ],
+    "expected_artifacts": [
+      "tooling recommendations",
+      "allowlist or policy deltas"
+    ]
+  },
+  "integration_merger": {
+    "responsibilities": [
+      "Merge compatible workstreams, reduce overlap, and close out temporary subagents."
+    ],
+    "allowed_paths": [
+      "quant_mvp",
+      "docs",
+      "tests"
+    ],
+    "expected_artifacts": [
+      "merge notes",
+      "retire or archive summaries"
+    ]
+  }
+}

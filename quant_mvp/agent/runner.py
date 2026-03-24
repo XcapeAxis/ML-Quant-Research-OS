@@ -5,7 +5,7 @@ from pathlib import Path
 
 from ..config import load_config
 from ..memory.ledger import stable_hash
-from ..memory.writeback import bootstrap_memory_files, record_agent_cycle, record_failure, update_hypothesis_queue
+from ..memory.writeback import bootstrap_memory_files, load_machine_state, record_agent_cycle, record_failure, update_hypothesis_queue
 from ..project import resolve_project_paths
 from ..research_core import build_limit_up_rank_artifacts, run_limit_up_backtest_artifacts
 from ..universe import load_universe_codes
@@ -88,6 +88,12 @@ def run_agent_cycle(
     update_hypothesis_queue(project, reflection.next_hypotheses, repo_root=repo_root)
 
     timestamp = datetime.utcnow().replace(microsecond=0).isoformat()
+    _, machine_state = load_machine_state(project, repo_root=repo_root)
+    active_subagents = [
+        item["subagent_id"]
+        for item in machine_state.get("subagents", [])
+        if item.get("status") == "active"
+    ]
     cycle = AgentCycleRecord(
         cycle_id=f"{project}-{timestamp.replace(':', '').replace('-', '')}",
         timestamp=timestamp,
@@ -103,6 +109,8 @@ def run_agent_cycle(
             "meta_dir": str(paths.meta_dir),
             "tracked_memory_dir": str(paths.memory_dir),
             "config_hash": stable_hash(cfg),
+            "subagent_gate_mode": machine_state.get("subagent_gate_mode", "AUTO"),
+            "active_subagents": active_subagents,
         },
     )
     record_paths = record_agent_cycle(project, cycle.to_dict(), repo_root=repo_root)

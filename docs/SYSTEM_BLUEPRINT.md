@@ -25,6 +25,11 @@ Build a Phase 1 Research OS for A-share daily/weekly experiments where reliabili
    - hypothesis -> plan -> execution -> evaluation -> reflection
    - dry-run capable by default
    - tool allowlist enforcement
+6. Subagent governance layer
+   - `OFF / AUTO / FORCE` gate
+   - policy-based split suppression when file overlap or coordination cost is too high
+   - tracked registry and append-only lifecycle ledger
+   - runtime payloads isolated under `artifacts/projects/<project>/subagents/`
 
 ## Boundaries
 - Do not promise profitability.

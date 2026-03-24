@@ -27,5 +27,7 @@ def test_manifest_and_memory_writeback(limit_up_project) -> None:
     assert paths.handoff_path.exists()
     assert paths.migration_prompt_path.exists()
     assert paths.experiment_ledger_path.exists()
+    assert paths.subagent_registry_path.exists()
+    assert paths.subagent_ledger_path.exists()
     assert paths.meta_dir.joinpath("PROJECT_STATE.md").exists() is False
     assert handoff["handoff_next_chat"] == paths.handoff_path

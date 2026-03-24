@@ -12,4 +12,6 @@ def test_response_contract_exists_and_is_referenced() -> None:
 
     assert contract_path.exists()
     assert "CHECKPOINT" in contract_path.read_text(encoding="utf-8")
+    assert "Subagent Gate" in contract_path.read_text(encoding="utf-8")
     assert "docs/RESPONSE_CONTRACT.md" in agents_path.read_text(encoding="utf-8")
+    assert "subagents" in agents_path.read_text(encoding="utf-8").lower()

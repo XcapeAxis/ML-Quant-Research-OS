@@ -20,6 +20,13 @@ Dry-run blocked by missing research inputs: No bars found for requested codes.
 ## Current Real Capability Boundary
 Engineering guardrails work; real default-project research remains blocked on data coverage.
 
+## Subagent Status
+- gate_mode: AUTO
+- active: none
+- blocked: none
+- recent_transition: plan
+- continue_using_subagents: no
+
 ## Next Highest-Priority Action
 Restore a usable validated bar snapshot for the frozen default universe.
 

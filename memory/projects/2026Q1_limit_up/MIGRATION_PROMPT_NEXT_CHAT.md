@@ -9,7 +9,7 @@ Phase 1 Research OS
 ## Current Repo / Branch / HEAD
 - repo_root: C:\Users\asus\Documents\Projects\BackTest
 - branch: main
-- head: 6d09a2ec898397c374f8dbeb4184cf22d657061b
+- head: ddc2c1cb18709932953bdf10868625334786b3c3
 
 ## Confirmed Facts
 - tracked_memory_dir: C:\Users\asus\Documents\Projects\BackTest\memory\projects\2026Q1_limit_up
@@ -26,6 +26,13 @@ Dry-run blocked by missing research inputs: No bars found for requested codes.
 ## Current Blocker
 missing_research_inputs: No bars found for requested codes.
 
+## Subagent Status
+- gate_mode: AUTO
+- active: none
+- blocked: none
+- recent_transition: plan
+- continue_using_subagents: no
+
 ## Next Highest-Priority Action
 Restore a usable validated bar snapshot for the frozen default universe.
 
@@ -34,10 +41,8 @@ Restore a usable validated bar snapshot for the frozen default universe.
 - Do not trust default-project research claims until validated bars exist for the frozen universe.
 
 ## Required Verification First
-- & .\\.venv\\Scripts\\python.exe -m pytest tests -q
-- & .\\.venv\\Scripts\\python.exe -m quant_mvp memory_bootstrap --project 2026Q1_limit_up
-- & .\\.venv\\Scripts\\python.exe -m quant_mvp memory_sync --project 2026Q1_limit_up --config configs/projects/2026Q1_limit_up.json
-- & .\\.venv\\Scripts\\python.exe -m quant_mvp generate_handoff --project 2026Q1_limit_up
+- pytest-tests-q
+- subagent-plan-auto-off
 
 ## Read These Files First If Context Is Thin
 - C:\Users\asus\Documents\Projects\BackTest\memory\projects\2026Q1_limit_up\PROJECT_STATE.md
@@ -49,9 +54,14 @@ Restore a usable validated bar snapshot for the frozen default universe.
 ## Tracked Memory Location
 C:\Users\asus\Documents\Projects\BackTest\memory\projects\2026Q1_limit_up
 
+## Subagent Tracked Files
+- C:\Users\asus\Documents\Projects\BackTest\memory\projects\2026Q1_limit_up\SUBAGENT_REGISTRY.md
+- C:\Users\asus\Documents\Projects\BackTest\memory\projects\2026Q1_limit_up\SUBAGENT_LEDGER.jsonl
+
 ## Runtime Artifacts Location
 - C:\Users\asus\Documents\Projects\BackTest\data\projects\2026Q1_limit_up\meta
 - C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\2026Q1_limit_up
+- C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\2026Q1_limit_up\subagents
 
 ## Current Real Capability Boundary
 Engineering guardrails work; real default-project research remains blocked on data coverage.
