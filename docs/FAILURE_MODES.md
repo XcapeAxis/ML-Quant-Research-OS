@@ -14,3 +14,8 @@
 - Allowing the agent loop to skip memory writeback.
 - Letting tools execute outside the allowlist or without being logged.
 - Overwriting failure records instead of appending postmortems and experiment ledgers.
+
+## Memory Layering
+- Writing durable project memory only into ignored runtime directories.
+- Mixing compact tracked ledgers with full raw experiment payloads.
+- Starting a new chat without refreshing handoff, migration prompt, and machine-state summaries.

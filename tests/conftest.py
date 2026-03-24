@@ -77,18 +77,39 @@ def _make_limit_up_bars(codes: list[str], start: str, periods: int) -> pd.DataFr
     return pd.DataFrame(rows)
 
 
+def _cleanup_project(paths) -> None:
+    for path in [paths.project_data_dir, paths.artifacts_dir, paths.logs_dir, paths.memory_dir]:
+        if path.exists():
+            shutil.rmtree(path)
+
+
+@pytest.fixture(autouse=True)
+def preserve_tracked_docs():
+    tracked_docs = [
+        ROOT / "docs" / "SYSTEM_AUDIT.md",
+        ROOT / "docs" / "FAILURE_MODES.md",
+        ROOT / "docs" / "DECISION_LOG.md",
+    ]
+    snapshots = {
+        path: (path.read_text(encoding="utf-8") if path.exists() else None)
+        for path in tracked_docs
+    }
+
+    yield
+
+    for path, content in snapshots.items():
+        if content is None:
+            if path.exists():
+                path.unlink()
+        else:
+            path.write_text(content, encoding="utf-8")
+
+
 @pytest.fixture()
 def synthetic_project(tmp_path: Path):
     project = "test_smoke_project"
     paths = resolve_project_paths(project)
-
-    # clean previous run artifacts if any
-    if paths.project_data_dir.exists():
-        shutil.rmtree(paths.project_data_dir)
-    if paths.artifacts_dir.exists():
-        shutil.rmtree(paths.artifacts_dir)
-    if paths.logs_dir.exists():
-        shutil.rmtree(paths.logs_dir)
+    _cleanup_project(paths)
 
     paths.ensure_dirs()
     universe_codes = ["000001", "000002", "000003"]
@@ -147,18 +168,14 @@ def synthetic_project(tmp_path: Path):
         "universe_codes": universe_codes,
     }
 
+    _cleanup_project(paths)
+
 
 @pytest.fixture()
 def limit_up_project(tmp_path: Path):
     project = "test_limit_up_project"
     paths = resolve_project_paths(project)
-
-    if paths.project_data_dir.exists():
-        shutil.rmtree(paths.project_data_dir)
-    if paths.artifacts_dir.exists():
-        shutil.rmtree(paths.artifacts_dir)
-    if paths.logs_dir.exists():
-        shutil.rmtree(paths.logs_dir)
+    _cleanup_project(paths)
 
     paths.ensure_dirs()
     universe_codes = ["000001", "000002", "000003", "000004", "000005", "000006"]
@@ -236,3 +253,5 @@ def limit_up_project(tmp_path: Path):
         "db_path": db_path,
         "universe_codes": universe_codes,
     }
+
+    _cleanup_project(paths)

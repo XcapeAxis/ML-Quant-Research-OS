@@ -4,6 +4,7 @@ from datetime import datetime
 from pathlib import Path
 
 from ..config import load_config
+from ..memory.ledger import stable_hash
 from ..memory.writeback import bootstrap_memory_files, record_agent_cycle, record_failure, update_hypothesis_queue
 from ..project import resolve_project_paths
 from ..research_core import build_limit_up_rank_artifacts, run_limit_up_backtest_artifacts
@@ -100,6 +101,8 @@ def run_agent_cycle(
             "dry_run": dry_run,
             "project": project,
             "meta_dir": str(paths.meta_dir),
+            "tracked_memory_dir": str(paths.memory_dir),
+            "config_hash": stable_hash(cfg),
         },
     )
     record_paths = record_agent_cycle(project, cycle.to_dict(), repo_root=repo_root)

@@ -10,7 +10,9 @@ def load_memory_context(project: str, *, repo_root: Path | None = None) -> str:
     files = bootstrap_memory_files(project, repo_root=repo_root)
     sections = []
     for key, path in files.items():
-        if path.exists() and path.suffix in {".md", ".jsonl"}:
+        if not isinstance(path, Path):
+            continue
+        if path.exists() and path.suffix in {".md", ".jsonl", ".json"}:
             text = path.read_text(encoding="utf-8").strip()
             if text:
                 sections.append(f"[{key}]\n{text}")

@@ -24,15 +24,34 @@ def test_smoke_project_pipeline(limit_up_project) -> None:
         [sys.executable, "scripts/run_limit_up_screening.py", "--project", project, "--config", config, "--no-show", "--save", "auto"],
         [sys.executable, "-m", "quant_mvp", "data_validate", "--project", project, "--config", config, "--full-refresh"],
         [sys.executable, "-m", "quant_mvp", "research_audit", "--project", project, "--config", config],
-        [sys.executable, "-m", "quant_mvp", "agent_bootstrap", "--project", project],
+        [sys.executable, "-m", "quant_mvp", "memory_bootstrap", "--project", project],
+        [sys.executable, "-m", "quant_mvp", "memory_sync", "--project", project, "--config", config],
         [sys.executable, "-m", "quant_mvp", "agent_cycle", "--project", project, "--config", config, "--dry-run"],
         [sys.executable, "-m", "quant_mvp", "promote_candidate", "--project", project, "--config", config],
+        [sys.executable, "-m", "quant_mvp", "generate_handoff", "--project", project],
+        [
+            sys.executable,
+            "-m",
+            "quant_mvp",
+            "verify_snapshot",
+            "--project",
+            project,
+            "--passed-command",
+            "python -m pytest tests -q",
+            "--data-status",
+            "synthetic validated bars available in fixture DB",
+            "--engineering-boundary",
+            "contract and tracked-memory automation work in tests",
+            "--research-boundary",
+            "synthetic fixture only; default-project real data still required",
+        ],
     ]
     for cmd in commands:
         _run(cmd)
 
     artifacts = ctx["paths"].artifacts_dir
     meta = ctx["paths"].meta_dir
+    memory = ctx["paths"].memory_dir
     signals = ctx["paths"].signals_dir
     docs = ROOT / "docs"
 
@@ -40,8 +59,12 @@ def test_smoke_project_pipeline(limit_up_project) -> None:
         signals / "rank_top3.parquet",
         meta / "run_manifest.json",
         meta / "DATA_QUALITY_REPORT.md",
-        meta / "PROJECT_STATE.md",
-        meta / "EXPERIMENT_LEDGER.jsonl",
+        memory / "PROJECT_STATE.md",
+        memory / "EXPERIMENT_LEDGER.jsonl",
+        memory / "HANDOFF_NEXT_CHAT.md",
+        memory / "MIGRATION_PROMPT_NEXT_CHAT.md",
+        memory / "VERIFY_LAST.md",
+        memory / "SESSION_STATE.json",
         artifacts / "summary_metrics.csv",
         artifacts / "equity_curve.png",
         artifacts / "promotion_gate.json",
@@ -53,3 +76,5 @@ def test_smoke_project_pipeline(limit_up_project) -> None:
         assert path.exists(), f"missing file: {path}"
         if path.suffix != ".jsonl":
             assert path.stat().st_size > 0, f"empty file: {path}"
+    assert (meta / "agent_cycles").exists()
+    assert any((meta / "agent_cycles").iterdir())

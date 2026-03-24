@@ -8,7 +8,7 @@ from pathlib import Path
 
 from .agent.runner import run_agent_cycle
 from .factors import build_factors_for_project
-from .memory.writeback import bootstrap_memory_files, sync_project_state
+from .memory.writeback import bootstrap_memory_files, generate_handoff, sync_project_state, write_verify_snapshot
 from .platform.readiness import project_doctor
 from .platform.schemas import PipelineName
 from .platform.settings import load_platform_settings
@@ -74,8 +74,11 @@ def main() -> None:
         choices=[item.value for item in PipelineName],
     )
 
-    bootstrap_parser = sub.add_parser("agent_bootstrap", help="Create AGENTS and project memory files")
+    bootstrap_parser = sub.add_parser("memory_bootstrap", help="Create tracked memory files and migrate legacy memory")
     bootstrap_parser.add_argument("--project", type=str, required=True)
+
+    agent_bootstrap_parser = sub.add_parser("agent_bootstrap", help="Alias for memory_bootstrap")
+    agent_bootstrap_parser.add_argument("--project", type=str, required=True)
 
     cycle_parser = sub.add_parser("agent_cycle", help="Run one controlled research cycle")
     cycle_parser.add_argument("--project", type=str, required=True)
@@ -86,8 +89,25 @@ def main() -> None:
     reflect_parser.add_argument("--project", type=str, required=True)
     reflect_parser.add_argument("--config", type=Path, default=None)
 
-    memory_parser = sub.add_parser("agent_memory_sync", help="Rewrite project state from current repo facts")
+    memory_parser = sub.add_parser("memory_sync", help="Refresh tracked project state and machine summary")
     memory_parser.add_argument("--project", type=str, required=True)
+    memory_parser.add_argument("--config", type=Path, default=None)
+
+    agent_memory_parser = sub.add_parser("agent_memory_sync", help="Alias for memory_sync")
+    agent_memory_parser.add_argument("--project", type=str, required=True)
+    agent_memory_parser.add_argument("--config", type=Path, default=None)
+
+    handoff_parser = sub.add_parser("generate_handoff", help="Regenerate tracked handoff and migration prompt files")
+    handoff_parser.add_argument("--project", type=str, required=True)
+
+    verify_parser = sub.add_parser("verify_snapshot", help="Write the latest verification snapshot into tracked memory")
+    verify_parser.add_argument("--project", type=str, required=True)
+    verify_parser.add_argument("--passed-command", action="append", default=[])
+    verify_parser.add_argument("--failed-command", action="append", default=[])
+    verify_parser.add_argument("--data-status", type=str, default="unknown")
+    verify_parser.add_argument("--engineering-boundary", type=str, default="unknown")
+    verify_parser.add_argument("--research-boundary", type=str, default="unknown")
+    verify_parser.add_argument("--last-verified-capability", type=str, default=None)
 
     validate_parser = sub.add_parser("data_validate", help="Validate cleaned data and write quality reports")
     validate_parser.add_argument("--project", type=str, required=True)
@@ -135,7 +155,7 @@ def main() -> None:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         raise SystemExit(1 if result["blocking_issue_details"] else 0)
 
-    if args.command == "agent_bootstrap":
+    if args.command in {"memory_bootstrap", "agent_bootstrap"}:
         result = bootstrap_memory_files(args.project, repo_root=find_repo_root())
         print(json.dumps({key: str(value) for key, value in result.items()}, ensure_ascii=False, indent=2))
         return
@@ -160,18 +180,50 @@ def main() -> None:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return
 
-    if args.command == "agent_memory_sync":
+    if args.command in {"memory_sync", "agent_memory_sync"}:
         paths = bootstrap_memory_files(args.project, repo_root=find_repo_root())
-        cfg, resolved_paths = load_config(args.project)
+        cfg, resolved_paths = load_config(args.project, config_path=args.config)
         summary = {
-            "phase": "Phase 1 Research OS",
-            "strategy_mode": cfg.get("strategy_mode"),
-            "config_path": str(resolved_paths.config_path),
-            "meta_dir": str(resolved_paths.meta_dir),
-            "artifacts_dir": str(resolved_paths.artifacts_dir),
+            "current_task": "Keep the Phase 1 Research OS reproducible with tracked memory and honest runtime artifacts.",
+            "current_phase": "Phase 1 Research OS",
+            "current_blocker": "Default project still lacks usable validated bars for the frozen universe.",
+            "current_capability_boundary": "Engineering guardrails work; real default-project research remains blocked on data coverage.",
+            "next_priority_action": "Restore a usable validated bar snapshot for the frozen default universe.",
+            "last_verified_capability": f"Tracked memory synced from config {resolved_paths.config_path.name}.",
         }
         state_path = sync_project_state(args.project, summary, repo_root=find_repo_root())
-        print(json.dumps({"project_state_path": str(state_path), "bootstrap": {k: str(v) for k, v in paths.items()}}, ensure_ascii=False, indent=2))
+        print(
+            json.dumps(
+                {
+                    "project_state_path": str(state_path),
+                    "memory_dir": str(resolved_paths.memory_dir),
+                    "bootstrap": {k: str(v) for k, v in paths.items()},
+                },
+                ensure_ascii=False,
+                indent=2,
+            ),
+        )
+        return
+
+    if args.command == "generate_handoff":
+        result = generate_handoff(args.project, repo_root=find_repo_root())
+        print(json.dumps({key: str(value) for key, value in result.items()}, ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "verify_snapshot":
+        path = write_verify_snapshot(
+            args.project,
+            {
+                "passed_commands": args.passed_command,
+                "failed_commands": args.failed_command,
+                "default_project_data_status": args.data_status,
+                "conclusion_boundary_engineering": args.engineering_boundary,
+                "conclusion_boundary_research": args.research_boundary,
+                "last_verified_capability": args.last_verified_capability,
+            },
+            repo_root=find_repo_root(),
+        )
+        print(json.dumps({"verify_last_path": str(path)}, ensure_ascii=False, indent=2))
         return
 
     if args.command == "data_validate":

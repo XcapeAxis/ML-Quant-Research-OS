@@ -9,10 +9,10 @@ def test_agent_cycle_dry_run(limit_up_project) -> None:
         dry_run=True,
         config_path=limit_up_project["config_path"],
     )
-    meta_dir = limit_up_project["paths"].meta_dir
+    paths = limit_up_project["paths"]
 
     assert payload["metadata"]["dry_run"] is True
-    assert (meta_dir / "EXPERIMENT_LEDGER.jsonl").exists()
-    assert (meta_dir / "HYPOTHESIS_QUEUE.md").exists()
-    assert (meta_dir / "PROJECT_STATE.md").exists()
-    assert (meta_dir / "agent_cycles").exists()
+    assert paths.experiment_ledger_path.exists()
+    assert paths.hypothesis_queue_path.exists()
+    assert paths.project_state_path.exists()
+    assert paths.runtime_cycles_dir.exists()

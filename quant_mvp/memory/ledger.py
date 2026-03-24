@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -27,3 +28,8 @@ def append_jsonl(path: Path, payload: dict[str, Any]) -> None:
     with open(path, "a", encoding="utf-8") as handle:
         handle.write(json.dumps(to_jsonable(payload), ensure_ascii=False, sort_keys=True))
         handle.write("\n")
+
+
+def stable_hash(payload: Any) -> str:
+    text = json.dumps(to_jsonable(payload), ensure_ascii=False, sort_keys=True, default=str)
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()

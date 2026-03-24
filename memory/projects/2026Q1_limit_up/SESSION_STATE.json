@@ -1,0 +1,57 @@
+{
+  "branch": "main",
+  "current_blocker": "missing_research_inputs: No bars found for requested codes.",
+  "current_capability_boundary": "Engineering guardrails work; real default-project research remains blocked on data coverage.",
+  "current_phase": "Phase 1 Research OS",
+  "current_task": "Keep the Phase 1 Research OS reproducible with tracked memory and honest runtime artifacts.",
+  "durable_facts": [
+    "The audited strategy core is now shared by `scripts/run_limit_up_screening.py` and the modular step pipeline.",
+    "Tuesday rebalance is contract-tested after fixing the historical Wednesday drift in the old helper.",
+    "Schema defaults are centralized at a 250-day limit-up window."
+  ],
+  "head": "6d09a2ec898397c374f8dbeb4184cf22d657061b",
+  "last_failed_capability": "Dry-run blocked by missing research inputs: No bars found for requested codes.",
+  "last_failure": {
+    "corrective_action": "Restore a usable frozen universe plus local bars before rerunning the dry-run cycle.",
+    "experiment_id": "2026Q1_limit_up-20260324T162254",
+    "resolution_status": "not_fixed",
+    "root_cause": "missing_research_inputs: No bars found for requested codes.",
+    "summary": "Dry-run blocked by missing research inputs: No bars found for requested codes.",
+    "timestamp": "2026-03-24T16:22:54 | 2026Q1_limit_up-20260324T162254"
+  },
+  "last_updated": "2026-03-24T17:40:02+00:00",
+  "last_verified_capability": "Tracked memory migration, handoff generation, and 48 test cases passed on 2026-03-25.",
+  "latest_hypotheses": [
+    {
+      "hypothesis": "2026Q1_limit_up: investigate the highest-severity failed gate before running a live experiment",
+      "status": "pending"
+    }
+  ],
+  "negative_memory": [
+    "The default project currently fails promotion because the local DB has no usable bars for the frozen universe.",
+    "Historical headline returns from old repo states are not considered trustworthy until regenerated from current data."
+  ],
+  "next_priority_action": "Restore a usable validated bar snapshot for the frozen default universe.",
+  "next_step_memory": [
+    "Restore or ingest a validated bar snapshot before trusting any research conclusion on the default project.",
+    "Keep using dry-run agent cycles only as orchestration tests until the data layer is restored."
+  ],
+  "project": "2026Q1_limit_up",
+  "runtime_artifacts_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\2026Q1_limit_up",
+  "runtime_meta_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\2026Q1_limit_up\\meta",
+  "tracked_memory_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\2026Q1_limit_up",
+  "verify_last": {
+    "conclusion_boundary_engineering": "Tracked memory migration, handoff generation, and contract tests pass in the repository virtual environment.",
+    "conclusion_boundary_research": "Default-project real research remains blocked until usable validated bars exist for the frozen universe.",
+    "default_project_data_status": "Default project universe is frozen, but validated daily bars remain missing for most symbols in the local dataset.",
+    "failed_commands": [
+      "& .\\\\.venv\\\\Scripts\\\\python.exe -m quant_mvp data_validate --project 2026Q1_limit_up --config configs/projects/2026Q1_limit_up.json --full-refresh (blocked by missing validated bars)"
+    ],
+    "passed_commands": [
+      "& .\\\\.venv\\\\Scripts\\\\python.exe -m pytest tests -q",
+      "& .\\\\.venv\\\\Scripts\\\\python.exe -m quant_mvp memory_bootstrap --project 2026Q1_limit_up",
+      "& .\\\\.venv\\\\Scripts\\\\python.exe -m quant_mvp memory_sync --project 2026Q1_limit_up --config configs/projects/2026Q1_limit_up.json",
+      "& .\\\\.venv\\\\Scripts\\\\python.exe -m quant_mvp generate_handoff --project 2026Q1_limit_up"
+    ]
+  }
+}

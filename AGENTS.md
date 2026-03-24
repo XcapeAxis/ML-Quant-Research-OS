@@ -5,6 +5,15 @@
 - Scope is A-share daily/weekly research only.
 - It is not a live trading system and does not promise profitability.
 
+## Response Contract
+- Follow `docs/RESPONSE_CONTRACT.md`.
+- Default to `CHECKPOINT` replies unless the user explicitly asks for targeted evidence or full forensics.
+
+## Memory Layers
+- Git-tracked long-term memory lives under `memory/projects/<project>/`.
+- Runtime/high-noise artifacts live under `data/projects/<project>/meta/` and `artifacts/projects/<project>/`.
+- Durable memory must not exist only inside ignored runtime directories.
+
 ## Non-Negotiables
 - Never fabricate backtest, validation, or agent results.
 - Never delete failed experiments to make the ledger look cleaner.
@@ -19,12 +28,13 @@
 
 ## Memory Writeback Contract
 - Major repo-level decisions update `docs/DECISION_LOG.md`.
-- Every experiment appends one line to `EXPERIMENT_LEDGER.jsonl`.
-- Every failed experiment updates `POSTMORTEMS.md`.
-- Every hypothesis refresh updates `HYPOTHESIS_QUEUE.md`.
-- Every material state change updates `PROJECT_STATE.md`.
+- Every compact tracked experiment appends one line to `memory/projects/<project>/EXPERIMENT_LEDGER.jsonl`.
+- Every failed experiment updates `memory/projects/<project>/POSTMORTEMS.md`.
+- Every hypothesis refresh updates `memory/projects/<project>/HYPOTHESIS_QUEUE.md`.
+- Every material state change updates `memory/projects/<project>/PROJECT_STATE.md`.
+- Refresh `HANDOFF_NEXT_CHAT.md`, `MIGRATION_PROMPT_NEXT_CHAT.md`, `VERIFY_LAST.md`, and `SESSION_STATE.json` whenever the tracked state changes materially.
 
 ## Uncertainty Handling
 - Prefer the most conservative, most auditable assumption.
-- Write assumptions and unknowns into project memory files instead of leaving them only in context.
+- Write assumptions and unknowns into tracked project memory instead of leaving them only in context.
 - If a tool or dependency is missing, stop at the interface boundary, record it, and keep the system reproducible.

@@ -66,6 +66,7 @@ def _build_system_audit_markdown(project: str, findings: list[dict[str, Any]]) -
             "",
             "- The repo now routes both the standalone script and the step pipeline through the same audited limit-up core.",
             "- The historical repo state had Wednesday/Tuesday drift and mismatched 250 vs 750 day defaults; those are now locked by schema and tests.",
+            "- Tracked long-term memory now belongs under `memory/projects/<project>/`, while runtime data and artifacts stay under `data/` and `artifacts/`.",
             "- The default project still needs fresh universe/data artifacts to reproduce any real historical showcase, so documentation must remain conservative.",
         ],
     )
@@ -89,6 +90,11 @@ def _build_failure_modes_markdown() -> str:
 - Allowing the agent loop to skip memory writeback.
 - Letting tools execute outside the allowlist or without being logged.
 - Overwriting failure records instead of appending postmortems and experiment ledgers.
+
+## Memory Layering
+- Writing durable project memory only into ignored runtime directories.
+- Mixing compact tracked ledgers with full raw experiment payloads.
+- Starting a new chat without refreshing handoff, migration prompt, and machine-state summaries.
 """
 
 
@@ -101,6 +107,11 @@ def _build_decision_log_markdown() -> str:
 - Introduce schema modules (`quant_mvp/strategy_schema.py`, `quant_mvp/config_schema.py`) as the single source of truth for defaults and contracts.
 - Introduce provider/data validation abstractions instead of binding update logic directly to AKShare response quirks.
 - Keep the agent control plane dry-run capable by default; a live LLM backend is optional and never required for tests.
+
+## 2026-03-25
+- Move durable project memory into git-tracked `memory/projects/<project>/`.
+- Keep raw cycle payloads, manifests, and other high-noise outputs under ignored runtime directories.
+- Add handoff, migration prompt, verify snapshot, and machine-state files so sessions can migrate without rereading the whole repository.
 """
 
 

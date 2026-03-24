@@ -4,7 +4,8 @@ import json
 from typing import Any
 
 from .config import load_config
-from .memory.writeback import record_failure, sync_project_state
+from .memory.ledger import stable_hash
+from .memory.writeback import record_experiment_result, record_failure, sync_project_state
 from .research_core import build_limit_up_rank_artifacts, run_limit_up_backtest_artifacts
 from .universe import load_universe_codes
 from .validation.baselines import run_simple_baselines
@@ -100,9 +101,35 @@ def promote_candidate(project: str, *, config_path=None) -> dict[str, Any]:
     sync_project_state(
         project,
         {
-            "phase": "Phase 1 Research OS",
-            "last_promotion_gate": payload["promotable"],
-            "promotion_report": str(report_md_path),
+            "current_phase": "Phase 1 Research OS",
+            "current_task": "Keep the Phase 1 Research OS reproducible with tracked memory and honest runtime artifacts.",
+            "current_blocker": "; ".join(payload.get("reasons", [])) if payload.get("reasons") else "none",
+            "current_capability_boundary": (
+                "Engineering guardrails work; default-project promotion remains blocked on data coverage."
+                if not payload["promotable"]
+                else "Promotion gate currently passes for the evaluated candidate."
+            ),
+            "next_priority_action": (
+                "Resolve missing research inputs for the default project before rerunning promotion."
+                if not payload["promotable"]
+                else "Confirm promotion output with fresh validated data before relying on it."
+            ),
+            "last_verified_capability": "Promotion gate report was generated and written to runtime artifacts.",
+            "last_failed_capability": (
+                "Promotion gate blocked the candidate." if not payload["promotable"] else "none"
+            ),
+        },
+    )
+    record_experiment_result(
+        project,
+        {
+            "timestamp": "promotion-gate",
+            "experiment_id": "promote_candidate",
+            "hypothesis": str(cfg.get("research_hypothesis", "")),
+            "config_hash": stable_hash(cfg),
+            "result": "passed" if payload["promotable"] else "blocked",
+            "blockers": payload.get("reasons", []),
+            "artifact_refs": [str(report_json_path), str(report_md_path)],
         },
     )
     if not payload["promotable"]:
@@ -114,6 +141,7 @@ def promote_candidate(project: str, *, config_path=None) -> dict[str, Any]:
                 "summary": "Candidate failed the current promotion gate.",
                 "root_cause": "; ".join(payload.get("reasons", [])),
                 "corrective_action": "Resolve the failed gate reasons before the next promotion attempt.",
+                "resolution_status": "not_fixed",
             },
         )
     return {

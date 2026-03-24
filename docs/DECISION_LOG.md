@@ -6,3 +6,8 @@
 - Introduce schema modules (`quant_mvp/strategy_schema.py`, `quant_mvp/config_schema.py`) as the single source of truth for defaults and contracts.
 - Introduce provider/data validation abstractions instead of binding update logic directly to AKShare response quirks.
 - Keep the agent control plane dry-run capable by default; a live LLM backend is optional and never required for tests.
+
+## 2026-03-25
+- Move durable project memory into git-tracked `memory/projects/<project>/`.
+- Keep raw cycle payloads, manifests, and other high-noise outputs under ignored runtime directories.
+- Add handoff, migration prompt, verify snapshot, and machine-state files so sessions can migrate without rereading the whole repository.

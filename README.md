@@ -16,7 +16,7 @@ Implemented in this refactor:
 - provider abstraction over AKShare
 - raw -> cleaned -> validated data flow with project-scoped quality reports
 - leakage, walk-forward, cost-sensitivity, and promotion-gate modules
-- AGENTS files plus persistent project memory and append-only experiment ledger
+- AGENTS files plus tracked project memory under `memory/projects/<project>/` and runtime artifacts under `data/` / `artifacts/`
 - a dry-run agent cycle that writes plan / execution / evaluation / reflection to disk
 - contract tests for strategy consistency, Tuesday rebalance, leakage guards, and memory writeback
 
@@ -78,6 +78,14 @@ Run one dry-run research cycle:
 python -m quant_mvp agent_cycle --project 2026Q1_limit_up --config configs/projects/2026Q1_limit_up.json --dry-run
 ```
 
+Bootstrap tracked memory and handoff files:
+
+```bash
+python -m quant_mvp memory_bootstrap --project 2026Q1_limit_up
+python -m quant_mvp memory_sync --project 2026Q1_limit_up
+python -m quant_mvp generate_handoff --project 2026Q1_limit_up
+```
+
 Attempt promotion:
 
 ```bash
@@ -99,12 +107,20 @@ System-level docs:
 - [DECISION_LOG.md](docs/DECISION_LOG.md)
 - [RESEARCH_PROMOTION_RULES.md](docs/RESEARCH_PROMOTION_RULES.md)
 
-Project memory for the default project:
-- [PROJECT_STATE.md](data/projects/2026Q1_limit_up/meta/PROJECT_STATE.md)
-- [HYPOTHESIS_QUEUE.md](data/projects/2026Q1_limit_up/meta/HYPOTHESIS_QUEUE.md)
-- [POSTMORTEMS.md](data/projects/2026Q1_limit_up/meta/POSTMORTEMS.md)
-- [EXPERIMENT_LEDGER.jsonl](data/projects/2026Q1_limit_up/meta/EXPERIMENT_LEDGER.jsonl)
-- [RESEARCH_MEMORY.md](data/projects/2026Q1_limit_up/meta/RESEARCH_MEMORY.md)
+Tracked project memory for the default project:
+- [PROJECT_STATE.md](memory/projects/2026Q1_limit_up/PROJECT_STATE.md)
+- [HYPOTHESIS_QUEUE.md](memory/projects/2026Q1_limit_up/HYPOTHESIS_QUEUE.md)
+- [POSTMORTEMS.md](memory/projects/2026Q1_limit_up/POSTMORTEMS.md)
+- [EXPERIMENT_LEDGER.jsonl](memory/projects/2026Q1_limit_up/EXPERIMENT_LEDGER.jsonl)
+- [RESEARCH_MEMORY.md](memory/projects/2026Q1_limit_up/RESEARCH_MEMORY.md)
+- [HANDOFF_NEXT_CHAT.md](memory/projects/2026Q1_limit_up/HANDOFF_NEXT_CHAT.md)
+- [MIGRATION_PROMPT_NEXT_CHAT.md](memory/projects/2026Q1_limit_up/MIGRATION_PROMPT_NEXT_CHAT.md)
+- [VERIFY_LAST.md](memory/projects/2026Q1_limit_up/VERIFY_LAST.md)
+- [SESSION_STATE.json](memory/projects/2026Q1_limit_up/SESSION_STATE.json)
+
+Runtime/high-noise outputs:
+- `data/projects/<project>/meta/`
+- `artifacts/projects/<project>/`
 
 ## Verification
 

@@ -18,4 +18,5 @@
 
 - The repo now routes both the standalone script and the step pipeline through the same audited limit-up core.
 - The historical repo state had Wednesday/Tuesday drift and mismatched 250 vs 750 day defaults; those are now locked by schema and tests.
+- Tracked long-term memory now belongs under `memory/projects/<project>/`, while runtime data and artifacts stay under `data/` and `artifacts/`.
 - The default project still needs fresh universe/data artifacts to reproduce any real historical showcase, so documentation must remain conservative.
