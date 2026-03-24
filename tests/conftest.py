@@ -38,6 +38,45 @@ def _make_bars(codes: list[str], start: str, periods: int) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def _make_limit_up_bars(codes: list[str], start: str, periods: int) -> pd.DataFrame:
+    dates = pd.date_range(start=start, periods=periods, freq="B")
+    rows: list[dict[str, object]] = []
+    for idx, code in enumerate(codes):
+        close_price = 10.0 + idx
+        jump_interval = 12 + idx * 3
+        for i, dt in enumerate(dates):
+            prev_close = close_price
+            if i > 40 and i % jump_interval == jump_interval - 1:
+                open_price = prev_close * 1.03
+                close_price = prev_close * 0.98
+            elif i > 40 and i % jump_interval == 0:
+                open_price = prev_close * 1.01
+                close_price = prev_close * 1.10
+            else:
+                drift = 0.0015 + idx * 0.0002
+                open_price = prev_close * (1.0 + drift / 3.0)
+                close_price = prev_close * (1.0 + drift)
+
+            high = max(open_price, close_price) * 1.01
+            low = min(open_price, close_price) * 0.99
+            volume = 100000 + 500 * i + idx * 100
+            if code == codes[-1] and i % 19 == 0:
+                volume = 0.0
+            rows.append(
+                {
+                    "symbol": str(code).zfill(6),
+                    "datetime": dt.strftime("%Y-%m-%d"),
+                    "freq": "1d",
+                    "open": round(open_price, 4),
+                    "high": round(high, 4),
+                    "low": round(low, 4),
+                    "close": round(close_price, 4),
+                    "volume": float(volume),
+                },
+            )
+    return pd.DataFrame(rows)
+
+
 @pytest.fixture()
 def synthetic_project(tmp_path: Path):
     project = "test_smoke_project"
@@ -92,6 +131,96 @@ def synthetic_project(tmp_path: Path):
     "windows": [
       { "name": "2020H1", "start": "2020-01-01", "end": "2020-06-30" },
       { "name": "2020H2", "start": "2020-07-01", "end": "2020-12-31" }
+    ]
+  }
+}
+        """
+        % str(db_path).replace("\\", "/"),
+        encoding="utf-8",
+    )
+
+    yield {
+        "project": project,
+        "paths": paths,
+        "config_path": config_path,
+        "db_path": db_path,
+        "universe_codes": universe_codes,
+    }
+
+
+@pytest.fixture()
+def limit_up_project(tmp_path: Path):
+    project = "test_limit_up_project"
+    paths = resolve_project_paths(project)
+
+    if paths.project_data_dir.exists():
+        shutil.rmtree(paths.project_data_dir)
+    if paths.artifacts_dir.exists():
+        shutil.rmtree(paths.artifacts_dir)
+    if paths.logs_dir.exists():
+        shutil.rmtree(paths.logs_dir)
+
+    paths.ensure_dirs()
+    universe_codes = ["000001", "000002", "000003", "000004", "000005", "000006"]
+    with open(paths.universe_path, "w", encoding="utf-8") as handle:
+        for code in universe_codes:
+            handle.write(f"{code}\n")
+
+    db_path = tmp_path / "limit_up_market.db"
+    bars = _make_limit_up_bars(codes=universe_codes + ["999999"], start="2020-01-01", periods=180)
+    upsert_bars(db_path=db_path, bars_df=bars)
+
+    config_path = tmp_path / "limit_up_config.json"
+    config_path.write_text(
+        """
+{
+  "db_path": "%s",
+  "freq": "1d",
+  "strategy_mode": "limit_up_screening",
+  "stock_num": 3,
+  "topk": 3,
+  "topn_max": 3,
+  "min_bars": 40,
+  "max_codes_scan": 100,
+  "cash": 1000000,
+  "commission": 0.0001,
+  "stamp_duty": 0.0005,
+  "slippage": 0.001,
+  "risk_free_rate": 0.03,
+  "calendar_code": "000001",
+  "start_date": "2020-01-01",
+  "end_date": "2020-09-30",
+  "stock_num": 3,
+  "limit_days_window": 60,
+  "top_pct_limit_up": 0.5,
+  "limit_up_threshold": 0.095,
+  "init_pool_size": 6,
+  "rebalance_weekday": 1,
+  "topk_multiplier": 2,
+  "stoploss_limit": 0.91,
+  "take_profit_ratio": 2.0,
+  "market_stoploss_ratio": 0.93,
+  "loss_black_days": 10,
+  "no_trade_months": [],
+  "min_commission": 5.0,
+  "tradability": {
+    "require_positive_volume": true,
+    "min_volume": 1.0
+  },
+  "baselines": {
+    "benchmark_code": "000001",
+    "enable_equal_weight": true,
+    "random_trials": 10,
+    "random_seed": 42
+  },
+  "cost_sweep": {
+    "commission_grid": [0.0001, 0.0003],
+    "slippage_grid": [0.001, 0.002]
+  },
+  "walk_forward": {
+    "windows": [
+      { "name": "2020H1", "start": "2020-01-01", "end": "2020-06-30" },
+      { "name": "2020H2", "start": "2020-07-01", "end": "2020-09-30" }
     ]
   }
 }

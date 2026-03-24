@@ -1,0 +1,171 @@
+:root {
+  color: #172554;
+  background:
+    radial-gradient(circle at top left, rgba(15, 118, 110, 0.16), transparent 28%),
+    linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: transparent;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: transparent;
+}
+
+.loading-shell {
+  display: grid;
+  place-items: center;
+}
+
+.app-sider {
+  border-right: 1px solid rgba(148, 163, 184, 0.2);
+  background: linear-gradient(180deg, #fcfcfd 0%, #f8fafc 100%) !important;
+}
+
+.brand-panel {
+  padding: 28px 24px 12px;
+}
+
+.brand-eyebrow,
+.header-eyebrow,
+.toolbar-label {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 11px;
+  color: #64748b !important;
+}
+
+.brand-title,
+.header-title,
+.tight-title {
+  margin: 0 !important;
+}
+
+.brand-copy,
+.tight-paragraph {
+  margin-bottom: 0 !important;
+}
+
+.app-menu {
+  border-inline-end: none !important;
+  background: transparent !important;
+}
+
+.app-header {
+  background: rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+  padding: 0 28px !important;
+  height: auto !important;
+  line-height: 1.2 !important;
+}
+
+.header-row {
+  width: 100%;
+  justify-content: space-between;
+  padding: 20px 0;
+}
+
+.app-content {
+  padding: 24px 28px 32px;
+}
+
+.page-stack {
+  display: grid;
+  gap: 20px;
+}
+
+.panel-card,
+.metric-card {
+  border: none !important;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+}
+
+.job-list {
+  display: grid;
+  gap: 12px;
+}
+
+.job-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(241, 245, 249, 0.9);
+}
+
+.log-panel {
+  display: grid;
+  gap: 4px;
+  padding: 16px;
+  min-height: 320px;
+  max-height: 520px;
+  overflow: auto;
+  border-radius: 14px;
+  background: #0f172a;
+}
+
+.log-line {
+  color: #dbeafe !important;
+  font-family: "JetBrains Mono", "Consolas", monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.image-card {
+  margin: 0;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(248, 250, 252, 0.92);
+}
+
+.image-card img {
+  display: block;
+  width: 100%;
+  border-radius: 12px;
+}
+
+.image-card figcaption {
+  padding-top: 10px;
+  color: #475569;
+  font-size: 13px;
+}
+
+.markdown-panel {
+  max-width: 960px;
+}
+
+@media (max-width: 960px) {
+  .app-sider {
+    display: none;
+  }
+
+  .app-content {
+    padding: 20px 16px 28px;
+  }
+
+  .header-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

@@ -33,7 +33,7 @@ if not curve_path.exists():
 if curve_path.exists():
     st.image(str(curve_path))
 else:
-    st.info(f"Missing curve image: equity_curve.png or topn_1_5.png")
+    st.info("Missing curve image: equity_curve.png or topn_1_5.png")
 
 st.subheader("Run Manifest")
 manifest_path = meta_dir / "run_manifest.json"

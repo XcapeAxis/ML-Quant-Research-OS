@@ -12,3 +12,8 @@ akshare
 pytest
 ruff
 streamlit
+fastapi
+uvicorn
+sqlalchemy
+pydantic>=2,<3
+httpx

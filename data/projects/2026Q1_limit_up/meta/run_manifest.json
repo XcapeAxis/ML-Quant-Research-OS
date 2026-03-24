@@ -1,17 +1,17 @@
 {
   "project": "2026Q1_limit_up",
-  "generated_at": "2026-02-28T03:52:00.873163",
-  "git_commit": "f607bf61c4f46aa704294c8a2809231155e8d356",
+  "generated_at": "2026-03-25T00:17:49.480413",
+  "git_commit": "cd4d29d6a05e5ce9a995bd631dd64d8d90330c08",
   "paths": {
-    "signals_dir": "D:\\MYFILES\\MyQuantJournal\\data\\projects\\2026Q1_limit_up\\signals",
-    "features_dir": "D:\\MYFILES\\MyQuantJournal\\data\\projects\\2026Q1_limit_up\\features",
-    "meta_dir": "D:\\MYFILES\\MyQuantJournal\\data\\projects\\2026Q1_limit_up\\meta",
-    "artifacts_dir": "D:\\MYFILES\\MyQuantJournal\\artifacts\\projects\\2026Q1_limit_up",
-    "db_path": "D:\\MYFILES\\MyQuantJournal\\data\\market.db"
+    "signals_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\2026Q1_limit_up\\signals",
+    "features_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\2026Q1_limit_up\\features",
+    "meta_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\2026Q1_limit_up\\meta",
+    "artifacts_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\2026Q1_limit_up",
+    "db_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\market.db"
   },
-  "universe_size": 200,
-  "universe_path": "D:\\MYFILES\\MyQuantJournal\\data\\projects\\2026Q1_limit_up\\meta\\universe_codes.txt",
-  "symbols_path": "D:\\MYFILES\\MyQuantJournal\\data\\meta\\symbols.csv",
+  "universe_size": 3063,
+  "universe_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\2026Q1_limit_up\\meta\\universe_codes.txt",
+  "symbols_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\2026Q1_limit_up\\meta\\symbols.csv",
   "bars_update": {
     "mode": "backfill",
     "start_date": "20230101",
@@ -372,5 +372,6 @@
     "n_codes_in_universe": 200,
     "n_codes_in_db": 200
   },
-  "report_path": "D:\\MYFILES\\MyQuantJournal\\artifacts\\projects\\2026Q1_limit_up\\report.md"
+  "report_path": "D:\\MYFILES\\MyQuantJournal\\artifacts\\projects\\2026Q1_limit_up\\report.md",
+  "symbols_source": "remote"
 }

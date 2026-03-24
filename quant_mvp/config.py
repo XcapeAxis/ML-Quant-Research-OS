@@ -5,74 +5,11 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
+from .config_schema import ProjectConfig
 from .project import ProjectPaths, resolve_project_paths
 
 
-DEFAULT_CONFIG: dict[str, Any] = {
-    "db_path": None,
-    "freq": "1d",
-    "strategy_mode": "momentum",  # "momentum" | "limit_up_screening"
-    "lookback": 20,
-    "rebalance_every": 5,
-    "topk": 5,
-    "topn_max": 5,
-    "min_bars": 160,
-    "max_codes_scan": 4000,
-    "cash": 1_000_000.0,
-    "commission": 0.0003,
-    "stamp_duty": 0.001,
-    "slippage": 0.0005,
-    "calendar_code": "000001",
-    "start_date": "2016-01-01",
-    "end_date": None,
-    "universe_size_target": None,
-    "risk_free_rate": 0.03,
-    # Limit-up screening strategy defaults
-    "stock_num": 6,
-    "limit_days_window": 750,
-    "top_pct_limit_up": 0.10,
-    "limit_up_threshold": 0.095,
-    "init_pool_size": 1000,
-    "rebalance_weekday": 1,
-    # Stop-loss / take-profit defaults
-    "stoploss_limit": 0.91,
-    "take_profit_ratio": 2.0,
-    "market_stoploss_ratio": 0.93,
-    "loss_black_days": 20,
-    "no_trade_months": [1, 4],
-    "min_commission": 5.0,
-    "baselines": {
-        "benchmark_code": "000001",
-        "enable_equal_weight": True,
-        "random_trials": 200,
-        "random_seed": 42,
-    },
-    "cost_sweep": {
-        "commission_grid": [0.0001, 0.0002, 0.0003, 0.0005, 0.001],
-        "slippage_grid": [0.0001, 0.0003, 0.0005, 0.001, 0.002],
-    },
-    "walk_forward": {
-        "windows": [
-            {"name": "2016-2019", "start": "2016-01-01", "end": "2019-12-31"},
-            {"name": "2020-2022", "start": "2020-01-01", "end": "2022-12-31"},
-            {"name": "2023-2025", "start": "2023-01-01", "end": "2025-12-31"},
-        ],
-    },
-    "report": {
-        "format": "md",
-        "include_sections": ["overview", "metrics", "coverage", "baselines", "cost", "walk_forward"],
-    },
-    "tradability": {
-        "require_positive_volume": False,
-        "min_volume": 0,
-    },
-    "risk_overlay": {
-        "enabled": False,
-        "vol_target": 0.18,
-        "rolling_days": 20,
-        "max_leverage": 1.0,
-    },
-}
+DEFAULT_CONFIG: dict[str, Any] = ProjectConfig.default().to_dict()
 
 
 def _deep_merge(base: dict[str, Any], extra: dict[str, Any]) -> dict[str, Any]:

@@ -33,6 +33,7 @@ from quant_mvp.backtest_engine import (
 from quant_mvp.config import load_config
 from quant_mvp.db import load_close_volume_panel
 from quant_mvp.manifest import candidate_count_stats, update_run_manifest
+from quant_mvp.research_core import run_limit_up_backtest_artifacts
 from quant_mvp.universe import load_universe_codes
 
 
@@ -207,74 +208,18 @@ def _run_limit_up_screening(args, cfg: dict, paths) -> None:
     if rank_df.empty:
         raise RuntimeError("Rank file has no rows after universe filter.")
 
-    start = rank_df["date"].min().strftime("%Y-%m-%d")
-    end = rank_df["date"].max().strftime("%Y-%m-%d")
-    rank_codes = sorted(rank_df["code"].unique().tolist())
-    close, _ = load_close_volume_panel(
-        db_path=Path(cfg["db_path"]), freq=cfg["freq"], codes=rank_codes, start=start, end=end,
+    save_value = str(args.save)
+    artifacts = run_limit_up_backtest_artifacts(
+        cfg=cfg,
+        paths=paths,
+        rank_df=rank_df,
+        save=save_value,
+        no_show=args.no_show,
     )
-    close = close.reindex(columns=rank_codes)
-
-    calendar_code = str(cfg.get("calendar_code", "000001")).zfill(6)
-    index_ratio = _index_daily_ratio(Path(cfg["db_path"]), cfg["freq"], calendar_code, start, end)
-
-    bt_cfg = BacktestConfig(
-        cash=float(cfg["cash"]),
-        commission=float(cfg.get("commission", 0.0001)),
-        stamp_duty=float(cfg.get("stamp_duty", 0.0005)),
-        slippage=float(cfg.get("slippage", 0.002)),
-        risk_free_rate=float(cfg.get("risk_free_rate", 0.03)),
-        risk_overlay=cfg.get("risk_overlay"),
-        min_commission=float(cfg["min_commission"]) if cfg.get("min_commission") is not None else None,
-    )
-    stoploss_params = StoplossParams(
-        stoploss_limit=float(cfg.get("stoploss_limit", 0.91)),
-        take_profit_ratio=float(cfg.get("take_profit_ratio", 2.0)),
-        market_stoploss_ratio=float(cfg.get("market_stoploss_ratio", 0.93)),
-        loss_black_days=int(cfg.get("loss_black_days", 20)),
-        no_trade_months=tuple(int(m) for m in cfg.get("no_trade_months", [1, 4])),
-        min_commission=float(cfg["min_commission"]) if cfg.get("min_commission") is not None else None,
-    )
-
-    targets = rank_targets(rank_df, topn=stock_num)
-    equity = run_rebalance_backtest_with_stoploss(
-        close_panel=close,
-        targets_by_date=targets,
-        cfg=bt_cfg,
-        stoploss_params=stoploss_params,
-        index_daily_ratio=index_ratio,
-    )
-    metrics_row = summarize_equity(equity, bt_cfg)
-    metrics_row["topn"] = stock_num
-    metrics_df = pd.DataFrame([metrics_row])
-
-    metrics_path = paths.artifacts_dir / "summary_metrics.csv"
-    metrics_df.to_csv(metrics_path, index=False, encoding="utf-8-sig")
-
-    plot_path = _resolve_plot_path(args, paths, "equity_curve.png")
-    if plot_path is not None:
-        _save_single_curve_plot(equity, plot_path, f"{args.project}: Strategy equity curve", f"Top{stock_num}")
-        dd_path = paths.artifacts_dir / "drawdown_curve.png"
-        _save_drawdown_plot(equity, dd_path, f"{args.project}: Drawdown from peak")
-
-    update_run_manifest(args.project, {
-        "strategy_mode": "limit_up_screening",
-        "rank_path": str(rank_path),
-        "summary_metrics_path": str(metrics_path),
-        "plot_path": str(plot_path) if plot_path else "",
-        "rank_dates": int(rank_df["date"].nunique()),
-        "rank_unique_codes": int(rank_df["code"].nunique()),
-        "db_path": str(cfg["db_path"]),
-        "params": {
-            "stock_num": stock_num,
-            "stoploss_limit": cfg.get("stoploss_limit", 0.91),
-            "no_trade_months": cfg.get("no_trade_months", [1, 4]),
-            "market_stoploss_ratio": cfg.get("market_stoploss_ratio", 0.93),
-        },
-    })
-    print(f"[backtest] mode=limit_up_screening project={args.project} metrics={metrics_path}")
-    if plot_path:
-        print(f"[backtest] plot={plot_path}")
+    update_run_manifest(args.project, artifacts.manifest_updates)
+    print(f"[backtest] mode=limit_up_screening project={args.project} metrics={artifacts.metrics_path}")
+    if artifacts.plot_path:
+        print(f"[backtest] plot={artifacts.plot_path}")
 
 
 # ---------------------------------------------------------------------------

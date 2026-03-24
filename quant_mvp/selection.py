@@ -7,13 +7,13 @@ exclusion) and Tuesday-only rebalancing.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-from .db import load_close_volume_panel, load_ohlcv_panel
+from .db import load_ohlcv_panel
 
 
 # ---------------------------------------------------------------------------
@@ -26,7 +26,7 @@ class LimitUpScreeningConfig:
 
     stock_num: int = 6
     rebalance_weekday: int = 1  # 0=Mon, 1=Tue
-    limit_days_window: int = 750  # ~3 years of trading days
+    limit_days_window: int = 250  # ~1 year of trading days
     top_pct_limit_up: float = 0.10  # keep top 10% by limit-up count
     limit_up_threshold: float = 0.095  # daily return >= this => proxy limit-up
     init_pool_size: int = 1000  # pre-filter universe to this size
@@ -34,6 +34,7 @@ class LimitUpScreeningConfig:
     max_codes_scan: int = 4000
     topk_multiplier: int = 2  # rank 2*stock_num candidates
     require_positive_volume: bool = True
+    min_new_listing_days: int = 375
 
 
 # ---------------------------------------------------------------------------
@@ -49,10 +50,16 @@ def get_tuesday_rebalance_dates(
 
 
 def filter_kcbj_stock(codes: list[str]) -> list[str]:
-    """Exclude STAR Market and Beijing Exchange stocks."""
+    """Keep only mainboard A-share codes and exclude growth / STAR / BSE boards."""
     return [
         c for c in codes
-        if not (c.startswith("4") or c.startswith("8") or c.startswith("68"))
+        if not (
+            c.startswith("4")
+            or c.startswith("8")
+            or c.startswith("68")
+            or c.startswith("300")
+            or c.startswith("301")
+        )
     ]
 
 
@@ -299,7 +306,7 @@ def build_limit_up_screening_rank(
 
     for dt in rebalance_dates:
         dt_idx = calendar.get_loc(dt)
-        if dt_idx < cfg.limit_days_window:
+        if dt_idx < cfg.limit_days_window or dt_idx >= len(calendar) - 1:
             continue
 
         available = close.loc[dt].dropna().index.tolist()
@@ -307,7 +314,7 @@ def build_limit_up_screening_rank(
         if stock_names:
             filtered = filter_st_stock_by_name(filtered, stock_names)
         if listing_dates:
-            filtered = filter_new_stock(filtered, listing_dates, dt, min_days=375)
+            filtered = filter_new_stock(filtered, listing_dates, dt, min_days=cfg.min_new_listing_days)
 
         if dt_idx >= 1:
             prev_dt = calendar[dt_idx - 1]

@@ -22,6 +22,9 @@ build/
 Thumbs.db
 .idea/
 .vscode/
+node_modules/
+apps/web/node_modules/
+apps/web/dist/
 
 # Runtime
 logs/
@@ -48,7 +51,6 @@ artifacts/**
 !artifacts/projects/2026Q1_limit_up/
 artifacts/projects/2026Q1_limit_up/**
 !artifacts/projects/2026Q1_limit_up/equity_curve.png
-!artifacts/projects/2026Q1_limit_up/drawdown_curve.png
 !artifacts/projects/2026Q1_limit_up/summary_metrics.csv
 !artifacts/projects/2026Q1_limit_up/report.md
 

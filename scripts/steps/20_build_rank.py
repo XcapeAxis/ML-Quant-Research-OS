@@ -17,7 +17,7 @@ if str(ROOT) not in sys.path:
 from quant_mvp.config import load_config
 from quant_mvp.manifest import candidate_count_stats, update_run_manifest
 from quant_mvp.ranking import build_momentum_rank
-from quant_mvp.selection import LimitUpScreeningConfig, build_limit_up_screening_rank
+from quant_mvp.research_core import build_limit_up_rank_artifacts
 from quant_mvp.universe import load_universe_codes
 
 
@@ -82,59 +82,11 @@ def _run_momentum(cfg: dict, paths, universe: list[str]) -> None:
 
 
 def _run_limit_up_screening(cfg: dict, paths, universe: list[str]) -> None:
-    stock_num = int(cfg.get("stock_num", 6))
-    sel_cfg = LimitUpScreeningConfig(
-        stock_num=stock_num,
-        rebalance_weekday=int(cfg.get("rebalance_weekday", 1)),
-        limit_days_window=int(cfg.get("limit_days_window", 750)),
-        top_pct_limit_up=float(cfg.get("top_pct_limit_up", 0.10)),
-        limit_up_threshold=float(cfg.get("limit_up_threshold", 0.095)),
-        init_pool_size=int(cfg.get("init_pool_size", 1000)),
-        min_bars=int(cfg.get("min_bars", 160)),
-        max_codes_scan=int(cfg.get("max_codes_scan", 4000)),
-        topk_multiplier=int(cfg.get("topk_multiplier", 2)),
-        require_positive_volume=bool(cfg.get("tradability", {}).get("require_positive_volume", False)),
-    )
-
-    result = build_limit_up_screening_rank(
-        db_path=Path(cfg["db_path"]),
-        freq=cfg["freq"],
-        universe_codes=universe,
-        cfg=sel_cfg,
-        start_date=cfg.get("start_date"),
-        end_date=cfg.get("end_date"),
-    )
-
-    rank_path = paths.signals_dir / f"rank_top{stock_num}.parquet"
-    candidate_count_path = paths.meta_dir / "rank_candidate_count.csv"
-
-    result.rank_df.to_parquet(rank_path, index=False)
-    if not result.candidate_count_df.empty:
-        result.candidate_count_df.to_csv(candidate_count_path, index=False, encoding="utf-8-sig")
-
-    stats = candidate_count_stats(candidate_count_path) if candidate_count_path.exists() else None
-    update_run_manifest(
-        paths.project,
-        {
-            "strategy_mode": "limit_up_screening",
-            "freq": cfg["freq"],
-            "params": {
-                "stock_num": stock_num,
-                "limit_days_window": sel_cfg.limit_days_window,
-                "top_pct_limit_up": sel_cfg.top_pct_limit_up,
-                "limit_up_threshold": sel_cfg.limit_up_threshold,
-                "rebalance_weekday": sel_cfg.rebalance_weekday,
-            },
-            "db_path": str(cfg["db_path"]),
-            "rank_path": str(rank_path),
-            "rank_dates": int(result.rank_df["date"].nunique()),
-            "rank_unique_codes": int(result.rank_df["code"].nunique()),
-            "candidate_count_stats": stats,
-        },
-    )
+    artifacts = build_limit_up_rank_artifacts(cfg=cfg, paths=paths, universe_codes=universe)
+    update_run_manifest(paths.project, artifacts.manifest_updates)
     print(
-        f"[build_rank] mode=limit_up_screening project={paths.project} rank={rank_path} "
-        f"rows={len(result.rank_df)} dates={result.rank_df['date'].nunique()}"
+        f"[build_rank] mode=limit_up_screening project={paths.project} rank={artifacts.rank_path} "
+        f"rows={len(artifacts.selection.rank_df)} dates={artifacts.selection.rank_df['date'].nunique()}"
     )
 
 

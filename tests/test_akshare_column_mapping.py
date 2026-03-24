@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import importlib.util
+import sqlite3
 from pathlib import Path
 import sys
 import types
 
 import pandas as pd
+import pytest
 
 
 def _load_script_module(module_name: str, rel_path: str):
@@ -39,6 +41,7 @@ def test_fetch_akshare_daily_maps_chinese_columns(monkeypatch) -> None:
         start_yyyymmdd="20250101",
         end_yyyymmdd="20250103",
         freq="1d",
+        timeout_seconds=3,
     )
 
     assert not out.empty
@@ -47,18 +50,23 @@ def test_fetch_akshare_daily_maps_chinese_columns(monkeypatch) -> None:
     assert out["freq"].unique().tolist() == ["1d"]
 
 
-def test_build_symbols_accepts_chinese_headers(monkeypatch, tmp_path: Path) -> None:
+def test_build_symbols_falls_back_to_db_when_remote_fetch_fails(monkeypatch, tmp_path: Path) -> None:
     step10 = _load_script_module("step10_for_test", "scripts/steps/10_symbols.py")
-    fake_ak = types.SimpleNamespace(
-        stock_info_a_code_name=lambda: pd.DataFrame(
-            {
-                "证券代码": ["000001", "600000", "300001", "000003"],
-                "证券简称": ["平安银行", "浦发银行", "创业示例", "退市示例"],
-            },
-        ),
+    db_path = tmp_path / "market.db"
+    conn = sqlite3.connect(db_path)
+    conn.execute("CREATE TABLE bars (symbol TEXT, datetime TEXT, freq TEXT, open REAL, high REAL, low REAL, close REAL, volume REAL)")
+    conn.executemany(
+        "INSERT INTO bars VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        [
+            ("000001", "2025-01-02", "1d", 10, 10.5, 9.8, 10.2, 100000),
+            ("600000", "2025-01-02", "1d", 11, 11.2, 10.8, 11.1, 120000),
+            ("300001", "2025-01-02", "1d", 12, 12.3, 11.9, 12.1, 130000),
+        ],
     )
-    monkeypatch.setitem(sys.modules, "akshare", fake_ak)
-    monkeypatch.setattr(step10, "ROOT", tmp_path)
+    conn.commit()
+    conn.close()
+
+    monkeypatch.setattr(step10, "_fetch_remote_symbols", lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("network down")))
 
     def _fake_save_universe_codes(project: str, codes: list[str]) -> Path:
         out = tmp_path / "data" / "projects" / project / "meta" / "universe_codes.txt"
@@ -70,7 +78,12 @@ def test_build_symbols_accepts_chinese_headers(monkeypatch, tmp_path: Path) -> N
 
     monkeypatch.setattr(step10, "save_universe_codes", _fake_save_universe_codes)
 
-    symbols_path, universe_path, count = step10.build_symbols(project="unit_test_project", target_size=None)
+    symbols_path, universe_path, count, source = step10.build_symbols(
+        project="unit_test_project",
+        db_path=db_path,
+        freq="1d",
+        target_size=None,
+    )
 
     assert symbols_path.exists()
     assert universe_path.exists()
@@ -78,6 +91,24 @@ def test_build_symbols_accepts_chinese_headers(monkeypatch, tmp_path: Path) -> N
     codes = set(saved["code"].astype(str).str.zfill(6).tolist())
     assert codes == {"000001", "600000"}
     assert count == 2
+    assert source == "db"
+
+
+def test_fetch_remote_symbols_requires_both_exchanges(monkeypatch) -> None:
+    step10 = _load_script_module("step10_remote_test", "scripts/steps/10_symbols.py")
+    monkeypatch.setattr(
+        step10,
+        "_fetch_sse_mainboard_symbols",
+        lambda _cfg: pd.DataFrame({"code": ["600000"], "name": ["浦发银行"]}),
+    )
+    monkeypatch.setattr(
+        step10,
+        "_fetch_szse_a_symbols",
+        lambda _cfg: pd.DataFrame(columns=["code", "name"]),
+    )
+
+    with pytest.raises(RuntimeError, match="remote symbol fetch failed"):
+        step10._fetch_remote_symbols(step10.NetworkRuntimeConfig())
 
 
 def test_is_st_recognizes_delisted_keyword() -> None:

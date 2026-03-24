@@ -10,9 +10,9 @@ from .db import load_close_volume_panel
 def get_rebalance_dates_tuesday(
     calendar: pd.DatetimeIndex,
     lookback: int,
-    weekday: int = 2,
+    weekday: int = 1,
 ) -> list[pd.Timestamp]:
-    """Return rebalance dates that fall on weekday (0=Mon, 2=Tue). Requires at least lookback bars before first date."""
+    """Return rebalance dates that fall on weekday (0=Mon, 1=Tue)."""
     cal = calendar.sort_values()
     if len(cal) <= lookback:
         return []
@@ -146,7 +146,7 @@ def build_rank_tuesday_momentum(
     min_volume: float = 0.0,
 ) -> RankBuildResult:
     """
-    Build momentum rank with rebalance only on Tuesdays (weekday=2).
+    Build momentum rank with rebalance only on Tuesdays (weekday=1).
     Output format compatible with rank_topK.parquet (date, code, score, rank).
     """
     if topk <= 0:
@@ -167,7 +167,7 @@ def build_rank_tuesday_momentum(
     if len(calendar) <= lookback:
         raise RuntimeError("Not enough trading days to compute momentum.")
 
-    rebalance_dates = get_rebalance_dates_tuesday(calendar, lookback=lookback, weekday=2)
+    rebalance_dates = get_rebalance_dates_tuesday(calendar, lookback=lookback, weekday=1)
     if not rebalance_dates:
         raise RuntimeError("No Tuesday rebalance dates in range.")
 

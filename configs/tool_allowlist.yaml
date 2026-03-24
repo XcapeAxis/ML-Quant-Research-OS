@@ -1,0 +1,13 @@
+approved_builtin:
+  - research_audit
+  - agent_memory_sync
+  - promote_candidate
+
+auto_installable:
+
+manual_approval_required:
+  - pip
+  - npm
+  - cargo
+  - docker
+  - gh
