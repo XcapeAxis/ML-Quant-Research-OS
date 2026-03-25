@@ -4,7 +4,7 @@
 - gate_mode: AUTO
 - recommended_gate: OFF
 - continue_using_subagents: no
-- continue_reason: Task breadth is below the minimum threshold for safe decomposition.
+- continue_reason: The coordination-adjusted score is too low.
 - recent_event: plan
 
 ## Current Sets
@@ -17,8 +17,8 @@
 ## Latest Plan
 - recommended_count: 0
 - recommended_roles: none
-- no_split_reason: Task breadth is below the minimum threshold for safe decomposition.
-- rationale: The work is still narrow enough for one integrating agent.
+- no_split_reason: The coordination-adjusted score is too low.
+- rationale: Validation and isolation benefits do not yet offset decomposition cost.
 
 ## Role Templates
 - data_steward: Own provider, ingestion, cleaning, and data coverage diagnostics without changing strategy logic.

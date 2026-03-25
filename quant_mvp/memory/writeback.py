@@ -491,6 +491,8 @@ def _migrate_legacy_memory(paths, state: dict[str, Any]) -> dict[str, Any]:
     legacy = _legacy_memory_paths(paths)
     if _is_missing_or_empty(paths.project_state_path) and legacy["project_state"].exists():
         _write_text(paths.project_state_path, legacy["project_state"].read_text(encoding="utf-8"))
+    if _is_missing_or_empty(paths.research_memory_path) and legacy["research_memory"].exists():
+        _write_text(paths.research_memory_path, legacy["research_memory"].read_text(encoding="utf-8"))
     if _is_missing_or_empty(paths.postmortems_path) and legacy["postmortems"].exists():
         _write_text(paths.postmortems_path, legacy["postmortems"].read_text(encoding="utf-8"))
     if _is_missing_or_empty(paths.hypothesis_queue_path) and legacy["hypothesis_queue"].exists():
@@ -530,7 +532,7 @@ def _migrate_legacy_memory(paths, state: dict[str, Any]) -> dict[str, Any]:
             },
         )
 
-    research_memory_text = _read_text(legacy["research_memory"]) or _read_text(paths.research_memory_path)
+    research_memory_text = _read_text(paths.research_memory_path) or _read_text(legacy["research_memory"])
     research_memory = _parse_legacy_research_memory(research_memory_text)
     if research_memory["durable_facts"]:
         state["durable_facts"] = research_memory["durable_facts"]

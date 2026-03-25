@@ -3,6 +3,7 @@
 ## Layers
 1. Raw
    - Source provider fetches bars into `bars`.
+   - The current AKShare provider prefers the Tencent daily-history endpoint and falls back to Eastmoney when Tencent is unavailable.
    - Symbols are normalized to six-digit A-share codes.
 2. Cleaned
    - `bars_clean` is rebuilt from raw bars with explicit issue tracking.

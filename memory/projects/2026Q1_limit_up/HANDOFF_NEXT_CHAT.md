@@ -1,10 +1,10 @@
 # Handoff Next Chat
 
 ## Current Total Task
-Keep the Phase 1 Research OS reproducible with tracked memory and honest runtime artifacts.
+Keep the default project on real daily inputs, expand beyond the pilot subset, and reassess promotion only after coverage and drawdown context improve.
 
 ## Current Phase
-Phase 1 Research OS
+Phase 1 Research OS - pilot real-input recovery
 
 ## Completed
 - Tracked memory dir: C:\Users\asus\Documents\Projects\BackTest\memory\projects\2026Q1_limit_up
@@ -12,13 +12,13 @@ Phase 1 Research OS
 - Runtime artifacts dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\2026Q1_limit_up
 
 ## Current Blocker
-missing_research_inputs: No bars found for requested codes.
+Pilot recovery covers 150/3063 frozen-universe names (coverage_ratio=0.0490), and promotion is blocked because max drawdown is 83.38% > 30.00%.
 
 ## Recent Critical Failure
-Dry-run blocked by missing research inputs: No bars found for requested codes.
+Candidate failed the current promotion gate.
 
 ## Current Real Capability Boundary
-Engineering guardrails work; real default-project research remains blocked on data coverage.
+The default project no longer sits at coverage=0: data_validate, promotion gate, verify snapshot, and subagent planning all run on real bars, but only on a pilot subset rather than the full frozen universe.
 
 ## Subagent Status
 - gate_mode: AUTO
@@ -28,7 +28,7 @@ Engineering guardrails work; real default-project research remains blocked on da
 - continue_using_subagents: no
 
 ## Next Highest-Priority Action
-Restore a usable validated bar snapshot for the frozen default universe.
+Expand validated daily bars beyond the 150-code pilot or explicitly test whether the 83.38% drawdown is pilot-sampling bias before trusting any strategy conclusion.
 
 ## Read First In The Next Chat
 - C:\Users\asus\Documents\Projects\BackTest\memory\projects\2026Q1_limit_up\PROJECT_STATE.md

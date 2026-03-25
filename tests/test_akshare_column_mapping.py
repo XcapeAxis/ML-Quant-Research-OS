@@ -9,6 +9,9 @@ import types
 import pandas as pd
 import pytest
 
+from quant_mvp.data.contracts import ProviderFetchRequest
+from quant_mvp.data.providers import akshare_provider
+
 
 def _load_script_module(module_name: str, rel_path: str):
     root = Path(__file__).resolve().parents[1]
@@ -48,6 +51,45 @@ def test_fetch_akshare_daily_maps_chinese_columns(monkeypatch) -> None:
     assert {"datetime", "open", "high", "low", "close", "volume", "symbol", "freq"}.issubset(out.columns)
     assert out["symbol"].unique().tolist() == ["000001"]
     assert out["freq"].unique().tolist() == ["1d"]
+
+
+def test_akshare_provider_prefers_tencent_path_before_eastmoney(monkeypatch) -> None:
+    calls: list[str] = []
+
+    def _fake_tencent(request: ProviderFetchRequest, *, timeout_seconds: float) -> pd.DataFrame:
+        del timeout_seconds
+        calls.append(f"tx:{request.symbol}")
+        return pd.DataFrame(
+            [
+                {
+                    "datetime": "2025-01-02",
+                    "open": 10.0,
+                    "high": 10.2,
+                    "low": 9.9,
+                    "close": 10.1,
+                    "volume": 123456.0,
+                    "symbol": str(request.symbol).zfill(6),
+                    "freq": request.frequency,
+                },
+            ],
+        )
+
+    def _fail_eastmoney(request: ProviderFetchRequest, *, timeout_seconds: float) -> pd.DataFrame:
+        del request, timeout_seconds
+        raise AssertionError("eastmoney should not be called when the preferred Tencent path succeeds")
+
+    monkeypatch.setattr(akshare_provider, "_fetch_tencent_history", _fake_tencent)
+    monkeypatch.setattr(akshare_provider, "_fetch_eastmoney_history", _fail_eastmoney)
+
+    provider = akshare_provider.AkshareDailyProvider(timeout_seconds=3)
+    out = provider.fetch_daily_bars(
+        ProviderFetchRequest(symbol="1", start_date="20250101", end_date="20250103", frequency="1d"),
+    )
+
+    assert calls == ["tx:000001"]
+    assert out["symbol"].unique().tolist() == ["000001"]
+    assert out["freq"].unique().tolist() == ["1d"]
+    assert float(out.iloc[0]["volume"]) == 123456.0
 
 
 def test_build_symbols_falls_back_to_db_when_remote_fetch_fails(monkeypatch, tmp_path: Path) -> None:

@@ -38,6 +38,8 @@ def _to_yyyymmdd(date_text: str | None) -> str:
 def _friendly_network_error(exc: Exception, network_cfg: NetworkRuntimeConfig) -> str:
     text = str(exc)
     lower = text.lower()
+    if "configured endpoints" in lower:
+        return text
     if network_cfg.ca_bundle_path and not network_cfg.ca_bundle_exists():
         return f"Missing CA bundle: {network_cfg.ca_bundle_path}"
     if "ssl" in lower or "certificate" in lower or "cert" in lower:
@@ -151,6 +153,8 @@ def run_update(
         "total_rows": 0,
         "failed_codes": [],
         "updated_code_list": [],
+        "failure_reason_counts": {},
+        "sample_failures": [],
     }
 
     with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
@@ -178,8 +182,12 @@ def run_update(
                     stats["updated_code_list"].append(code)
                 if last:
                     registry[code] = last
-            except Exception:
+            except Exception as exc:
                 stats["failed_codes"].append(code)
+                reason = _friendly_network_error(exc, network_cfg)
+                stats["failure_reason_counts"][reason] = int(stats["failure_reason_counts"].get(reason, 0)) + 1
+                if len(stats["sample_failures"]) < 5:
+                    stats["sample_failures"].append(f"{code}: {reason}")
 
     _save_registry(registry_path, registry)
 
@@ -217,6 +225,8 @@ def run_update(
                 "updated_codes": stats["updated_codes"],
                 "total_rows": stats["total_rows"],
                 "failed_codes": stats["failed_codes"],
+                "failure_reason_counts": stats["failure_reason_counts"],
+                "sample_failures": stats["sample_failures"],
             },
         },
         "freq": freq,

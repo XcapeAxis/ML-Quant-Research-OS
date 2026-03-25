@@ -11,4 +11,5 @@
 - Move durable project memory into git-tracked `memory/projects/<project>/`.
 - Keep raw cycle payloads, manifests, and other high-noise outputs under ignored runtime directories.
 - Add handoff, migration prompt, verify snapshot, and machine-state files so sessions can migrate without rereading the whole repository.
+- Change the AKShare daily-bar provider to prefer the Tencent history path and fall back to Eastmoney, because the Eastmoney path is blocked by system-proxy behaviour in the current environment and was leaving the default project at zero coverage.
 - Add a policy-driven subagent governance layer with `OFF / AUTO / FORCE` gate, lifecycle tracking, tracked registry/ledger, and runtime payload isolation under `artifacts/projects/<project>/subagents/`.
