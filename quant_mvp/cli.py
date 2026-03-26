@@ -21,7 +21,13 @@ from .agent.iterative_loop import render_iterative_checkpoint, run_iterative_loo
 from .agent.runner import run_agent_cycle
 from .data import run_data_validate_flow
 from .factors import build_factors_for_project
-from .memory.writeback import bootstrap_memory_files, generate_handoff, sync_project_state, write_verify_snapshot
+from .memory.writeback import (
+    bootstrap_memory_files,
+    generate_handoff,
+    load_machine_state,
+    sync_project_state,
+    write_verify_snapshot,
+)
 from .platform.readiness import project_doctor
 from .platform.schemas import PipelineName
 from .platform.settings import load_platform_settings
@@ -269,13 +275,16 @@ def main() -> None:
     if args.command in {"memory_sync", "agent_memory_sync"}:
         paths = bootstrap_memory_files(args.project, repo_root=find_repo_root())
         cfg, resolved_paths = load_config(args.project, config_path=args.config)
+        _, state = load_machine_state(args.project, repo_root=find_repo_root())
         summary = {
-            "current_task": "Keep the Phase 1 Research OS reproducible with tracked memory and honest runtime artifacts.",
-            "current_phase": "Phase 1 Research OS",
-            "current_blocker": "Default project still lacks usable validated bars for the frozen universe.",
-            "current_capability_boundary": "Engineering guardrails work; real default-project research remains blocked on data coverage.",
-            "next_priority_action": "Restore a usable validated bar snapshot for the frozen default universe.",
-            "last_verified_capability": f"Tracked memory synced from config {resolved_paths.config_path.name}.",
+            "current_task": state.get("current_task") or "Keep the Phase 1 Research OS reproducible with tracked memory and honest runtime artifacts.",
+            "current_phase": state.get("current_phase") or "Phase 1 Research OS",
+            "current_blocker": state.get("current_blocker") or "Default project still lacks usable validated bars for the frozen universe.",
+            "current_capability_boundary": state.get("current_capability_boundary")
+            or "Engineering guardrails work; real default-project research remains blocked on data coverage.",
+            "next_priority_action": state.get("next_priority_action") or "Restore a usable validated bar snapshot for the frozen default universe.",
+            "last_verified_capability": state.get("last_verified_capability")
+            or f"Tracked memory synced from config {resolved_paths.config_path.name}.",
         }
         state_path = sync_project_state(args.project, summary, repo_root=find_repo_root())
         print(

@@ -251,3 +251,21 @@
 - 根因: 最大回撤 50.44% 高于 30.00%。；基准或等权基线不完整.
 - 纠偏动作: 升级 blocker `max_drawdown`: 已停止自动重试，请收窄路径，并在下一次 run 前写回根因诊断。
 - 当前状态: 未修复
+
+## 2026-03-26T07:32:43 | as_share_research_v1-20260326T073243
+- 摘要: 晋级门阻塞： 最大回撤 56.50% 高于 30.00%。
+- 根因: 最大回撤 56.50% 高于 30.00%。
+- 纠偏动作: Restore a usable frozen universe plus local bars before rerunning the dry-run cycle.
+- 当前状态: 未修复
+
+## 2026-03-26T07:42:45 | as_share_research_v1-20260326T074245
+- 摘要: 晋级门阻塞： 最大回撤 56.50% 高于 30.00%。
+- 根因: 最大回撤 56.50% 高于 30.00%。
+- 纠偏动作: Restore a usable frozen universe plus local bars before rerunning the dry-run cycle.
+- 当前状态: 未修复
+
+## 2026-03-26T07:42:48+00:00 | as_share_research_v1-iterative-20260326T073253Z
+- 摘要: 刷新 repo truth 与审计基线
+- 根因: 最大回撤 56.50% 高于 30.00%。
+- 纠偏动作: 升级 blocker `max_drawdown`: 已停止自动重试，请收窄路径，并在下一次 run 前写回根因诊断。
+- 当前状态: 未修复

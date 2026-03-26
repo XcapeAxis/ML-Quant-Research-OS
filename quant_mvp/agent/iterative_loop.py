@@ -392,12 +392,22 @@ def _queue_task_score(*, task: dict[str, Any], truth: RepoTruth, history: list[d
         return -999
     if task.get("requires_data_ready") and truth.data_ready is not True:
         return -999
+    default_action = _default_action_name_for_truth(truth=truth, history=history)
+    historical_repeat_count = _historical_blocker_count(truth, truth.blocker_key)
+    selected_count = int(task.get("selected_count", 0) or 0)
     score = {"high": 30, "medium": 20, "low": 10}.get(str(task.get("impact", "medium")), 20)
     score += {"low": 12, "medium": 6, "high": 0}.get(str(task.get("risk", "medium")), 6)
     score += {"ready": 12, "queued": 4, "advanced": 2}.get(status, 0)
-    if task.get("action_name") == _default_action_name_for_truth(truth=truth, history=history):
+    if task.get("action_name") == default_action:
         score += 8
-    score -= int(task.get("selected_count", 0) or 0) * 10
+    score -= selected_count * 10
+    if historical_repeat_count >= 2 and truth.blocker_key not in {"none", "data_inputs"}:
+        if selected_count == 0 and task.get("action_name") in {"research_audit", "agent_cycle_dry_run"}:
+            score += 8
+        if selected_count > 0:
+            score -= 6 * selected_count
+        if selected_count > 0 and task.get("action_name") == default_action:
+            score -= 10
     return score
 
 
@@ -486,6 +496,15 @@ def _is_effective_progress(
 
 def _action_is_clarify_only(*, verification: VerificationResult, effective_progress: bool) -> bool:
     return effective_progress and verification.classification == "blocker_clarified" and not verification.verified_progress
+
+
+def _untried_followup_count(queue: list[dict[str, Any]]) -> int:
+    return sum(
+        1
+        for item in queue
+        if item.get("current_status") in {"ready", "queued", "advanced"}
+        and int(item.get("selected_count", 0) or 0) <= 0
+    )
 
 
 def _build_campaign_context(*, project: str, repo_root: Path | None = None) -> CampaignRunContext:
@@ -752,6 +771,7 @@ def _decision_to_stop_reason(
     blocker_repeat_count: int,
     no_effective_progress_streak: int,
     ready_queue_count: int,
+    untried_followup_count: int,
     effective_progress: bool,
     substantive_action_count: int,
     clarify_only_iterations: int,
@@ -764,14 +784,14 @@ def _decision_to_stop_reason(
         return "worktree_not_suitable"
     if not truth.context_clear:
         return "insufficient_context"
-    if blocker_repeat_count >= 3:
-        return "low_roi_repeated_blocker"
-    if not effective_progress and ready_queue_count <= 0:
-        return "no_verified_progress"
     if no_effective_progress_streak >= 2:
         return "no_effective_progress_twice"
     if clarify_only_iterations > config.clarify_only_limit and substantive_action_count < config.min_substantive_actions:
         return "clarify_only_limit_reached"
+    if blocker_repeat_count >= 3 and untried_followup_count <= 0:
+        return "low_roi_repeated_blocker"
+    if not effective_progress and ready_queue_count <= 0:
+        return "no_verified_progress"
     if iteration >= config.max_iterations:
         return "max_iterations_reached"
     if iteration >= config.target_iterations and substantive_action_count >= config.target_substantive_actions:
@@ -1004,6 +1024,7 @@ def run_iterative_loop(
             blocker_repeat_count=blocker_repeat_count,
             no_effective_progress_streak=no_effective_progress_streak,
             ready_queue_count=_ready_queue_count(context.execution_queue),
+            untried_followup_count=_untried_followup_count(context.execution_queue),
             effective_progress=effective_progress,
             substantive_action_count=substantive_action_count,
             clarify_only_iterations=clarify_only_iterations,

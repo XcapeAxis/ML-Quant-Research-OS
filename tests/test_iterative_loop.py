@@ -43,10 +43,18 @@ def _truth(
 
 
 class _SequenceDriver:
-    def __init__(self, *, truths: list[tuple[RepoTruth, RepoTruth]], verifications: list[VerificationResult], action_name: str = "agent_cycle_dry_run"):
+    def __init__(
+        self,
+        *,
+        truths: list[tuple[RepoTruth, RepoTruth]],
+        verifications: list[VerificationResult],
+        action_name: str = "agent_cycle_dry_run",
+        action_names: list[str] | None = None,
+    ):
         self.truths = truths
         self.verifications = verifications
         self.action_name = action_name
+        self.action_names = list(action_names or [])
         self.iteration = 0
         self.scan_index = 0
 
@@ -58,9 +66,12 @@ class _SequenceDriver:
         return truth
 
     def choose_action(self, *, truth: RepoTruth, history: list[dict], config: LoopConfig) -> LoopAction | None:
-        del history, config
+        del config
+        name = self.action_name
+        if self.action_names:
+            name = self.action_names[min(len(history), len(self.action_names) - 1)]
         return LoopAction(
-            name=self.action_name,
+            name=name,
             rationale=f"test action for {truth.blocker_key}",
             expected_outcome="test outcome",
         )
@@ -203,6 +214,14 @@ def test_iterative_run_stops_when_clarify_only_iterations_are_overused(limit_up_
 
 
 def test_iterative_run_escalates_repeated_blocker(limit_up_project) -> None:
+    project = limit_up_project["project"]
+    _, state = load_machine_state(project)
+    for item in state["execution_queue"]:
+        item["selected_count"] = 1
+        item["last_iteration"] = 1
+        item["current_status"] = "advanced"
+    save_machine_state(project, state)
+
     stagnant_before = _truth(blocker="drawdown", blocker_key="max_drawdown", direction="strategy_diagnostics", data_ready=True)
     stagnant_after = _truth(blocker="drawdown clarified", blocker_key="max_drawdown", direction="strategy_diagnostics", data_ready=True)
     driver = _SequenceDriver(
@@ -215,7 +234,7 @@ def test_iterative_run_escalates_repeated_blocker(limit_up_project) -> None:
     )
 
     result = run_iterative_loop(
-        project=limit_up_project["project"],
+        project=project,
         target_iterations=5,
         max_iterations=5,
         clarify_only_limit=3,
@@ -287,6 +306,10 @@ def test_iterative_run_escalates_repeated_blocker_across_runs(limit_up_project) 
         },
     }
     state["iterative_loop"]["blocker_history"] = blocker_history
+    for item in state["execution_queue"]:
+        item["selected_count"] = 1
+        item["last_iteration"] = 1
+        item["current_status"] = "advanced"
     save_machine_state(project, state)
 
     driver = _SequenceDriver(
@@ -321,6 +344,135 @@ def test_iterative_run_escalates_repeated_blocker_across_runs(limit_up_project) 
     assert result["blocker_escalation"] is True
     assert "Escalated blocker" in result["next_recommendation"]
     assert session["iterative_loop"]["blocker_escalation"] is True
+
+
+def test_repeated_blocker_uses_untried_followups_before_low_roi_stop(limit_up_project) -> None:
+    project = limit_up_project["project"]
+    _, state = load_machine_state(project)
+    state["iterative_loop"]["blocker_history"] = {
+        "max_drawdown": {
+            "count": 4,
+            "last_seen": "2026-03-25T00:00:00+00:00",
+            "last_stop_reason": "low_roi_repeated_blocker",
+            "escalated": True,
+        },
+    }
+    for item in state["execution_queue"]:
+        if item["task_id"] == "recover_daily_bars":
+            item["current_status"] = "done"
+            item["selected_count"] = 1
+        elif item["task_id"] == "refresh_promotion_boundary":
+            item["current_status"] = "advanced"
+            item["selected_count"] = 1
+            item["last_iteration"] = 1
+            item["last_classification"] = "blocker_clarified"
+        else:
+            item["current_status"] = "queued"
+            item["selected_count"] = 0
+            item["last_iteration"] = 0
+            item["last_classification"] = ""
+    save_machine_state(project, state)
+
+    repeated_snapshot = {"iterative_loop": {"blocker_history": state["iterative_loop"]["blocker_history"]}}
+    driver = _SequenceDriver(
+        truths=[
+            (
+                _truth(
+                    blocker="drawdown",
+                    blocker_key="max_drawdown",
+                    direction="strategy_diagnostics",
+                    data_ready=True,
+                    state_snapshot=repeated_snapshot,
+                ),
+                _truth(
+                    blocker="drawdown narrowed",
+                    blocker_key="max_drawdown",
+                    direction="strategy_diagnostics",
+                    data_ready=True,
+                    state_snapshot=repeated_snapshot,
+                ),
+            ),
+            (
+                _truth(
+                    blocker="drawdown narrowed",
+                    blocker_key="max_drawdown",
+                    direction="strategy_diagnostics",
+                    data_ready=True,
+                    state_snapshot=repeated_snapshot,
+                ),
+                _truth(
+                    blocker="drawdown still narrowed",
+                    blocker_key="max_drawdown",
+                    direction="strategy_diagnostics",
+                    data_ready=True,
+                    state_snapshot=repeated_snapshot,
+                ),
+            ),
+        ],
+        verifications=[
+            VerificationResult(classification="blocker_clarified", summary="audit clarified", verified_progress=False, new_information=True, next_recommendation="inspect audit"),
+            VerificationResult(classification="blocker_clarified", summary="dry run clarified", verified_progress=False, new_information=True, next_recommendation="stop honestly"),
+        ],
+        action_names=["research_audit", "agent_cycle_dry_run"],
+    )
+
+    result = run_iterative_loop(
+        project=project,
+        target_iterations=4,
+        max_iterations=4,
+        clarify_only_limit=3,
+        driver=driver,
+    )
+    _, refreshed = load_machine_state(project)
+    queue = {item["task_id"]: item for item in refreshed["execution_queue"]}
+
+    assert result["iteration_count"] == 2
+    assert result["stop_reason"] == "low_roi_repeated_blocker"
+    assert queue["refresh_research_audit"]["selected_count"] == 1
+    assert queue["dry_run_agent_cycle"]["selected_count"] == 1
+    assert "刷新 repo truth 与审计基线" in result["completed"]
+
+
+def test_repeated_blocker_queue_prefers_untried_followup(limit_up_project) -> None:
+    truth = _truth(
+        blocker="drawdown",
+        blocker_key="max_drawdown",
+        direction="strategy_diagnostics",
+        data_ready=True,
+        state_snapshot={
+            "iterative_loop": {
+                "blocker_history": {
+                    "max_drawdown": {
+                        "count": 4,
+                    },
+                },
+            },
+        },
+    )
+    queue = loop_module._merge_execution_queue(
+        [
+            {
+                "task_id": "refresh_promotion_boundary",
+                "current_status": "advanced",
+                "selected_count": 1,
+                "last_iteration": 1,
+                "last_classification": "blocker_clarified",
+            },
+            {
+                "task_id": "recover_daily_bars",
+                "current_status": "done",
+                "selected_count": 1,
+                "last_iteration": 1,
+                "last_classification": "verified_progress",
+            },
+        ]
+    )
+    queue = loop_module._sync_queue_with_truth(queue, truth)
+
+    picked = loop_module._pick_queue_task(queue=queue, truth=truth, history=[])
+
+    assert picked is not None
+    assert picked["task_id"] == "refresh_research_audit"
 
 
 def test_iterative_checkpoint_stays_lightweight() -> None:
