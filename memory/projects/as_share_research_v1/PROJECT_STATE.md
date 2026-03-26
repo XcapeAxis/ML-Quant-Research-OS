@@ -2,17 +2,32 @@
 
 - 当前总任务: 保持 Phase 1 Research OS 可复现，tracked memory 与诚实的 runtime artifacts 保持一致。
 - 当前阶段: Phase 1 Research OS
+- 当前轮次类型: 策略推进轮
+- 当前主线策略: baseline_limit_up（涨停主线基线分支）
+- 当前支线策略: risk_constrained_limit_up（涨停主线风控分支）, tighter_entry_limit_up（涨停主线收紧入场分支）
 - 当前 blocker: 最大回撤 56.50% 高于 30.00%。
 - 当前真实能力边界: 工程护栏可用，但真实 default project 研究仍被数据覆盖率阻塞。
-- 下一优先动作: 升级 blocker `max_drawdown`: 已停止自动重试，请收窄路径，并在下一次 run 前写回根因诊断。
+- 当前研究对象判断: 本轮围绕 baseline_limit_up（涨停主线基线分支） 继续收敛研究 blocker；当前最硬的限制仍是 最大回撤 56.50% 高于 30.00%。。
+- 当前基础设施判断: 本轮主要刷新研究边界、验证状态和长期记忆，而不是继续扩张治理层。
+- 下一优先动作: 恢复 frozen default universe 可用的 validated bar 快照。
 - 最近已验证能力: Tracked memory 已按计划刷新： as_share_research_v1: revalidate spec parity before any new alpha claim
 - 最近失败能力: 晋级门阻塞： 最大回撤 56.50% 高于 30.00%。
 - subagent_gate_mode: AUTO
 - active subagents: none
 - blocked subagents: none
-- 最近 subagent 事件: iterative_relevance_review
+- 最近 subagent 事件: 迭代相关性复核
 - stage0a 最近决策: expand_bars
 - stage0a 宇宙变化: 715 -> None
+
+## 策略快照
+- 当前轮次类型: 策略推进轮
+- 当前主线策略: baseline_limit_up（涨停主线基线分支）
+- 当前支线策略: risk_constrained_limit_up（涨停主线风控分支）, tighter_entry_limit_up（涨停主线收紧入场分支）
+- 当前 blocked 策略: baseline_limit_up（涨停主线基线分支）, risk_constrained_limit_up（涨停主线风控分支）, tighter_entry_limit_up（涨停主线收紧入场分支）
+- 当前 rejected 策略: legacy_single_branch（旧单分支兼容路径）
+- 当前 promoted 策略: 当前为空
+- 系统推进判断: 本轮主要刷新研究边界、验证状态和长期记忆，而不是继续扩张治理层。
+- 策略推进判断: 本轮围绕 baseline_limit_up（涨停主线基线分支） 继续收敛研究 blocker；当前最硬的限制仍是 最大回撤 56.50% 高于 30.00%。。
 
 ## 研究进度
 - Data inputs: 可进入验证，3/4。证据：默认项目数据状态：已就绪覆盖： 715/715 个标的具备已验证 bars (coverage_ratio=1.0000, raw_rows=1441021, cleaned_rows=1419045, validated_rows=1419045).；当前输入已可支撑本阶段验证。
@@ -23,7 +38,7 @@
 - 总体轨迹: 阻塞
 - 本轮增量: 无实质变化
 - 当前 blocker: 最大回撤 56.50% 高于 30.00%。
-- 下一里程碑: 升级 blocker `max_drawdown`: 已停止自动重试，请收窄路径，并在下一次 run 前写回根因诊断。
+- 下一里程碑: 恢复 frozen default universe 可用的 validated bar 快照。
 - 置信度: 中
 
 ## 最近一次高阶迭代

@@ -7,10 +7,22 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from ..agent.subagent_policy import load_subagent_roles
-from ..agent.subagent_registry import default_subagent_state, render_subagent_registry, summarize_subagent_state
+from ..agent.subagent_registry import (
+    default_subagent_state,
+    normalize_subagent_state,
+    render_subagent_registry,
+    summarize_subagent_state,
+)
 from ..project import resolve_project_paths
 from .ledger import append_jsonl, to_jsonable
 from .localization import humanize_text, zh_bool, zh_status, zh_stop_reason
+from .strategy_visibility import (
+    ensure_strategy_visibility_state,
+    render_strategy_board,
+    render_strategy_cards,
+    render_strategy_progress,
+    summarize_strategy_visibility,
+)
 from .templates import (
     DOCS_AGENTS_TEMPLATE,
     EXECUTION_QUEUE_TEMPLATE,
@@ -197,12 +209,41 @@ def _render_research_memory(state: dict[str, Any]) -> str:
     next_steps = _normalize_list(state.get("next_step_memory"))
     lines = ["# 研究记忆", "", "## 长期事实"]
     lines.extend([f"- {humanize_text(item)}" for item in durable] or ["- 未记录"])
+    strategy = summarize_strategy_visibility(state)
+    lines.extend(["", "## 仍成立的策略假设"])
+    if strategy["primary"] or strategy["secondary"]:
+        for item in [*strategy["primary"], *strategy["secondary"]]:
+            lines.append(f"- `{item['strategy_id']}`: {item['core_hypothesis']}")
+    else:
+        lines.append("- 未记录")
+    lines.extend(["", "## 已被削弱或否定的策略假设"])
+    if strategy["rejected"]:
+        for item in strategy["rejected"]:
+            lines.append(f"- `{item['strategy_id']}`: {item['latest_result']}")
+    else:
+        lines.append("- 当前没有新增被否定的策略假设。")
     lines.extend(["", "## 负面记忆"])
     lines.extend([f"- {humanize_text(item)}" for item in negative] or ["- 未记录"])
     lines.extend(["", "## 下一步记忆"])
     lines.extend([f"- {humanize_text(item)}" for item in next_steps] or ["- 未记录"])
+    lines.extend(["", *_render_strategy_snapshot_lines(state)])
     lines.extend(["", *_render_research_progress_lines(state)])
     return "\n".join(lines)
+
+
+def _render_strategy_snapshot_lines(state: dict[str, Any], *, heading: str = "## 策略快照") -> list[str]:
+    strategy = summarize_strategy_visibility(state)
+    return [
+        heading,
+        f"- 当前轮次类型: {strategy['round_type']}",
+        f"- 当前主线策略: {', '.join(strategy['primary_names']) or '尚未记录'}",
+        f"- 当前支线策略: {', '.join(strategy['secondary_names']) or '当前为空'}",
+        f"- 当前 blocked 策略: {', '.join(strategy['blocked_names']) or '当前为空'}",
+        f"- 当前 rejected 策略: {', '.join(strategy['rejected_names']) or '当前为空'}",
+        f"- 当前 promoted 策略: {', '.join(strategy['promoted_names']) or '当前为空'}",
+        f"- 系统推进判断: {strategy['system_line']}",
+        f"- 策略推进判断: {strategy['strategy_line']}",
+    ]
 
 
 _QUEUE_IMPACT_ZH = {
@@ -873,13 +914,19 @@ def _merge_state(base: dict[str, Any], updates: dict[str, Any]) -> dict[str, Any
 def _render_project_state(state: dict[str, Any]) -> str:
     subagents = summarize_subagent_state(state)
     stage0a = dict(state.get("stage0a_decision", {}) or {})
+    strategy = summarize_strategy_visibility(state)
     lines = [
         "# 项目状态",
         "",
         f"- 当前总任务: {humanize_text(state.get('current_task', 'unknown'))}",
         f"- 当前阶段: {humanize_text(state.get('current_phase', 'unknown'))}",
+        f"- 当前轮次类型: {strategy['round_type']}",
+        f"- 当前主线策略: {', '.join(strategy['primary_names']) or '尚未记录'}",
+        f"- 当前支线策略: {', '.join(strategy['secondary_names']) or '当前为空'}",
         f"- 当前 blocker: {humanize_text(state.get('current_blocker', 'unknown'))}",
         f"- 当前真实能力边界: {humanize_text(state.get('current_capability_boundary', 'unknown'))}",
+        f"- 当前研究对象判断: {strategy['strategy_line']}",
+        f"- 当前基础设施判断: {strategy['system_line']}",
         f"- 下一优先动作: {humanize_text(state.get('next_priority_action', 'unknown'))}",
         f"- 最近已验证能力: {humanize_text(state.get('last_verified_capability', 'unknown'))}",
         f"- 最近失败能力: {humanize_text(state.get('last_failed_capability', 'unknown'))}",
@@ -895,7 +942,7 @@ def _render_project_state(state: dict[str, Any]) -> str:
                 f"- stage0a 宇宙变化: {stage0a.get('old_universe_size', 'n/a')} -> {stage0a.get('new_universe_size', 'n/a')}",
             ],
         )
-    lines.extend(["", *_render_research_progress_lines(state)])
+    lines.extend(["", *_render_strategy_snapshot_lines(state), "", *_render_research_progress_lines(state)])
     lines.extend(["", "## 最近一次高阶迭代"])
     lines.extend(_render_loop_summary_lines(state))
     return "\n".join(lines)
@@ -920,6 +967,7 @@ def _render_hypothesis_queue(hypotheses: list[dict[str, str]]) -> str:
 def _render_verify_last(state: dict[str, Any]) -> str:
     verify = state.get("verify_last", {}) or {}
     subagents = summarize_subagent_state(state)
+    strategy = summarize_strategy_visibility(state)
     passed = _normalize_list(verify.get("passed_commands"))
     failed = _normalize_list(verify.get("failed_commands"))
     lines = [
@@ -937,10 +985,16 @@ def _render_verify_last(state: dict[str, Any]) -> str:
             f"- 默认项目数据状态: {humanize_text(verify.get('default_project_data_status', 'unknown'))}",
             f"- 工程边界结论: {humanize_text(verify.get('conclusion_boundary_engineering', 'unknown'))}",
             f"- 研究边界结论: {humanize_text(verify.get('conclusion_boundary_research', 'unknown'))}",
+            f"- 当前轮次类型: {strategy['round_type']}",
+            f"- 当前主线策略: {', '.join(strategy['primary_names']) or '尚未记录'}",
+            f"- 当前 blocked 策略: {', '.join(strategy['blocked_names']) or '当前为空'}",
+            f"- 策略推进判断: {strategy['strategy_line']}",
             f"- subagent_gate_mode: {subagents['gate_mode']}",
             f"- active_subagents: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
             f"- blocked_subagents: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
             f"- 最近 subagent 事件: {humanize_text(subagents['last_event'].get('action', 'none recorded'))}",
+            "",
+            *_render_strategy_snapshot_lines(state),
             "",
             *_render_research_progress_lines(state),
             "",
@@ -954,6 +1008,7 @@ def _render_verify_last(state: dict[str, Any]) -> str:
 def _render_handoff(state: dict[str, Any], paths) -> str:
     failure = state.get("last_failure", {}) or {}
     subagents = summarize_subagent_state(state)
+    strategy = summarize_strategy_visibility(state)
     lines = [
         "# 下一轮交接",
         "",
@@ -962,6 +1017,14 @@ def _render_handoff(state: dict[str, Any], paths) -> str:
         "",
         "## 当前阶段",
         humanize_text(state.get("current_phase", "unknown")),
+        "",
+        "## 当前研究对象",
+        f"- 当前轮次类型: {strategy['round_type']}",
+        f"- 当前主线策略: {', '.join(strategy['primary_names']) or '尚未记录'}",
+        f"- 当前支线策略: {', '.join(strategy['secondary_names']) or '当前为空'}",
+        f"- 当前 blocked 策略: {', '.join(strategy['blocked_names']) or '当前为空'}",
+        f"- 当前 rejected 策略: {', '.join(strategy['rejected_names']) or '当前为空'}",
+        f"- 当前策略推进判断: {strategy['strategy_line']}",
         "",
         "## 已确认路径",
         f"- tracked memory 目录: {paths.memory_dir}",
@@ -981,8 +1044,13 @@ def _render_handoff(state: dict[str, Any], paths) -> str:
         f"- gate_mode: {subagents['gate_mode']}",
         f"- active: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
         f"- blocked: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
+        f"- active_research: {', '.join(subagents['active_research_ids']) if subagents['active_research_ids'] else 'none'}",
+        f"- active_infrastructure: {', '.join(subagents['active_infrastructure_ids']) if subagents['active_infrastructure_ids'] else 'none'}",
         f"- recent_transition: {humanize_text(subagents['last_event'].get('action', 'none recorded'))}",
         f"- continue_using_subagents: {zh_bool(subagents['should_expand'])}",
+        "",
+        "## 当前 active 研究型 subagents",
+        *( [f"- {item}" for item in subagents["active_research_ids"]] if subagents["active_research_ids"] else ["- 当前为空"] ),
         "",
         *_render_research_progress_lines(state),
         "",
@@ -997,6 +1065,8 @@ def _render_handoff(state: dict[str, Any], paths) -> str:
         "",
         "## 下一轮先读这些文件",
         f"- {paths.project_state_path}",
+        f"- {paths.strategy_board_path}",
+        f"- {paths.strategy_candidates_dir}",
         f"- {paths.verify_last_path}",
         f"- {paths.migration_prompt_path}",
         f"- {paths.research_memory_path}",
@@ -1009,6 +1079,7 @@ def _render_migration_prompt(state: dict[str, Any], paths) -> str:
     failure = state.get("last_failure", {}) or {}
     verify = state.get("verify_last", {}) or {}
     subagents = summarize_subagent_state(state)
+    strategy = summarize_strategy_visibility(state)
     lines = [
         "# 下一轮迁移提示",
         "",
@@ -1029,6 +1100,14 @@ def _render_migration_prompt(state: dict[str, Any], paths) -> str:
         f"- runtime_artifacts_dir: {paths.artifacts_dir}",
         f"- current_blocker: {humanize_text(state.get('current_blocker', 'unknown'))}",
         "",
+        "## 当前研究对象",
+        f"- current_round_type: {strategy['round_type']}",
+        f"- primary_strategies: {', '.join(strategy['primary_names']) or '尚未记录'}",
+        f"- secondary_strategies: {', '.join(strategy['secondary_names']) or '当前为空'}",
+        f"- blocked_strategies: {', '.join(strategy['blocked_names']) or '当前为空'}",
+        f"- rejected_strategies: {', '.join(strategy['rejected_names']) or '当前为空'}",
+        f"- promoted_strategies: {', '.join(strategy['promoted_names']) or '当前为空'}",
+        "",
         "## 未确认问题",
         f"- {humanize_text('No additional unconfirmed questions have been recorded yet.')}",
         "",
@@ -1042,8 +1121,12 @@ def _render_migration_prompt(state: dict[str, Any], paths) -> str:
         f"- gate_mode: {subagents['gate_mode']}",
         f"- active: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
         f"- blocked: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
+        f"- active_research: {', '.join(subagents['active_research_ids']) if subagents['active_research_ids'] else 'none'}",
+        f"- active_infrastructure: {', '.join(subagents['active_infrastructure_ids']) if subagents['active_infrastructure_ids'] else 'none'}",
         f"- recent_transition: {humanize_text(subagents['last_event'].get('action', 'none recorded'))}",
         f"- continue_using_subagents: {zh_bool(subagents['should_expand'])}",
+        "",
+        *_render_strategy_snapshot_lines(state),
         "",
         *_render_research_progress_lines(state),
         "",
@@ -1069,6 +1152,7 @@ def _render_migration_prompt(state: dict[str, Any], paths) -> str:
             "",
             "## 如果上下文变薄，先读这些文件",
             f"- {paths.project_state_path}",
+            f"- {paths.strategy_board_path}",
             f"- {paths.verify_last_path}",
             f"- {paths.handoff_path}",
             f"- {paths.research_memory_path}",
@@ -1080,6 +1164,11 @@ def _render_migration_prompt(state: dict[str, Any], paths) -> str:
             "## Subagent 相关 tracked 文件",
             f"- {paths.subagent_registry_path}",
             f"- {paths.subagent_ledger_path}",
+            "",
+            "## Strategy 相关 tracked 文件",
+            f"- {paths.strategy_board_path}",
+            f"- {paths.strategy_candidates_dir}",
+            f"- {paths.research_progress_path}",
             "",
             "## Runtime Artifacts 位置",
             f"- {paths.meta_dir}",
@@ -1206,8 +1295,10 @@ def _refresh_derived_memory(paths, state: dict[str, Any]) -> None:
     state.update({key: state.get(key) for key in default_subagent_state(paths).keys() if key in state})
     for key, value in default_subagent_state(paths).items():
         state.setdefault(key, value)
+    state = normalize_subagent_state(state)
     state.setdefault("iterative_loop", _default_iterative_loop_state())
     state["execution_queue"] = _normalize_execution_queue(state.get("execution_queue"))
+    state = ensure_strategy_visibility_state(state, paths=paths)
     if not state.get("research_progress"):
         state["research_progress"] = _build_research_progress(state=state)
     state["head"] = _git_value(paths.root, "rev-parse", "HEAD")
@@ -1218,11 +1309,19 @@ def _refresh_derived_memory(paths, state: dict[str, Any]) -> None:
     state["last_updated"] = _utc_now()
     _write_text(paths.project_state_path, _render_project_state(state))
     _write_text(paths.research_memory_path, _render_research_memory(state))
+    _write_text(paths.strategy_board_path, render_strategy_board(state, paths=paths))
+    _write_text(paths.research_progress_path, render_strategy_progress(state))
     _write_text(paths.hypothesis_queue_path, _render_hypothesis_queue(state.get("latest_hypotheses", [])))
     _write_text(paths.execution_queue_path, _render_execution_queue(state))
     _write_text(paths.verify_last_path, _render_verify_last(state))
     _write_text(paths.handoff_path, _render_handoff(state, paths))
     _write_text(paths.migration_prompt_path, _render_migration_prompt(state, paths))
+    strategy_cards = render_strategy_cards(state, paths=paths)
+    existing_cards = {path for path in paths.strategy_candidates_dir.glob("*.md")}
+    for path, text in strategy_cards.items():
+        _write_text(path, text)
+    for stale_path in existing_cards - set(strategy_cards):
+        stale_path.unlink()
     loop = _iterative_loop_state(state)
     _write_text(
         paths.next_round_plan_path,
@@ -1266,6 +1365,9 @@ def bootstrap_memory_files(project: str, *, repo_root: Path | None = None) -> di
     tracked_files = {
         "project_state": paths.project_state_path,
         "research_memory": paths.research_memory_path,
+        "strategy_board": paths.strategy_board_path,
+        "strategy_candidates_dir": paths.strategy_candidates_dir,
+        "research_progress": paths.research_progress_path,
         "postmortems": paths.postmortems_path,
         "hypothesis_queue": paths.hypothesis_queue_path,
         "execution_queue": paths.execution_queue_path,

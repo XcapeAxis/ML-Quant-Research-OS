@@ -26,6 +26,9 @@ def test_manifest_and_memory_writeback(limit_up_project) -> None:
     assert paths.project_state_path.exists()
     assert paths.handoff_path.exists()
     assert paths.migration_prompt_path.exists()
+    assert paths.strategy_board_path.exists()
+    assert paths.strategy_candidates_dir.exists()
+    assert paths.research_progress_path.exists()
     assert paths.experiment_ledger_path.exists()
     assert paths.subagent_registry_path.exists()
     assert paths.subagent_ledger_path.exists()
@@ -33,9 +36,13 @@ def test_manifest_and_memory_writeback(limit_up_project) -> None:
     assert paths.meta_dir.joinpath("PROJECT_STATE.md").exists() is False
     assert handoff["handoff_next_chat"] == paths.handoff_path
     assert "# 项目状态" in paths.project_state_path.read_text(encoding="utf-8")
+    assert "当前主线策略" in paths.project_state_path.read_text(encoding="utf-8")
     assert "## 研究进度" in paths.project_state_path.read_text(encoding="utf-8")
     assert "# 研究记忆" in paths.research_memory_path.read_text(encoding="utf-8")
+    assert "仍成立的策略假设" in paths.research_memory_path.read_text(encoding="utf-8")
     assert "## 研究进度" in paths.research_memory_path.read_text(encoding="utf-8")
     assert "# 最近验证快照" in paths.verify_last_path.read_text(encoding="utf-8")
+    assert "当前主线策略" in paths.verify_last_path.read_text(encoding="utf-8")
     assert "## 研究进度" in paths.verify_last_path.read_text(encoding="utf-8")
     assert "# 执行队列" in paths.execution_queue_path.read_text(encoding="utf-8")
+    assert "# 策略研究看板" in paths.strategy_board_path.read_text(encoding="utf-8")

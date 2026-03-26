@@ -16,3 +16,6 @@
 - Keep benchmark baseline input separate from the strategy close panel so promotion and dry-run evaluation can load `000001` even when it is not ranked, without changing equal-weight baseline semantics.
 - Keep the automation loop bounded and stateful across runs: repeated blockers now upgrade from normal tracking to root-cause guidance on the second sighting and escalated stop-on-writeback on the third.
 - Keep repo-local automation execution pinned to the repository virtualenv when available so scheduled runs do not depend on whichever `python` happens to be on PATH.
+- Add a tracked Strategy Research Visibility Layer so the system always exposes which strategy candidates are being researched, which are primary / secondary / blocked / rejected / promoted, and why the current run did or did not advance real strategy research.
+- Split subagents into strategy-research and infrastructure types in tracked memory; research subagents must bind a `strategy_id`, while infrastructure subagents must say which blocker or prerequisite they are clearing for later research.
+- Keep automation CHECKPOINT replies research-centered: `Done / Evidence / Next action / Subagent status`, with explicit Chinese statements when a run is only doing infrastructure recovery rather than substantive strategy work.

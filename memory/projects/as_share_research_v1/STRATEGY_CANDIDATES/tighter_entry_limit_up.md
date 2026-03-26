@@ -1,0 +1,24 @@
+# 涨停主线收紧入场分支
+
+- strategy_id: tighter_entry_limit_up
+- name: 涨停主线收紧入场分支
+- category: entry timing
+- core_hypothesis: 把入选阈值收紧，只保留更接近再次启动位置的个股，可以减少过早买入带来的假突破和大回撤。
+- economic_rationale: 如果真正的二次启动往往发生在更接近突破起点、筹码更集中的位置，那么收紧入场条件应该先减少质量差的提前埋伏。
+- required_data: 主板 A 股日频 OHLCV、上市天数、ST/板块过滤、涨停代理、下个交易日收益、基准与等权基线。
+- current_stage: validation
+- latest_action: 最近一次记录里，tighter_entry_limit_up 已完成 scout/implementer 资料整理；verifier 仍未真正开始有界验证。
+- latest_result: tighter_entry_limit_up 目前只有候选池与实验记录，真正的 verifier 结论仍缺失。
+- decision: blocked
+- next_validation: 先确认主线失败是否主要来自入场过早，再决定是否优先验证这条分支。
+- owner: main
+- subagents_assigned:
+  - none
+- artifact_refs:
+  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\EVIDENCE_LEDGER.jsonl
+  - C:\Users\asus\Documents\Projects\BackTest\data\projects\2026Q1_limit_up\meta\experiments\2026Q1_limit_up__tighter_entry_limit_up__20260325T152141Z.json
+  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\BRANCH_LEDGER.jsonl
+  - tighter_entry_limit_up-f5113e17c1b2
+- blocked_by:
+  - 最大回撤 56.50% 高于 30.00%。
+- kill_criteria: 如果收紧入场后只是在减少交易次数，却没有改善回撤或收益质量，就停止继续扩展这条分支。

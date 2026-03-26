@@ -47,6 +47,9 @@ class ProjectPaths:
     experiments_dir: Path
     project_state_path: Path
     research_memory_path: Path
+    strategy_board_path: Path
+    strategy_candidates_dir: Path
+    research_progress_path: Path
     postmortems_path: Path
     hypothesis_queue_path: Path
     execution_queue_path: Path
@@ -68,6 +71,7 @@ class ProjectPaths:
 
     def ensure_dirs(self) -> None:
         self.memory_dir.mkdir(parents=True, exist_ok=True)
+        self.strategy_candidates_dir.mkdir(parents=True, exist_ok=True)
         self.project_data_dir.mkdir(parents=True, exist_ok=True)
         self.signals_dir.mkdir(parents=True, exist_ok=True)
         self.features_dir.mkdir(parents=True, exist_ok=True)
@@ -109,6 +113,9 @@ def resolve_project_paths(project: str, root: Path | None = None) -> ProjectPath
         experiments_dir=meta_dir / "experiments",
         project_state_path=memory_dir / "PROJECT_STATE.md",
         research_memory_path=memory_dir / "RESEARCH_MEMORY.md",
+        strategy_board_path=memory_dir / "STRATEGY_BOARD.md",
+        strategy_candidates_dir=memory_dir / "STRATEGY_CANDIDATES",
+        research_progress_path=memory_dir / "RESEARCH_PROGRESS.md",
         postmortems_path=memory_dir / "POSTMORTEMS.md",
         hypothesis_queue_path=memory_dir / "HYPOTHESIS_QUEUE.md",
         execution_queue_path=memory_dir / "EXECUTION_QUEUE.md",

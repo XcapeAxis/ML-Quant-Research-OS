@@ -8,10 +8,31 @@
   "communication_preference": "Use plain Chinese explanations and avoid unexplained internal jargon when a direct everyday description is available.",
   "core_universe_snapshot_id": "core-0536a20f13d1",
   "core_universe_snapshot_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\latest_core_pool.json",
+  "current_blocked_strategy_ids": [
+    "baseline_limit_up",
+    "risk_constrained_limit_up",
+    "tighter_entry_limit_up"
+  ],
   "current_blocker": "Max drawdown 56.50% exceeds 30.00%.",
   "current_capability_boundary": "Engineering guardrails work; real default-project research remains blocked on data coverage.",
   "current_mission_id": "mission-as_share_research_v1",
   "current_phase": "Phase 1 Research OS",
+  "current_primary_strategy_ids": [
+    "baseline_limit_up"
+  ],
+  "current_promoted_strategy_ids": [],
+  "current_rejected_strategy_ids": [
+    "legacy_single_branch"
+  ],
+  "current_research_cycle_type": "策略推进轮",
+  "current_secondary_strategy_ids": [
+    "risk_constrained_limit_up",
+    "tighter_entry_limit_up"
+  ],
+  "current_strategy_focus": [
+    "baseline_limit_up"
+  ],
+  "current_strategy_summary": "本轮围绕 baseline_limit_up（涨停主线基线分支） 继续收敛研究 blocker；当前最硬的限制仍是 最大回撤 56.50% 高于 30.00%。。",
   "current_task": "Keep the Phase 1 Research OS reproducible with tracked memory and honest runtime artifacts.",
   "durable_facts": [
     "The long-term north star is still an autonomous quant research agent that can research, iterate, reflect, search for missing tools, operate tools, mine opportunities and factors, and use subagents adaptively.",
@@ -98,7 +119,7 @@
       "title": "跑一次 dry-run control plane"
     }
   ],
-  "head": "885abfe1081ea620e502c422a8603f37c4a4f183",
+  "head": "053e4159ecdc1f2b86633b366f2a01f2cea7d9a2",
   "iterative_loop": {
     "alternative_subagents": [],
     "archived_subagent_count": 0,
@@ -150,14 +171,14 @@
   },
   "last_failed_capability": "Promotion gate blocked: Max drawdown 56.50% exceeds 30.00%.",
   "last_failure": {
-    "corrective_action": "Escalated blocker `max_drawdown`: stop automatic retries, narrow the path, and write back the root-cause diagnosis before the next run.",
-    "experiment_id": "as_share_research_v1-iterative-20260326T073253Z",
+    "corrective_action": "Restore a usable frozen universe plus local bars before rerunning the dry-run cycle.",
+    "experiment_id": "as_share_research_v1-20260326T085052",
     "resolution_status": "not_fixed",
     "root_cause": "Max drawdown 56.50% exceeds 30.00%.",
-    "summary": "刷新 repo truth 与审计基线",
-    "timestamp": "2026-03-26T07:42:48+00:00"
+    "summary": "Promotion gate blocked: Max drawdown 56.50% exceeds 30.00%.",
+    "timestamp": "2026-03-26T08:50:52"
   },
-  "last_updated": "2026-03-26T07:49:05+00:00",
+  "last_updated": "2026-03-26T08:50:54+00:00",
   "last_verified_capability": "Tracked memory sync refreshed for plan: as_share_research_v1: revalidate spec parity before any new alpha claim",
   "latest_hypotheses": [
     {
@@ -175,7 +196,7 @@
     "Do not reopen generic benchmark-missing diagnosis on `as_share_research_v1` unless `baselines_status` falls below `pass`；that wiring bug is fixed.",
     "Do not rely on `python -m quant_mvp research_readiness` as a callable CLI step in the current build；use the stored readiness artifacts or supported commands instead."
   ],
-  "next_priority_action": "Escalated blocker `max_drawdown`: stop automatic retries, narrow the path, and write back the root-cause diagnosis before the next run.",
+  "next_priority_action": "Restore a usable validated bar snapshot for the frozen default universe.",
   "next_step_memory": [
     "Escalated blocker `max_drawdown`: stop automatic retries, narrow the path, and write back the root-cause diagnosis before the next run.",
     "恢复 frozen default universe 可用的 validated bar 快照。",
@@ -220,7 +241,7 @@
       }
     ],
     "materially_changed": true,
-    "next_milestone": "Escalated blocker `max_drawdown`: stop automatic retries, narrow the path, and write back the root-cause diagnosis before the next run.",
+    "next_milestone": "Restore a usable validated bar snapshot for the frozen default universe.",
     "overall_trajectory": "blocked",
     "this_run_delta": "unchanged"
   },
@@ -249,6 +270,112 @@
     "required_symbols_for_readiness": 680,
     "transient_recoverable_symbols": 0
   },
+  "strategy_candidates": [
+    {
+      "artifact_refs": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1\\EVIDENCE_LEDGER.jsonl",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\2026Q1_limit_up\\meta\\experiments\\2026Q1_limit_up__baseline_limit_up__20260325T152141Z.json",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1\\BRANCH_LEDGER.jsonl",
+        "baseline_limit_up-df14a72f3cd8"
+      ],
+      "blocked_by": [
+        "最大回撤 56.50% 高于 30.00%。"
+      ],
+      "category": "limit-up continuation",
+      "core_hypothesis": "过去一段时间反复出现涨停、随后回到突破起点附近的主板个股，后续更容易再次走强；先把这条主线稳定保存成基线，再评估其它改法。",
+      "current_stage": "validation",
+      "decision": "blocked",
+      "economic_rationale": "A 股主板里的涨停通常意味着资金短时间集中抢筹。若个股涨停后没有彻底转弱，而是在突破起点附近重新整理，说明强势资金可能仍在，后续二次启动概率更高；保留基线则能判断后续改动到底是在修复风险还是只是在制造噪音。",
+      "kill_criteria": "如果可用输入恢复后，这条主线在泄漏、可交易性、walk-forward 与成本压力检查下仍无法把最大回撤压到 30% 以内，就停止继续把它当主线。",
+      "latest_action": "最近一次记录里，baseline_limit_up 已完成 scout/implementer 资料整理；verifier 仍未真正开始有界验证。",
+      "latest_result": "baseline_limit_up 目前只有候选池与实验记录，真正的 verifier 结论仍缺失。",
+      "name": "涨停主线基线分支",
+      "next_validation": "先拆解主线回撤是时间集中、个股集中还是持有尾部过长，再决定优先上风控分支还是收紧入场分支。",
+      "owner": "main",
+      "required_data": "主板 A 股日频 OHLCV、上市天数、ST/板块过滤、涨停代理、下个交易日收益、基准与等权基线。",
+      "strategy_id": "baseline_limit_up",
+      "subagents_assigned": [],
+      "track": "primary"
+    },
+    {
+      "artifact_refs": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1\\EVIDENCE_LEDGER.jsonl",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\2026Q1_limit_up\\meta\\experiments\\2026Q1_limit_up__risk_constrained_limit_up__20260325T152141Z.json",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1\\BRANCH_LEDGER.jsonl",
+        "risk_constrained_limit_up-fb46198eddd7"
+      ],
+      "blocked_by": [
+        "最大回撤 56.50% 高于 30.00%。"
+      ],
+      "category": "risk control",
+      "core_hypothesis": "在不破坏涨停回踩再启动这个主线定义的前提下，更严格的止损、市场过滤或持仓约束可以显著降低回撤。",
+      "current_stage": "validation",
+      "decision": "blocked",
+      "economic_rationale": "如果主线 alpha 来自强势股二次启动，而不是单纯硬扛波动，那么更强的风险约束应该先砍掉最差交易，同时保住大部分有效信号。",
+      "kill_criteria": "如果回撤改善很弱、但收益和通过率明显恶化，就停止继续扩大这条风控分支。",
+      "latest_action": "最近一次记录里，risk_constrained_limit_up 已完成 scout/implementer 资料整理；verifier 仍未真正开始有界验证。",
+      "latest_result": "risk_constrained_limit_up 目前只有候选池与实验记录，真正的 verifier 结论仍缺失。",
+      "name": "涨停主线风控分支",
+      "next_validation": "拿主线失败样本做回撤分解，确认是否值得优先把风控分支推到第一轮真实验证。",
+      "owner": "main",
+      "required_data": "主板 A 股日频 OHLCV、上市天数、ST/板块过滤、涨停代理、下个交易日收益、基准与等权基线。",
+      "strategy_id": "risk_constrained_limit_up",
+      "subagents_assigned": [],
+      "track": "secondary"
+    },
+    {
+      "artifact_refs": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1\\EVIDENCE_LEDGER.jsonl",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\2026Q1_limit_up\\meta\\experiments\\2026Q1_limit_up__tighter_entry_limit_up__20260325T152141Z.json",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1\\BRANCH_LEDGER.jsonl",
+        "tighter_entry_limit_up-f5113e17c1b2"
+      ],
+      "blocked_by": [
+        "最大回撤 56.50% 高于 30.00%。"
+      ],
+      "category": "entry timing",
+      "core_hypothesis": "把入选阈值收紧，只保留更接近再次启动位置的个股，可以减少过早买入带来的假突破和大回撤。",
+      "current_stage": "validation",
+      "decision": "blocked",
+      "economic_rationale": "如果真正的二次启动往往发生在更接近突破起点、筹码更集中的位置，那么收紧入场条件应该先减少质量差的提前埋伏。",
+      "kill_criteria": "如果收紧入场后只是在减少交易次数，却没有改善回撤或收益质量，就停止继续扩展这条分支。",
+      "latest_action": "最近一次记录里，tighter_entry_limit_up 已完成 scout/implementer 资料整理；verifier 仍未真正开始有界验证。",
+      "latest_result": "tighter_entry_limit_up 目前只有候选池与实验记录，真正的 verifier 结论仍缺失。",
+      "name": "涨停主线收紧入场分支",
+      "next_validation": "先确认主线失败是否主要来自入场过早，再决定是否优先验证这条分支。",
+      "owner": "main",
+      "required_data": "主板 A 股日频 OHLCV、上市天数、ST/板块过滤、涨停代理、下个交易日收益、基准与等权基线。",
+      "strategy_id": "tighter_entry_limit_up",
+      "subagents_assigned": [],
+      "track": "secondary"
+    },
+    {
+      "artifact_refs": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1\\EVIDENCE_LEDGER.jsonl",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\2026Q1_limit_up\\meta\\experiments\\2026Q1_limit_up__legacy_single_branch__20260325T152213Z.json",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1\\BRANCH_LEDGER.jsonl",
+        "legacy_single_branch-79952d61ffa6"
+      ],
+      "blocked_by": [
+        "它只是旧控制面兼容路径，不再作为策略研究主线。"
+      ],
+      "category": "other",
+      "core_hypothesis": "先把旧 `agent_cycle` 兼容跑通，再谈更复杂的多分支研究。",
+      "current_stage": "rejected",
+      "decision": "reject",
+      "economic_rationale": "这不是市场行为假设，只是为了兼容旧控制面而保留的一条过渡路径。",
+      "kill_criteria": "只要旧单分支兼容不再是必须前提，就不要再把它当作策略研究候选。",
+      "latest_action": "最近一次记录里，legacy_single_branch 已完成 scout/implementer 资料整理；verifier 仍未真正开始有界验证。",
+      "latest_result": "legacy_single_branch 目前只有候选池与实验记录，真正的 verifier 结论仍缺失。",
+      "name": "旧单分支兼容路径",
+      "next_validation": "无；除非再次需要排查旧单分支兼容行为。",
+      "owner": "main",
+      "required_data": "无额外市场数据要求；它主要依赖旧控制面的兼容行为。",
+      "strategy_id": "legacy_single_branch",
+      "subagents_assigned": [],
+      "track": "rejected"
+    }
+  ],
   "subagent_continue_reason": "Task breadth is below the minimum threshold for safe decomposition.",
   "subagent_continue_recommended": false,
   "subagent_gate_mode": "AUTO",
@@ -282,6 +409,8 @@
       "candidate_id": "candidate::baseline_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:02:43+00:00",
+      "decision_impact": "服务策略 `baseline_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Retire the stale worker record left behind by an earlier parallel verification run.",
       "expected_artifacts": [
         "branch_pool_snapshot",
         "candidate_notes"
@@ -291,9 +420,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "scout task for baseline_limit_up",
       "role": "scout",
       "status": "retired",
+      "strategy_id": "baseline_limit_up",
       "subagent_id": "sa-001",
+      "subagent_type": "research",
       "summary": "scout task for baseline_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:05:58+00:00",
@@ -310,6 +442,8 @@
       "candidate_id": "candidate::legacy_single_branch",
       "child_ids": [],
       "created_at": "2026-03-25T15:02:44+00:00",
+      "decision_impact": "服务策略 `legacy_single_branch` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Scout wrote a branch-pool evidence report for legacy_single_branch with 42 candidate codes.",
       "expected_artifacts": [
         "branch_pool_snapshot",
         "candidate_notes"
@@ -319,9 +453,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "scout task for legacy_single_branch",
       "role": "scout",
       "status": "retired",
+      "strategy_id": "legacy_single_branch",
       "subagent_id": "sa-002",
+      "subagent_type": "research",
       "summary": "scout task for legacy_single_branch",
       "transient": true,
       "updated_at": "2026-03-25T15:02:45+00:00",
@@ -338,6 +475,8 @@
       "candidate_id": "candidate::legacy_single_branch",
       "child_ids": [],
       "created_at": "2026-03-25T15:02:46+00:00",
+      "decision_impact": "服务策略 `legacy_single_branch` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Implementer refreshed the experiment record for legacy_single_branch and linked it to the worker mesh.",
       "expected_artifacts": [
         "as_share_research_v1__legacy_single_branch__20260325T150231Z"
       ],
@@ -346,9 +485,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "implementer task for legacy_single_branch",
       "role": "implementer",
       "status": "retired",
+      "strategy_id": "legacy_single_branch",
       "subagent_id": "sa-003",
+      "subagent_type": "research",
       "summary": "implementer task for legacy_single_branch",
       "transient": true,
       "updated_at": "2026-03-25T15:02:46+00:00",
@@ -365,6 +507,8 @@
       "candidate_id": "candidate::risk_constrained_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:02:53+00:00",
+      "decision_impact": "服务策略 `risk_constrained_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Scout wrote a branch-pool evidence report for risk_constrained_limit_up with 42 candidate codes.",
       "expected_artifacts": [
         "branch_pool_snapshot",
         "candidate_notes"
@@ -374,9 +518,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "scout task for risk_constrained_limit_up",
       "role": "scout",
       "status": "retired",
+      "strategy_id": "risk_constrained_limit_up",
       "subagent_id": "sa-004",
+      "subagent_type": "research",
       "summary": "scout task for risk_constrained_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:02:54+00:00",
@@ -393,6 +540,8 @@
       "candidate_id": "candidate::risk_constrained_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:02:55+00:00",
+      "decision_impact": "服务策略 `risk_constrained_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Implementer refreshed the experiment record for risk_constrained_limit_up and linked it to the worker mesh.",
       "expected_artifacts": [
         "as_share_research_v1__risk_constrained_limit_up__20260325T150231Z"
       ],
@@ -401,9 +550,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "implementer task for risk_constrained_limit_up",
       "role": "implementer",
       "status": "retired",
+      "strategy_id": "risk_constrained_limit_up",
       "subagent_id": "sa-005",
+      "subagent_type": "research",
       "summary": "implementer task for risk_constrained_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:02:55+00:00",
@@ -420,6 +572,8 @@
       "candidate_id": "candidate::tighter_entry_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:03:02+00:00",
+      "decision_impact": "服务策略 `tighter_entry_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Scout wrote a branch-pool evidence report for tighter_entry_limit_up with 42 candidate codes.",
       "expected_artifacts": [
         "branch_pool_snapshot",
         "candidate_notes"
@@ -429,9 +583,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "scout task for tighter_entry_limit_up",
       "role": "scout",
       "status": "retired",
+      "strategy_id": "tighter_entry_limit_up",
       "subagent_id": "sa-006",
+      "subagent_type": "research",
       "summary": "scout task for tighter_entry_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:03:03+00:00",
@@ -448,6 +605,8 @@
       "candidate_id": "candidate::tighter_entry_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:03:04+00:00",
+      "decision_impact": "服务策略 `tighter_entry_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Implementer refreshed the experiment record for tighter_entry_limit_up and linked it to the worker mesh.",
       "expected_artifacts": [
         "as_share_research_v1__tighter_entry_limit_up__20260325T150231Z"
       ],
@@ -456,9 +615,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "implementer task for tighter_entry_limit_up",
       "role": "implementer",
       "status": "retired",
+      "strategy_id": "tighter_entry_limit_up",
       "subagent_id": "sa-007",
+      "subagent_type": "research",
       "summary": "implementer task for tighter_entry_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:03:04+00:00",
@@ -475,6 +637,8 @@
       "candidate_id": "candidate::baseline_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:08:49+00:00",
+      "decision_impact": "服务策略 `baseline_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Scout wrote a branch-pool evidence report for baseline_limit_up with 42 candidate codes.",
       "expected_artifacts": [
         "branch_pool_snapshot",
         "candidate_notes"
@@ -484,9 +648,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "scout task for baseline_limit_up",
       "role": "scout",
       "status": "retired",
+      "strategy_id": "baseline_limit_up",
       "subagent_id": "sa-20260325150849781070-932c",
+      "subagent_type": "research",
       "summary": "scout task for baseline_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:08:50+00:00",
@@ -503,6 +670,8 @@
       "candidate_id": "candidate::baseline_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:08:51+00:00",
+      "decision_impact": "服务策略 `baseline_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Implementer refreshed the experiment record for baseline_limit_up and linked it to the worker mesh.",
       "expected_artifacts": [
         "as_share_research_v1__baseline_limit_up__20260325T150840Z"
       ],
@@ -511,9 +680,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "implementer task for baseline_limit_up",
       "role": "implementer",
       "status": "retired",
+      "strategy_id": "baseline_limit_up",
       "subagent_id": "sa-20260325150851246437-8049",
+      "subagent_type": "research",
       "summary": "implementer task for baseline_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:08:51+00:00",
@@ -530,6 +702,8 @@
       "candidate_id": "candidate::risk_constrained_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:08:57+00:00",
+      "decision_impact": "服务策略 `risk_constrained_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Scout wrote a branch-pool evidence report for risk_constrained_limit_up with 42 candidate codes.",
       "expected_artifacts": [
         "branch_pool_snapshot",
         "candidate_notes"
@@ -539,9 +713,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "scout task for risk_constrained_limit_up",
       "role": "scout",
       "status": "retired",
+      "strategy_id": "risk_constrained_limit_up",
       "subagent_id": "sa-20260325150857703676-306c",
+      "subagent_type": "research",
       "summary": "scout task for risk_constrained_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:08:58+00:00",
@@ -558,6 +735,8 @@
       "candidate_id": "candidate::risk_constrained_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:08:59+00:00",
+      "decision_impact": "服务策略 `risk_constrained_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Implementer refreshed the experiment record for risk_constrained_limit_up and linked it to the worker mesh.",
       "expected_artifacts": [
         "as_share_research_v1__risk_constrained_limit_up__20260325T150840Z"
       ],
@@ -566,9 +745,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "implementer task for risk_constrained_limit_up",
       "role": "implementer",
       "status": "retired",
+      "strategy_id": "risk_constrained_limit_up",
       "subagent_id": "sa-20260325150859131657-2e6d",
+      "subagent_type": "research",
       "summary": "implementer task for risk_constrained_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:08:59+00:00",
@@ -585,6 +767,8 @@
       "candidate_id": "candidate::tighter_entry_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:09:05+00:00",
+      "decision_impact": "服务策略 `tighter_entry_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Scout wrote a branch-pool evidence report for tighter_entry_limit_up with 42 candidate codes.",
       "expected_artifacts": [
         "branch_pool_snapshot",
         "candidate_notes"
@@ -594,9 +778,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "scout task for tighter_entry_limit_up",
       "role": "scout",
       "status": "retired",
+      "strategy_id": "tighter_entry_limit_up",
       "subagent_id": "sa-20260325150905477175-ee0b",
+      "subagent_type": "research",
       "summary": "scout task for tighter_entry_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:09:06+00:00",
@@ -613,6 +800,8 @@
       "candidate_id": "candidate::tighter_entry_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:09:06+00:00",
+      "decision_impact": "服务策略 `tighter_entry_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Implementer refreshed the experiment record for tighter_entry_limit_up and linked it to the worker mesh.",
       "expected_artifacts": [
         "as_share_research_v1__tighter_entry_limit_up__20260325T150840Z"
       ],
@@ -621,9 +810,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "implementer task for tighter_entry_limit_up",
       "role": "implementer",
       "status": "retired",
+      "strategy_id": "tighter_entry_limit_up",
       "subagent_id": "sa-20260325150906960445-8e82",
+      "subagent_type": "research",
       "summary": "implementer task for tighter_entry_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:09:07+00:00",
@@ -640,6 +832,8 @@
       "candidate_id": "candidate::legacy_single_branch",
       "child_ids": [],
       "created_at": "2026-03-25T15:09:25+00:00",
+      "decision_impact": "服务策略 `legacy_single_branch` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Scout wrote a branch-pool evidence report for legacy_single_branch with 42 candidate codes.",
       "expected_artifacts": [
         "branch_pool_snapshot",
         "candidate_notes"
@@ -649,9 +843,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "scout task for legacy_single_branch",
       "role": "scout",
       "status": "retired",
+      "strategy_id": "legacy_single_branch",
       "subagent_id": "sa-20260325150925548166-7fcd",
+      "subagent_type": "research",
       "summary": "scout task for legacy_single_branch",
       "transient": true,
       "updated_at": "2026-03-25T15:09:26+00:00",
@@ -668,6 +865,8 @@
       "candidate_id": "candidate::legacy_single_branch",
       "child_ids": [],
       "created_at": "2026-03-25T15:09:26+00:00",
+      "decision_impact": "服务策略 `legacy_single_branch` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Implementer refreshed the experiment record for legacy_single_branch and linked it to the worker mesh.",
       "expected_artifacts": [
         "as_share_research_v1__legacy_single_branch__20260325T150915Z"
       ],
@@ -676,9 +875,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "implementer task for legacy_single_branch",
       "role": "implementer",
       "status": "retired",
+      "strategy_id": "legacy_single_branch",
       "subagent_id": "sa-20260325150926924590-bb25",
+      "subagent_type": "research",
       "summary": "implementer task for legacy_single_branch",
       "transient": true,
       "updated_at": "2026-03-25T15:09:27+00:00",
@@ -695,6 +897,8 @@
       "candidate_id": "candidate::baseline_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:15:02+00:00",
+      "decision_impact": "服务策略 `baseline_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Scout wrote a branch-pool evidence report for baseline_limit_up with 42 candidate codes.",
       "expected_artifacts": [
         "branch_pool_snapshot",
         "candidate_notes"
@@ -704,9 +908,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "scout task for baseline_limit_up",
       "role": "scout",
       "status": "retired",
+      "strategy_id": "baseline_limit_up",
       "subagent_id": "sa-20260325151502176602-ee4c",
+      "subagent_type": "research",
       "summary": "scout task for baseline_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:15:02+00:00",
@@ -723,6 +930,8 @@
       "candidate_id": "candidate::baseline_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:15:03+00:00",
+      "decision_impact": "服务策略 `baseline_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Implementer refreshed the experiment record for baseline_limit_up and linked it to the worker mesh.",
       "expected_artifacts": [
         "as_share_research_v1__baseline_limit_up__20260325T151453Z"
       ],
@@ -731,9 +940,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "implementer task for baseline_limit_up",
       "role": "implementer",
       "status": "retired",
+      "strategy_id": "baseline_limit_up",
       "subagent_id": "sa-20260325151503532918-ed2b",
+      "subagent_type": "research",
       "summary": "implementer task for baseline_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:15:04+00:00",
@@ -750,6 +962,8 @@
       "candidate_id": "candidate::risk_constrained_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:15:09+00:00",
+      "decision_impact": "服务策略 `risk_constrained_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Scout wrote a branch-pool evidence report for risk_constrained_limit_up with 42 candidate codes.",
       "expected_artifacts": [
         "branch_pool_snapshot",
         "candidate_notes"
@@ -759,9 +973,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "scout task for risk_constrained_limit_up",
       "role": "scout",
       "status": "retired",
+      "strategy_id": "risk_constrained_limit_up",
       "subagent_id": "sa-20260325151509622682-dce5",
+      "subagent_type": "research",
       "summary": "scout task for risk_constrained_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:15:10+00:00",
@@ -778,6 +995,8 @@
       "candidate_id": "candidate::risk_constrained_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:15:11+00:00",
+      "decision_impact": "服务策略 `risk_constrained_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Implementer refreshed the experiment record for risk_constrained_limit_up and linked it to the worker mesh.",
       "expected_artifacts": [
         "as_share_research_v1__risk_constrained_limit_up__20260325T151453Z"
       ],
@@ -786,9 +1005,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "implementer task for risk_constrained_limit_up",
       "role": "implementer",
       "status": "retired",
+      "strategy_id": "risk_constrained_limit_up",
       "subagent_id": "sa-20260325151511046386-a98f",
+      "subagent_type": "research",
       "summary": "implementer task for risk_constrained_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:15:11+00:00",
@@ -805,6 +1027,8 @@
       "candidate_id": "candidate::tighter_entry_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:15:16+00:00",
+      "decision_impact": "服务策略 `tighter_entry_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Scout wrote a branch-pool evidence report for tighter_entry_limit_up with 42 candidate codes.",
       "expected_artifacts": [
         "branch_pool_snapshot",
         "candidate_notes"
@@ -814,9 +1038,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "scout task for tighter_entry_limit_up",
       "role": "scout",
       "status": "retired",
+      "strategy_id": "tighter_entry_limit_up",
       "subagent_id": "sa-20260325151516876234-eee5",
+      "subagent_type": "research",
       "summary": "scout task for tighter_entry_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:15:17+00:00",
@@ -833,6 +1060,8 @@
       "candidate_id": "candidate::tighter_entry_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:15:18+00:00",
+      "decision_impact": "服务策略 `tighter_entry_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Implementer refreshed the experiment record for tighter_entry_limit_up and linked it to the worker mesh.",
       "expected_artifacts": [
         "as_share_research_v1__tighter_entry_limit_up__20260325T151453Z"
       ],
@@ -841,9 +1070,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "implementer task for tighter_entry_limit_up",
       "role": "implementer",
       "status": "retired",
+      "strategy_id": "tighter_entry_limit_up",
       "subagent_id": "sa-20260325151518290134-5820",
+      "subagent_type": "research",
       "summary": "implementer task for tighter_entry_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:15:18+00:00",
@@ -860,6 +1092,8 @@
       "candidate_id": "candidate::legacy_single_branch",
       "child_ids": [],
       "created_at": "2026-03-25T15:15:36+00:00",
+      "decision_impact": "服务策略 `legacy_single_branch` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Scout wrote a branch-pool evidence report for legacy_single_branch with 42 candidate codes.",
       "expected_artifacts": [
         "branch_pool_snapshot",
         "candidate_notes"
@@ -869,9 +1103,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "scout task for legacy_single_branch",
       "role": "scout",
       "status": "retired",
+      "strategy_id": "legacy_single_branch",
       "subagent_id": "sa-20260325151536002718-d679",
+      "subagent_type": "research",
       "summary": "scout task for legacy_single_branch",
       "transient": true,
       "updated_at": "2026-03-25T15:15:36+00:00",
@@ -888,6 +1125,8 @@
       "candidate_id": "candidate::legacy_single_branch",
       "child_ids": [],
       "created_at": "2026-03-25T15:15:37+00:00",
+      "decision_impact": "服务策略 `legacy_single_branch` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Implementer refreshed the experiment record for legacy_single_branch and linked it to the worker mesh.",
       "expected_artifacts": [
         "as_share_research_v1__legacy_single_branch__20260325T151529Z"
       ],
@@ -896,9 +1135,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "implementer task for legacy_single_branch",
       "role": "implementer",
       "status": "retired",
+      "strategy_id": "legacy_single_branch",
       "subagent_id": "sa-20260325151537316765-574a",
+      "subagent_type": "research",
       "summary": "implementer task for legacy_single_branch",
       "transient": true,
       "updated_at": "2026-03-25T15:15:37+00:00",
@@ -915,6 +1157,8 @@
       "candidate_id": "candidate::baseline_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:21:48+00:00",
+      "decision_impact": "服务策略 `baseline_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Scout wrote a branch-pool evidence report for baseline_limit_up with 42 candidate codes.",
       "expected_artifacts": [
         "branch_pool_snapshot",
         "candidate_notes"
@@ -924,9 +1168,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "scout task for baseline_limit_up",
       "role": "scout",
       "status": "retired",
+      "strategy_id": "baseline_limit_up",
       "subagent_id": "sa-20260325152148073676-e478",
+      "subagent_type": "research",
       "summary": "scout task for baseline_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:21:48+00:00",
@@ -943,6 +1190,8 @@
       "candidate_id": "candidate::baseline_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:21:49+00:00",
+      "decision_impact": "服务策略 `baseline_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Implementer refreshed the experiment record for baseline_limit_up and linked it to the worker mesh.",
       "expected_artifacts": [
         "as_share_research_v1__baseline_limit_up__20260325T152141Z"
       ],
@@ -951,9 +1200,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "implementer task for baseline_limit_up",
       "role": "implementer",
       "status": "retired",
+      "strategy_id": "baseline_limit_up",
       "subagent_id": "sa-20260325152149433166-7cc9",
+      "subagent_type": "research",
       "summary": "implementer task for baseline_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:21:50+00:00",
@@ -970,6 +1222,8 @@
       "candidate_id": "candidate::risk_constrained_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:21:54+00:00",
+      "decision_impact": "服务策略 `risk_constrained_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Scout wrote a branch-pool evidence report for risk_constrained_limit_up with 42 candidate codes.",
       "expected_artifacts": [
         "branch_pool_snapshot",
         "candidate_notes"
@@ -979,9 +1233,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "scout task for risk_constrained_limit_up",
       "role": "scout",
       "status": "retired",
+      "strategy_id": "risk_constrained_limit_up",
       "subagent_id": "sa-20260325152154074736-0f4a",
+      "subagent_type": "research",
       "summary": "scout task for risk_constrained_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:21:54+00:00",
@@ -998,6 +1255,8 @@
       "candidate_id": "candidate::risk_constrained_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:21:55+00:00",
+      "decision_impact": "服务策略 `risk_constrained_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Implementer refreshed the experiment record for risk_constrained_limit_up and linked it to the worker mesh.",
       "expected_artifacts": [
         "as_share_research_v1__risk_constrained_limit_up__20260325T152141Z"
       ],
@@ -1006,9 +1265,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "implementer task for risk_constrained_limit_up",
       "role": "implementer",
       "status": "retired",
+      "strategy_id": "risk_constrained_limit_up",
       "subagent_id": "sa-20260325152155435374-98ca",
+      "subagent_type": "research",
       "summary": "implementer task for risk_constrained_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:21:56+00:00",
@@ -1025,6 +1287,8 @@
       "candidate_id": "candidate::tighter_entry_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:22:00+00:00",
+      "decision_impact": "服务策略 `tighter_entry_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Scout wrote a branch-pool evidence report for tighter_entry_limit_up with 42 candidate codes.",
       "expected_artifacts": [
         "branch_pool_snapshot",
         "candidate_notes"
@@ -1034,9 +1298,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "scout task for tighter_entry_limit_up",
       "role": "scout",
       "status": "retired",
+      "strategy_id": "tighter_entry_limit_up",
       "subagent_id": "sa-20260325152200232912-ef56",
+      "subagent_type": "research",
       "summary": "scout task for tighter_entry_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:22:00+00:00",
@@ -1053,6 +1320,8 @@
       "candidate_id": "candidate::tighter_entry_limit_up",
       "child_ids": [],
       "created_at": "2026-03-25T15:22:01+00:00",
+      "decision_impact": "服务策略 `tighter_entry_limit_up` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Implementer refreshed the experiment record for tighter_entry_limit_up and linked it to the worker mesh.",
       "expected_artifacts": [
         "as_share_research_v1__tighter_entry_limit_up__20260325T152141Z"
       ],
@@ -1061,9 +1330,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "implementer task for tighter_entry_limit_up",
       "role": "implementer",
       "status": "retired",
+      "strategy_id": "tighter_entry_limit_up",
       "subagent_id": "sa-20260325152201594111-9c87",
+      "subagent_type": "research",
       "summary": "implementer task for tighter_entry_limit_up",
       "transient": true,
       "updated_at": "2026-03-25T15:22:02+00:00",
@@ -1080,6 +1352,8 @@
       "candidate_id": "candidate::legacy_single_branch",
       "child_ids": [],
       "created_at": "2026-03-25T15:22:20+00:00",
+      "decision_impact": "服务策略 `legacy_single_branch` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Scout wrote a branch-pool evidence report for legacy_single_branch with 42 candidate codes.",
       "expected_artifacts": [
         "branch_pool_snapshot",
         "candidate_notes"
@@ -1089,9 +1363,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "scout task for legacy_single_branch",
       "role": "scout",
       "status": "retired",
+      "strategy_id": "legacy_single_branch",
       "subagent_id": "sa-20260325152220234694-cb14",
+      "subagent_type": "research",
       "summary": "scout task for legacy_single_branch",
       "transient": true,
       "updated_at": "2026-03-25T15:22:20+00:00",
@@ -1108,6 +1385,8 @@
       "candidate_id": "candidate::legacy_single_branch",
       "child_ids": [],
       "created_at": "2026-03-25T15:22:21+00:00",
+      "decision_impact": "服务策略 `legacy_single_branch` 的研究推进；是否继续由主代理统一裁决。",
+      "delivered_conclusion": "Implementer refreshed the experiment record for legacy_single_branch and linked it to the worker mesh.",
       "expected_artifacts": [
         "as_share_research_v1__legacy_single_branch__20260325T152213Z"
       ],
@@ -1116,9 +1395,12 @@
       "merged_into": null,
       "mission_id": "mission-as_share_research_v1",
       "parent_ids": [],
+      "research_focus": "implementer task for legacy_single_branch",
       "role": "implementer",
       "status": "retired",
+      "strategy_id": "legacy_single_branch",
       "subagent_id": "sa-20260325152221633066-3c39",
+      "subagent_type": "research",
       "summary": "implementer task for legacy_single_branch",
       "transient": true,
       "updated_at": "2026-03-25T15:22:22+00:00",

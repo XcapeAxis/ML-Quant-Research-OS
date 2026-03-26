@@ -1,0 +1,22 @@
+# 涨停主线收紧入场分支
+
+- strategy_id: tighter_entry_limit_up
+- name: 涨停主线收紧入场分支
+- category: entry timing
+- core_hypothesis: 把入选阈值收紧，只保留更接近再次启动位置的个股，可以减少过早买入带来的假突破和大回撤。
+- economic_rationale: 如果真正的二次启动往往发生在更接近突破起点、筹码更集中的位置，那么收紧入场条件应该先减少质量差的提前埋伏。
+- required_data: 主板 A 股日频 OHLCV、上市天数、ST/板块过滤、涨停代理、下个交易日收益、基准与等权基线。
+- current_stage: data-blocked
+- latest_action: 已列为支线分支，等待主线 blocker 收敛后再做对照验证。
+- latest_result: 当前没有新的通过结论；主要被 `默认项目 2026Q1_limit_up 仍缺可用日频 bars，当前不能做新的策略验证。` 卡住。
+- decision: blocked
+- next_validation: 先恢复主线可用输入；输入没恢复前，这条分支不值得单独开跑。
+- owner: main
+- subagents_assigned:
+  - none
+- artifact_refs:
+  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\BRANCH_LEDGER.jsonl
+  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\EVIDENCE_LEDGER.jsonl
+- blocked_by:
+  - 默认项目 2026Q1_limit_up 仍缺可用日频 bars，当前不能做新的策略验证。
+- kill_criteria: 如果收紧入场后只是在减少交易次数，却没有改善回撤或收益质量，就停止继续扩展这条分支。

@@ -1,0 +1,22 @@
+# 涨停主线风控分支
+
+- strategy_id: risk_constrained_limit_up
+- name: 涨停主线风控分支
+- category: risk control
+- core_hypothesis: 在不破坏涨停回踩再启动这个主线定义的前提下，更严格的止损、市场过滤或持仓约束可以显著降低回撤。
+- economic_rationale: 如果主线 alpha 来自强势股二次启动，而不是单纯硬扛波动，那么更强的风险约束应该先砍掉最差交易，同时保住大部分有效信号。
+- required_data: 主板 A 股日频 OHLCV、上市天数、ST/板块过滤、涨停代理、下个交易日收益、基准与等权基线。
+- current_stage: data-blocked
+- latest_action: 已列为支线分支，等待主线 blocker 收敛后再做对照验证。
+- latest_result: 当前没有新的通过结论；主要被 `默认项目 2026Q1_limit_up 仍缺可用日频 bars，当前不能做新的策略验证。` 卡住。
+- decision: blocked
+- next_validation: 先恢复主线可用输入；输入没恢复前，这条分支不值得单独开跑。
+- owner: main
+- subagents_assigned:
+  - none
+- artifact_refs:
+  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\BRANCH_LEDGER.jsonl
+  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\EVIDENCE_LEDGER.jsonl
+- blocked_by:
+  - 默认项目 2026Q1_limit_up 仍缺可用日频 bars，当前不能做新的策略验证。
+- kill_criteria: 如果回撤改善很弱、但收益和通过率明显恶化，就停止继续扩大这条风控分支。

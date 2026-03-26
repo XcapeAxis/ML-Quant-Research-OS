@@ -10,7 +10,7 @@
 ## 2026-03-24T16:22:54 | as_share_research_v1-20260324T162254
 - 摘要: Dry-run blocked by missing research inputs: No bars found for requested codes.
 - 根因: missing_research_inputs: No bars found for requested codes.
-- 纠偏动作: Restore a usable frozen universe plus local bars before rerunning the dry-run cycle.
+- 纠偏动作: 先恢复可用的 frozen universe 和本地 bars，再重跑 dry-run cycle。
 
 ## promotion-gate | promote_candidate
 - 摘要: Candidate failed the current promotion gate.
@@ -105,7 +105,7 @@
 ## 2026-03-26T02:40:36 | as_share_research_v1-20260326T024036
 - 摘要: 晋级门阻塞： 最大回撤 56.50% 高于 30.00%。
 - 根因: 最大回撤 56.50% 高于 30.00%。
-- 纠偏动作: Restore a usable frozen universe plus local bars before rerunning the dry-run cycle.
+- 纠偏动作: 先恢复可用的 frozen universe 和本地 bars，再重跑 dry-run cycle。
 - 当前状态: 未修复
 
 ## promotion-gate | promote_candidate
@@ -117,7 +117,7 @@
 ## 2026-03-26T02:44:04 | as_share_research_v1-20260326T024404
 - 摘要: 晋级门阻塞： 最大回撤 56.50% 高于 30.00%。；基准或等权基线不完整.
 - 根因: 最大回撤 56.50% 高于 30.00%。；基准或等权基线不完整.
-- 纠偏动作: Restore a usable frozen universe plus local bars before rerunning the dry-run cycle.
+- 纠偏动作: 先恢复可用的 frozen universe 和本地 bars，再重跑 dry-run cycle。
 - 当前状态: 未修复
 
 ## promotion-gate | promote_candidate
@@ -129,7 +129,7 @@
 ## 2026-03-26T02:45:47 | as_share_research_v1-20260326T024547
 - 摘要: 晋级门阻塞： 最大回撤 56.50% 高于 30.00%。
 - 根因: 最大回撤 56.50% 高于 30.00%。
-- 纠偏动作: Restore a usable frozen universe plus local bars before rerunning the dry-run cycle.
+- 纠偏动作: 先恢复可用的 frozen universe 和本地 bars，再重跑 dry-run cycle。
 - 当前状态: 未修复
 
 ## 2026-03-26T02:45:47Z | benchmark-baseline-diagnosis
@@ -141,7 +141,7 @@
 ## 2026-03-26T03:29:38 | as_share_research_v1-20260326T032938
 - 摘要: 晋级门阻塞： 最大回撤 56.50% 高于 30.00%。
 - 根因: 最大回撤 56.50% 高于 30.00%。
-- 纠偏动作: Restore a usable frozen universe plus local bars before rerunning the dry-run cycle.
+- 纠偏动作: 先恢复可用的 frozen universe 和本地 bars，再重跑 dry-run cycle。
 - 当前状态: 未修复
 
 ## promotion-gate | promote_candidate
@@ -171,7 +171,7 @@
 ## 2026-03-26T03:46:08 | as_share_research_v1-20260326T034608
 - 摘要: 晋级门阻塞： 最大回撤 56.50% 高于 30.00%。
 - 根因: 最大回撤 56.50% 高于 30.00%。
-- 纠偏动作: Restore a usable frozen universe plus local bars before rerunning the dry-run cycle.
+- 纠偏动作: 先恢复可用的 frozen universe 和本地 bars，再重跑 dry-run cycle。
 - 当前状态: 未修复
 
 ## 2026-03-26T03:46:08+00:00 | as_share_research_v1-iterative-20260326T034540Z
@@ -183,7 +183,7 @@
 ## 2026-03-26T04:10:55 | as_share_research_v1-20260326T041055
 - 摘要: 晋级门阻塞： 最大回撤 56.50% 高于 30.00%。
 - 根因: 最大回撤 56.50% 高于 30.00%。
-- 纠偏动作: Restore a usable frozen universe plus local bars before rerunning the dry-run cycle.
+- 纠偏动作: 先恢复可用的 frozen universe 和本地 bars，再重跑 dry-run cycle。
 - 当前状态: 未修复
 
 ## 2026-03-26T04:15:27+00:00 | as_share_research_v1-iterative-20260326T041523Z
@@ -213,7 +213,7 @@
 ## 2026-03-26T04:21:43 | as_share_research_v1-20260326T042143
 - 摘要: 晋级门阻塞： 最大回撤 56.50% 高于 30.00%。
 - 根因: 最大回撤 56.50% 高于 30.00%。
-- 纠偏动作: Restore a usable frozen universe plus local bars before rerunning the dry-run cycle.
+- 纠偏动作: 先恢复可用的 frozen universe 和本地 bars，再重跑 dry-run cycle。
 - 当前状态: 未修复
 
 ## promotion-gate | promote_candidate
@@ -255,17 +255,35 @@
 ## 2026-03-26T07:32:43 | as_share_research_v1-20260326T073243
 - 摘要: 晋级门阻塞： 最大回撤 56.50% 高于 30.00%。
 - 根因: 最大回撤 56.50% 高于 30.00%。
-- 纠偏动作: Restore a usable frozen universe plus local bars before rerunning the dry-run cycle.
+- 纠偏动作: 先恢复可用的 frozen universe 和本地 bars，再重跑 dry-run cycle。
 - 当前状态: 未修复
 
 ## 2026-03-26T07:42:45 | as_share_research_v1-20260326T074245
 - 摘要: 晋级门阻塞： 最大回撤 56.50% 高于 30.00%。
 - 根因: 最大回撤 56.50% 高于 30.00%。
-- 纠偏动作: Restore a usable frozen universe plus local bars before rerunning the dry-run cycle.
+- 纠偏动作: 先恢复可用的 frozen universe 和本地 bars，再重跑 dry-run cycle。
 - 当前状态: 未修复
 
 ## 2026-03-26T07:42:48+00:00 | as_share_research_v1-iterative-20260326T073253Z
 - 摘要: 刷新 repo truth 与审计基线
 - 根因: 最大回撤 56.50% 高于 30.00%。
 - 纠偏动作: 升级 blocker `max_drawdown`: 已停止自动重试，请收窄路径，并在下一次 run 前写回根因诊断。
+- 当前状态: 未修复
+
+## 2026-03-26T08:33:07 | as_share_research_v1-20260326T083307
+- 摘要: 晋级门阻塞： 最大回撤 56.50% 高于 30.00%。
+- 根因: 最大回撤 56.50% 高于 30.00%。
+- 纠偏动作: 先恢复可用的 frozen universe 和本地 bars，再重跑 dry-run cycle。
+- 当前状态: 未修复
+
+## 2026-03-26T08:46:13 | as_share_research_v1-20260326T084613
+- 摘要: 晋级门阻塞： 最大回撤 56.50% 高于 30.00%。
+- 根因: 最大回撤 56.50% 高于 30.00%。
+- 纠偏动作: 先恢复可用的 frozen universe 和本地 bars，再重跑 dry-run cycle。
+- 当前状态: 未修复
+
+## 2026-03-26T08:50:52 | as_share_research_v1-20260326T085052
+- 摘要: 晋级门阻塞： 最大回撤 56.50% 高于 30.00%。
+- 根因: 最大回撤 56.50% 高于 30.00%。
+- 纠偏动作: 先恢复可用的 frozen universe 和本地 bars，再重跑 dry-run cycle。
 - 当前状态: 未修复

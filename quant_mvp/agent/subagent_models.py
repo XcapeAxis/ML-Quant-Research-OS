@@ -74,6 +74,12 @@ class SubagentRecord:
     allowed_paths: list[str]
     expected_artifacts: list[str]
     artifact_dir: str | None = None
+    subagent_type: str = "infrastructure"
+    strategy_id: str | None = None
+    blocker_scope: str | None = None
+    research_focus: str | None = None
+    delivered_conclusion: str | None = None
+    decision_impact: str | None = None
     parent_ids: list[str] = field(default_factory=list)
     child_ids: list[str] = field(default_factory=list)
     merged_into: str | None = None
@@ -101,6 +107,10 @@ class SubagentEvent:
     from_status: str
     to_status: str
     summary: str
+    subagent_type: str | None = None
+    strategy_id: str | None = None
+    blocker_scope: str | None = None
+    decision_impact: str | None = None
     related_ids: list[str] = field(default_factory=list)
     artifact_refs: list[str] = field(default_factory=list)
 

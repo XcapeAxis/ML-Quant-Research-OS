@@ -11,7 +11,7 @@ ROOT_AGENTS_TEMPLATE = """# Research OS Instructions
 ## Response Contract
 - Follow `docs/RESPONSE_CONTRACT.md`.
 - Default to `CHECKPOINT` replies unless the user explicitly asks for targeted evidence or full forensics.
-- `CHECKPOINT` replies must include the stable `Research progress` snapshot alongside `Done`, `Not done`, `Next recommendation`, and `Subagent status`.
+- `CHECKPOINT` replies must stay strategy-centered and use `Done`, `Evidence`, `Next action`, and `Subagent status`.
 
 ## Memory Layers
 - Git-tracked long-term memory lives under `memory/projects/<project>/`.
@@ -26,7 +26,7 @@ ROOT_AGENTS_TEMPLATE = """# Research OS Instructions
 
 ## Required Verification
 - Run contract tests for strategy specs, weekday rebalance, tracked memory writeback, and leakage guards.
-- Run contract tests for the `Research progress` table, score bounds, delta classification, and tracked-memory writeback when the checkpoint format changes.
+- Run contract tests for the strategy snapshot, tracked-memory writeback, and the checkpoint format when the reply contract changes.
 - Run `python -m quant_mvp research_audit --project <project>`.
 - Run `python -m quant_mvp data_validate --project <project>` when data changes.
 - Run `python -m quant_mvp agent_cycle --project <project> --dry-run` before trusting the control plane.

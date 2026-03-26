@@ -494,42 +494,27 @@ def test_iterative_checkpoint_stays_lightweight() -> None:
                 "archived_count": 0,
                 "gate_mode": "AUTO",
             },
-            "research_progress": {
-                "dimensions": [
-                    {"dimension": "Data inputs", "status": "blocked", "score": 1, "evidence": "默认项目仍缺少可用 validated bars。"},
-                    {"dimension": "Strategy integrity", "status": "partial", "score": 2, "evidence": "单一研究核心和契约护栏已存在。"},
-                    {"dimension": "Validation stack", "status": "partial", "score": 2, "evidence": "审计与晋级框架已建立。"},
-                    {"dimension": "Promotion readiness", "status": "blocked", "score": 1, "evidence": "研究输入仍不足以支撑晋级判断。"},
-                    {"dimension": "Subagent effectiveness", "status": "partial", "score": 2, "evidence": "治理存在，但本轮保持有效 OFF。"},
-                ],
-                "overall_trajectory": "blocked",
-                "this_run_delta": "unchanged",
-                "current_blocker": "drawdown remains unclear",
-                "next_milestone": "run dry-run cycle",
-                "confidence": "medium",
+            "strategy_visibility": {
+                "system_line": "本轮主要推进研究前提恢复和状态可见化。",
+                "strategy_line": "本轮未进行实质策略研究，原因是 drawdown remains unclear。",
+                "primary_names": ["baseline_limit_up（涨停主线基线分支）"],
+                "secondary_names": ["risk_constrained_limit_up（涨停主线风控分支）"],
+                "blocked_names": ["baseline_limit_up（涨停主线基线分支）"],
+                "rejected_names": ["legacy_single_branch（旧单分支兼容路径）"],
+                "promoted_names": [],
             },
         },
     )
 
     assert checkpoint.splitlines()[0] == "Done"
-    assert "Not done" in checkpoint
-    assert "Research progress" in checkpoint
-    assert "Next recommendation" in checkpoint
+    assert "Evidence" in checkpoint
+    assert "Next action" in checkpoint
     assert "Subagent status" in checkpoint
-    for dimension in [
-        "Data inputs",
-        "Strategy integrity",
-        "Validation stack",
-        "Promotion readiness",
-        "Subagent effectiveness",
-    ]:
-        assert dimension in checkpoint
-    table_lines = [line for line in checkpoint.splitlines() if line.startswith("| ") and "/4" in line]
-    assert len(table_lines) == 5
-    for line in table_lines:
-        score = int(line.split("|")[3].strip().split("/")[0])
-        assert 0 <= score <= 4
-    assert len(checkpoint.splitlines()) <= 30
+    assert "系统推进" in checkpoint
+    assert "策略推进" in checkpoint
+    assert "本轮未进行实质策略研究" in checkpoint
+    assert "baseline_limit_up" in checkpoint
+    assert len(checkpoint.splitlines()) <= 20
 
 
 def test_iterative_run_records_research_progress_and_delta(limit_up_project) -> None:
@@ -565,7 +550,8 @@ def test_iterative_run_records_research_progress_and_delta(limit_up_project) -> 
     _, improved_state = load_machine_state(project)
 
     assert improved_state["research_progress"]["this_run_delta"] == "improved"
-    assert "Research progress" in improved_result["checkpoint"]
+    assert "Evidence" in improved_result["checkpoint"]
+    assert "Next action" in improved_result["checkpoint"]
     for item in improved_state["research_progress"]["dimensions"]:
         assert 0 <= int(item["score"]) <= 4
 

@@ -1,0 +1,24 @@
+# 涨停主线基线分支
+
+- strategy_id: baseline_limit_up
+- name: 涨停主线基线分支
+- category: limit-up continuation
+- core_hypothesis: 过去一段时间反复出现涨停、随后回到突破起点附近的主板个股，后续更容易再次走强；先把这条主线稳定保存成基线，再评估其它改法。
+- economic_rationale: A 股主板里的涨停通常意味着资金短时间集中抢筹。若个股涨停后没有彻底转弱，而是在突破起点附近重新整理，说明强势资金可能仍在，后续二次启动概率更高；保留基线则能判断后续改动到底是在修复风险还是只是在制造噪音。
+- required_data: 主板 A 股日频 OHLCV、上市天数、ST/板块过滤、涨停代理、下个交易日收益、基准与等权基线。
+- current_stage: validation
+- latest_action: 最近一次记录里，baseline_limit_up 已完成 scout/implementer 资料整理；verifier 仍未真正开始有界验证。
+- latest_result: baseline_limit_up 目前只有候选池与实验记录，真正的 verifier 结论仍缺失。
+- decision: blocked
+- next_validation: 先拆解主线回撤是时间集中、个股集中还是持有尾部过长，再决定优先上风控分支还是收紧入场分支。
+- owner: main
+- subagents_assigned:
+  - none
+- artifact_refs:
+  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\EVIDENCE_LEDGER.jsonl
+  - C:\Users\asus\Documents\Projects\BackTest\data\projects\2026Q1_limit_up\meta\experiments\2026Q1_limit_up__baseline_limit_up__20260325T152141Z.json
+  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\BRANCH_LEDGER.jsonl
+  - baseline_limit_up-df14a72f3cd8
+- blocked_by:
+  - 最大回撤 56.50% 高于 30.00%。
+- kill_criteria: 如果可用输入恢复后，这条主线在泄漏、可交易性、walk-forward 与成本压力检查下仍无法把最大回撤压到 30% 以内，就停止继续把它当主线。

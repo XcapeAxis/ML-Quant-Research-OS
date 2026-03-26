@@ -1,252 +1,440 @@
 # Subagent 注册表
 
 ## 治理概况
-- gate_mode: AUTO
-- recommended_gate: OFF
+- gate 模式: AUTO
+- 建议模式: OFF
 - 是否继续使用 subagents: 否
 - 继续原因: 任务广度尚未达到安全拆分的最低阈值。
-- 最近事件: iterative_relevance_review
+- 最近事件: 迭代相关性复核
 
 ## 当前集合
-- active: none
-- blocked: none
-- retired: sa-001, sa-002, sa-003, sa-004, sa-005, sa-006, sa-007, sa-20260325150849781070-932c, sa-20260325150851246437-8049, sa-20260325150857703676-306c, sa-20260325150859131657-2e6d, sa-20260325150905477175-ee0b, sa-20260325150906960445-8e82, sa-20260325150925548166-7fcd, sa-20260325150926924590-bb25, sa-20260325151502176602-ee4c, sa-20260325151503532918-ed2b, sa-20260325151509622682-dce5, sa-20260325151511046386-a98f, sa-20260325151516876234-eee5, sa-20260325151518290134-5820, sa-20260325151536002718-d679, sa-20260325151537316765-574a, sa-20260325152148073676-e478, sa-20260325152149433166-7cc9, sa-20260325152154074736-0f4a, sa-20260325152155435374-98ca, sa-20260325152200232912-ef56, sa-20260325152201594111-9c87, sa-20260325152220234694-cb14, sa-20260325152221633066-3c39
-- merged: none
-- archived: none
-- canceled: none
-- refactored: none
+- 当前 active 实例: none
+- 当前 blocked 实例: none
+- 已退役: sa-001, sa-002, sa-003, sa-004, sa-005, sa-006, sa-007, sa-20260325150849781070-932c, sa-20260325150851246437-8049, sa-20260325150857703676-306c, sa-20260325150859131657-2e6d, sa-20260325150905477175-ee0b, sa-20260325150906960445-8e82, sa-20260325150925548166-7fcd, sa-20260325150926924590-bb25, sa-20260325151502176602-ee4c, sa-20260325151503532918-ed2b, sa-20260325151509622682-dce5, sa-20260325151511046386-a98f, sa-20260325151516876234-eee5, sa-20260325151518290134-5820, sa-20260325151536002718-d679, sa-20260325151537316765-574a, sa-20260325152148073676-e478, sa-20260325152149433166-7cc9, sa-20260325152154074736-0f4a, sa-20260325152155435374-98ca, sa-20260325152200232912-ef56, sa-20260325152201594111-9c87, sa-20260325152220234694-cb14, sa-20260325152221633066-3c39
+- 已合并: none
+- 已归档: none
+- 已取消: none
+- 已重构: none
 - 临时实例: sa-001, sa-002, sa-003, sa-004, sa-005, sa-006, sa-007, sa-20260325150849781070-932c, sa-20260325150851246437-8049, sa-20260325150857703676-306c, sa-20260325150859131657-2e6d, sa-20260325150905477175-ee0b, sa-20260325150906960445-8e82, sa-20260325150925548166-7fcd, sa-20260325150926924590-bb25, sa-20260325151502176602-ee4c, sa-20260325151503532918-ed2b, sa-20260325151509622682-dce5, sa-20260325151511046386-a98f, sa-20260325151516876234-eee5, sa-20260325151518290134-5820, sa-20260325151536002718-d679, sa-20260325151537316765-574a, sa-20260325152148073676-e478, sa-20260325152149433166-7cc9, sa-20260325152154074736-0f4a, sa-20260325152155435374-98ca, sa-20260325152200232912-ef56, sa-20260325152201594111-9c87, sa-20260325152220234694-cb14, sa-20260325152221633066-3c39
 - 长生命周期模板: none
+- 当前 active 研究型: none
+- 当前 active 基础设施型: none
 
 ## 最新计划
-- recommended_count: 0
-- recommended_roles: none
+- 建议数量: 0
+- 建议角色: none
 - 不拆分原因: 任务广度尚未达到安全拆分的最低阈值。
 - 计划理由: 当前工作仍足够单线，保持一个整合代理最稳妥。
 
 ## 角色模板
-- data_steward: Own provider, ingestion, cleaning, and data coverage diagnostics without changing strategy logic.
-- strategy_auditor: Check strategy entrypoints, defaults, and documentation for drift.
-- validation_guard: Own leakage, robustness, baseline, and promotion-gate verification work.
-- memory_curator: Keep tracked memory, handoff, and migration prompts concise and accurate.
-- tooling_scout: Investigate missing tools, policy files, and reproducibility boundaries before anything is added.
-- integration_merger: Merge compatible workstreams, reduce overlap, and close out temporary subagents.
+- data_steward: 负责数据提供商、拉取、清洗与覆盖诊断，但不改动策略逻辑。
+- strategy_auditor: 检查策略入口、默认配置和文档是否与现状研究发生漂移。
+- validation_guard: 负责泄漏、稳健性、baseline 和 promotion gate 的验证工作。
+- memory_curator: 保持 tracked memory、handoff 和 migration prompt 简洁、准确。
+- tooling_scout: 在增加任何东西前，先查缺失工具、policy 文件和可复现边界。
+- integration_merger: 合并可兼容的工作流、减少重复，并关停已完成的临时 subagent。
 
 ## 实例记录
 ### sa-001 | scout | 已退休
+- 类型: 策略研究型
 - 摘要: scout task for baseline_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: branch_pool_snapshot, candidate_notes
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-001
+- strategy_id: baseline_limit_up
+- 本轮研究内容: scout task for baseline_limit_up
+- 交付结论: Retire the stale worker record left behind by an earlier parallel verification run.
+- 对策略决策的影响: 服务策略 `baseline_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: branch_pool_snapshot, candidate_notes
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-001
+- 关闭或最近状态说明: Retire the stale worker record left behind by an earlier parallel verification run.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-002 | scout | 已退休
+- 类型: 策略研究型
 - 摘要: scout task for legacy_single_branch
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: branch_pool_snapshot, candidate_notes
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-002
+- strategy_id: legacy_single_branch
+- 本轮研究内容: scout task for legacy_single_branch
+- 交付结论: Scout wrote a branch-pool evidence report for legacy_single_branch with 42 candidate codes.
+- 对策略决策的影响: 服务策略 `legacy_single_branch` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: branch_pool_snapshot, candidate_notes
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-002
+- 关闭或最近状态说明: Scout wrote a branch-pool evidence report for legacy_single_branch with 42 candidate codes.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-003 | implementer | 已退休
+- 类型: 策略研究型
 - 摘要: implementer task for legacy_single_branch
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: as_share_research_v1__legacy_single_branch__20260325T150231Z
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-003
+- strategy_id: legacy_single_branch
+- 本轮研究内容: implementer task for legacy_single_branch
+- 交付结论: Implementer refreshed the experiment record for legacy_single_branch and linked it to the worker mesh.
+- 对策略决策的影响: 服务策略 `legacy_single_branch` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: as_share_research_v1__legacy_single_branch__20260325T150231Z
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-003
+- 关闭或最近状态说明: Implementer refreshed the experiment record for legacy_single_branch and linked it to the worker mesh.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-004 | scout | 已退休
+- 类型: 策略研究型
 - 摘要: scout task for risk_constrained_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: branch_pool_snapshot, candidate_notes
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-004
+- strategy_id: risk_constrained_limit_up
+- 本轮研究内容: scout task for risk_constrained_limit_up
+- 交付结论: Scout wrote a branch-pool evidence report for risk_constrained_limit_up with 42 candidate codes.
+- 对策略决策的影响: 服务策略 `risk_constrained_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: branch_pool_snapshot, candidate_notes
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-004
+- 关闭或最近状态说明: Scout wrote a branch-pool evidence report for risk_constrained_limit_up with 42 candidate codes.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-005 | implementer | 已退休
+- 类型: 策略研究型
 - 摘要: implementer task for risk_constrained_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: as_share_research_v1__risk_constrained_limit_up__20260325T150231Z
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-005
+- strategy_id: risk_constrained_limit_up
+- 本轮研究内容: implementer task for risk_constrained_limit_up
+- 交付结论: Implementer refreshed the experiment record for risk_constrained_limit_up and linked it to the worker mesh.
+- 对策略决策的影响: 服务策略 `risk_constrained_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: as_share_research_v1__risk_constrained_limit_up__20260325T150231Z
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-005
+- 关闭或最近状态说明: Implementer refreshed the experiment record for risk_constrained_limit_up and linked it to the worker mesh.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-006 | scout | 已退休
+- 类型: 策略研究型
 - 摘要: scout task for tighter_entry_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: branch_pool_snapshot, candidate_notes
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-006
+- strategy_id: tighter_entry_limit_up
+- 本轮研究内容: scout task for tighter_entry_limit_up
+- 交付结论: Scout wrote a branch-pool evidence report for tighter_entry_limit_up with 42 candidate codes.
+- 对策略决策的影响: 服务策略 `tighter_entry_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: branch_pool_snapshot, candidate_notes
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-006
+- 关闭或最近状态说明: Scout wrote a branch-pool evidence report for tighter_entry_limit_up with 42 candidate codes.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-007 | implementer | 已退休
+- 类型: 策略研究型
 - 摘要: implementer task for tighter_entry_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: as_share_research_v1__tighter_entry_limit_up__20260325T150231Z
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-007
+- strategy_id: tighter_entry_limit_up
+- 本轮研究内容: implementer task for tighter_entry_limit_up
+- 交付结论: Implementer refreshed the experiment record for tighter_entry_limit_up and linked it to the worker mesh.
+- 对策略决策的影响: 服务策略 `tighter_entry_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: as_share_research_v1__tighter_entry_limit_up__20260325T150231Z
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-007
+- 关闭或最近状态说明: Implementer refreshed the experiment record for tighter_entry_limit_up and linked it to the worker mesh.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325150849781070-932c | scout | 已退休
+- 类型: 策略研究型
 - 摘要: scout task for baseline_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: branch_pool_snapshot, candidate_notes
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325150849781070-932c
+- strategy_id: baseline_limit_up
+- 本轮研究内容: scout task for baseline_limit_up
+- 交付结论: Scout wrote a branch-pool evidence report for baseline_limit_up with 42 candidate codes.
+- 对策略决策的影响: 服务策略 `baseline_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: branch_pool_snapshot, candidate_notes
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325150849781070-932c
+- 关闭或最近状态说明: Scout wrote a branch-pool evidence report for baseline_limit_up with 42 candidate codes.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325150851246437-8049 | implementer | 已退休
+- 类型: 策略研究型
 - 摘要: implementer task for baseline_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: as_share_research_v1__baseline_limit_up__20260325T150840Z
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325150851246437-8049
+- strategy_id: baseline_limit_up
+- 本轮研究内容: implementer task for baseline_limit_up
+- 交付结论: Implementer refreshed the experiment record for baseline_limit_up and linked it to the worker mesh.
+- 对策略决策的影响: 服务策略 `baseline_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: as_share_research_v1__baseline_limit_up__20260325T150840Z
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325150851246437-8049
+- 关闭或最近状态说明: Implementer refreshed the experiment record for baseline_limit_up and linked it to the worker mesh.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325150857703676-306c | scout | 已退休
+- 类型: 策略研究型
 - 摘要: scout task for risk_constrained_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: branch_pool_snapshot, candidate_notes
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325150857703676-306c
+- strategy_id: risk_constrained_limit_up
+- 本轮研究内容: scout task for risk_constrained_limit_up
+- 交付结论: Scout wrote a branch-pool evidence report for risk_constrained_limit_up with 42 candidate codes.
+- 对策略决策的影响: 服务策略 `risk_constrained_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: branch_pool_snapshot, candidate_notes
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325150857703676-306c
+- 关闭或最近状态说明: Scout wrote a branch-pool evidence report for risk_constrained_limit_up with 42 candidate codes.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325150859131657-2e6d | implementer | 已退休
+- 类型: 策略研究型
 - 摘要: implementer task for risk_constrained_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: as_share_research_v1__risk_constrained_limit_up__20260325T150840Z
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325150859131657-2e6d
+- strategy_id: risk_constrained_limit_up
+- 本轮研究内容: implementer task for risk_constrained_limit_up
+- 交付结论: Implementer refreshed the experiment record for risk_constrained_limit_up and linked it to the worker mesh.
+- 对策略决策的影响: 服务策略 `risk_constrained_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: as_share_research_v1__risk_constrained_limit_up__20260325T150840Z
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325150859131657-2e6d
+- 关闭或最近状态说明: Implementer refreshed the experiment record for risk_constrained_limit_up and linked it to the worker mesh.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325150905477175-ee0b | scout | 已退休
+- 类型: 策略研究型
 - 摘要: scout task for tighter_entry_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: branch_pool_snapshot, candidate_notes
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325150905477175-ee0b
+- strategy_id: tighter_entry_limit_up
+- 本轮研究内容: scout task for tighter_entry_limit_up
+- 交付结论: Scout wrote a branch-pool evidence report for tighter_entry_limit_up with 42 candidate codes.
+- 对策略决策的影响: 服务策略 `tighter_entry_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: branch_pool_snapshot, candidate_notes
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325150905477175-ee0b
+- 关闭或最近状态说明: Scout wrote a branch-pool evidence report for tighter_entry_limit_up with 42 candidate codes.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325150906960445-8e82 | implementer | 已退休
+- 类型: 策略研究型
 - 摘要: implementer task for tighter_entry_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: as_share_research_v1__tighter_entry_limit_up__20260325T150840Z
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325150906960445-8e82
+- strategy_id: tighter_entry_limit_up
+- 本轮研究内容: implementer task for tighter_entry_limit_up
+- 交付结论: Implementer refreshed the experiment record for tighter_entry_limit_up and linked it to the worker mesh.
+- 对策略决策的影响: 服务策略 `tighter_entry_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: as_share_research_v1__tighter_entry_limit_up__20260325T150840Z
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325150906960445-8e82
+- 关闭或最近状态说明: Implementer refreshed the experiment record for tighter_entry_limit_up and linked it to the worker mesh.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325150925548166-7fcd | scout | 已退休
+- 类型: 策略研究型
 - 摘要: scout task for legacy_single_branch
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: branch_pool_snapshot, candidate_notes
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325150925548166-7fcd
+- strategy_id: legacy_single_branch
+- 本轮研究内容: scout task for legacy_single_branch
+- 交付结论: Scout wrote a branch-pool evidence report for legacy_single_branch with 42 candidate codes.
+- 对策略决策的影响: 服务策略 `legacy_single_branch` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: branch_pool_snapshot, candidate_notes
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325150925548166-7fcd
+- 关闭或最近状态说明: Scout wrote a branch-pool evidence report for legacy_single_branch with 42 candidate codes.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325150926924590-bb25 | implementer | 已退休
+- 类型: 策略研究型
 - 摘要: implementer task for legacy_single_branch
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: as_share_research_v1__legacy_single_branch__20260325T150915Z
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325150926924590-bb25
+- strategy_id: legacy_single_branch
+- 本轮研究内容: implementer task for legacy_single_branch
+- 交付结论: Implementer refreshed the experiment record for legacy_single_branch and linked it to the worker mesh.
+- 对策略决策的影响: 服务策略 `legacy_single_branch` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: as_share_research_v1__legacy_single_branch__20260325T150915Z
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325150926924590-bb25
+- 关闭或最近状态说明: Implementer refreshed the experiment record for legacy_single_branch and linked it to the worker mesh.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325151502176602-ee4c | scout | 已退休
+- 类型: 策略研究型
 - 摘要: scout task for baseline_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: branch_pool_snapshot, candidate_notes
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325151502176602-ee4c
+- strategy_id: baseline_limit_up
+- 本轮研究内容: scout task for baseline_limit_up
+- 交付结论: Scout wrote a branch-pool evidence report for baseline_limit_up with 42 candidate codes.
+- 对策略决策的影响: 服务策略 `baseline_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: branch_pool_snapshot, candidate_notes
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325151502176602-ee4c
+- 关闭或最近状态说明: Scout wrote a branch-pool evidence report for baseline_limit_up with 42 candidate codes.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325151503532918-ed2b | implementer | 已退休
+- 类型: 策略研究型
 - 摘要: implementer task for baseline_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: as_share_research_v1__baseline_limit_up__20260325T151453Z
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325151503532918-ed2b
+- strategy_id: baseline_limit_up
+- 本轮研究内容: implementer task for baseline_limit_up
+- 交付结论: Implementer refreshed the experiment record for baseline_limit_up and linked it to the worker mesh.
+- 对策略决策的影响: 服务策略 `baseline_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: as_share_research_v1__baseline_limit_up__20260325T151453Z
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325151503532918-ed2b
+- 关闭或最近状态说明: Implementer refreshed the experiment record for baseline_limit_up and linked it to the worker mesh.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325151509622682-dce5 | scout | 已退休
+- 类型: 策略研究型
 - 摘要: scout task for risk_constrained_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: branch_pool_snapshot, candidate_notes
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325151509622682-dce5
+- strategy_id: risk_constrained_limit_up
+- 本轮研究内容: scout task for risk_constrained_limit_up
+- 交付结论: Scout wrote a branch-pool evidence report for risk_constrained_limit_up with 42 candidate codes.
+- 对策略决策的影响: 服务策略 `risk_constrained_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: branch_pool_snapshot, candidate_notes
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325151509622682-dce5
+- 关闭或最近状态说明: Scout wrote a branch-pool evidence report for risk_constrained_limit_up with 42 candidate codes.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325151511046386-a98f | implementer | 已退休
+- 类型: 策略研究型
 - 摘要: implementer task for risk_constrained_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: as_share_research_v1__risk_constrained_limit_up__20260325T151453Z
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325151511046386-a98f
+- strategy_id: risk_constrained_limit_up
+- 本轮研究内容: implementer task for risk_constrained_limit_up
+- 交付结论: Implementer refreshed the experiment record for risk_constrained_limit_up and linked it to the worker mesh.
+- 对策略决策的影响: 服务策略 `risk_constrained_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: as_share_research_v1__risk_constrained_limit_up__20260325T151453Z
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325151511046386-a98f
+- 关闭或最近状态说明: Implementer refreshed the experiment record for risk_constrained_limit_up and linked it to the worker mesh.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325151516876234-eee5 | scout | 已退休
+- 类型: 策略研究型
 - 摘要: scout task for tighter_entry_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: branch_pool_snapshot, candidate_notes
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325151516876234-eee5
+- strategy_id: tighter_entry_limit_up
+- 本轮研究内容: scout task for tighter_entry_limit_up
+- 交付结论: Scout wrote a branch-pool evidence report for tighter_entry_limit_up with 42 candidate codes.
+- 对策略决策的影响: 服务策略 `tighter_entry_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: branch_pool_snapshot, candidate_notes
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325151516876234-eee5
+- 关闭或最近状态说明: Scout wrote a branch-pool evidence report for tighter_entry_limit_up with 42 candidate codes.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325151518290134-5820 | implementer | 已退休
+- 类型: 策略研究型
 - 摘要: implementer task for tighter_entry_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: as_share_research_v1__tighter_entry_limit_up__20260325T151453Z
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325151518290134-5820
+- strategy_id: tighter_entry_limit_up
+- 本轮研究内容: implementer task for tighter_entry_limit_up
+- 交付结论: Implementer refreshed the experiment record for tighter_entry_limit_up and linked it to the worker mesh.
+- 对策略决策的影响: 服务策略 `tighter_entry_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: as_share_research_v1__tighter_entry_limit_up__20260325T151453Z
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325151518290134-5820
+- 关闭或最近状态说明: Implementer refreshed the experiment record for tighter_entry_limit_up and linked it to the worker mesh.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325151536002718-d679 | scout | 已退休
+- 类型: 策略研究型
 - 摘要: scout task for legacy_single_branch
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: branch_pool_snapshot, candidate_notes
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325151536002718-d679
+- strategy_id: legacy_single_branch
+- 本轮研究内容: scout task for legacy_single_branch
+- 交付结论: Scout wrote a branch-pool evidence report for legacy_single_branch with 42 candidate codes.
+- 对策略决策的影响: 服务策略 `legacy_single_branch` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: branch_pool_snapshot, candidate_notes
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325151536002718-d679
+- 关闭或最近状态说明: Scout wrote a branch-pool evidence report for legacy_single_branch with 42 candidate codes.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325151537316765-574a | implementer | 已退休
+- 类型: 策略研究型
 - 摘要: implementer task for legacy_single_branch
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: as_share_research_v1__legacy_single_branch__20260325T151529Z
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325151537316765-574a
+- strategy_id: legacy_single_branch
+- 本轮研究内容: implementer task for legacy_single_branch
+- 交付结论: Implementer refreshed the experiment record for legacy_single_branch and linked it to the worker mesh.
+- 对策略决策的影响: 服务策略 `legacy_single_branch` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: as_share_research_v1__legacy_single_branch__20260325T151529Z
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325151537316765-574a
+- 关闭或最近状态说明: Implementer refreshed the experiment record for legacy_single_branch and linked it to the worker mesh.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325152148073676-e478 | scout | 已退休
+- 类型: 策略研究型
 - 摘要: scout task for baseline_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: branch_pool_snapshot, candidate_notes
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325152148073676-e478
+- strategy_id: baseline_limit_up
+- 本轮研究内容: scout task for baseline_limit_up
+- 交付结论: Scout wrote a branch-pool evidence report for baseline_limit_up with 42 candidate codes.
+- 对策略决策的影响: 服务策略 `baseline_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: branch_pool_snapshot, candidate_notes
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325152148073676-e478
+- 关闭或最近状态说明: Scout wrote a branch-pool evidence report for baseline_limit_up with 42 candidate codes.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325152149433166-7cc9 | implementer | 已退休
+- 类型: 策略研究型
 - 摘要: implementer task for baseline_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: as_share_research_v1__baseline_limit_up__20260325T152141Z
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325152149433166-7cc9
+- strategy_id: baseline_limit_up
+- 本轮研究内容: implementer task for baseline_limit_up
+- 交付结论: Implementer refreshed the experiment record for baseline_limit_up and linked it to the worker mesh.
+- 对策略决策的影响: 服务策略 `baseline_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: as_share_research_v1__baseline_limit_up__20260325T152141Z
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325152149433166-7cc9
+- 关闭或最近状态说明: Implementer refreshed the experiment record for baseline_limit_up and linked it to the worker mesh.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325152154074736-0f4a | scout | 已退休
+- 类型: 策略研究型
 - 摘要: scout task for risk_constrained_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: branch_pool_snapshot, candidate_notes
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325152154074736-0f4a
+- strategy_id: risk_constrained_limit_up
+- 本轮研究内容: scout task for risk_constrained_limit_up
+- 交付结论: Scout wrote a branch-pool evidence report for risk_constrained_limit_up with 42 candidate codes.
+- 对策略决策的影响: 服务策略 `risk_constrained_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: branch_pool_snapshot, candidate_notes
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325152154074736-0f4a
+- 关闭或最近状态说明: Scout wrote a branch-pool evidence report for risk_constrained_limit_up with 42 candidate codes.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325152155435374-98ca | implementer | 已退休
+- 类型: 策略研究型
 - 摘要: implementer task for risk_constrained_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: as_share_research_v1__risk_constrained_limit_up__20260325T152141Z
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325152155435374-98ca
+- strategy_id: risk_constrained_limit_up
+- 本轮研究内容: implementer task for risk_constrained_limit_up
+- 交付结论: Implementer refreshed the experiment record for risk_constrained_limit_up and linked it to the worker mesh.
+- 对策略决策的影响: 服务策略 `risk_constrained_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: as_share_research_v1__risk_constrained_limit_up__20260325T152141Z
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325152155435374-98ca
+- 关闭或最近状态说明: Implementer refreshed the experiment record for risk_constrained_limit_up and linked it to the worker mesh.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325152200232912-ef56 | scout | 已退休
+- 类型: 策略研究型
 - 摘要: scout task for tighter_entry_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: branch_pool_snapshot, candidate_notes
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325152200232912-ef56
+- strategy_id: tighter_entry_limit_up
+- 本轮研究内容: scout task for tighter_entry_limit_up
+- 交付结论: Scout wrote a branch-pool evidence report for tighter_entry_limit_up with 42 candidate codes.
+- 对策略决策的影响: 服务策略 `tighter_entry_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: branch_pool_snapshot, candidate_notes
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325152200232912-ef56
+- 关闭或最近状态说明: Scout wrote a branch-pool evidence report for tighter_entry_limit_up with 42 candidate codes.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325152201594111-9c87 | implementer | 已退休
+- 类型: 策略研究型
 - 摘要: implementer task for tighter_entry_limit_up
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: as_share_research_v1__tighter_entry_limit_up__20260325T152141Z
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325152201594111-9c87
+- strategy_id: tighter_entry_limit_up
+- 本轮研究内容: implementer task for tighter_entry_limit_up
+- 交付结论: Implementer refreshed the experiment record for tighter_entry_limit_up and linked it to the worker mesh.
+- 对策略决策的影响: 服务策略 `tighter_entry_limit_up` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: as_share_research_v1__tighter_entry_limit_up__20260325T152141Z
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325152201594111-9c87
+- 关闭或最近状态说明: Implementer refreshed the experiment record for tighter_entry_limit_up and linked it to the worker mesh.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325152220234694-cb14 | scout | 已退休
+- 类型: 策略研究型
 - 摘要: scout task for legacy_single_branch
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: branch_pool_snapshot, candidate_notes
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325152220234694-cb14
+- strategy_id: legacy_single_branch
+- 本轮研究内容: scout task for legacy_single_branch
+- 交付结论: Scout wrote a branch-pool evidence report for legacy_single_branch with 42 candidate codes.
+- 对策略决策的影响: 服务策略 `legacy_single_branch` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: branch_pool_snapshot, candidate_notes
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325152220234694-cb14
+- 关闭或最近状态说明: Scout wrote a branch-pool evidence report for legacy_single_branch with 42 candidate codes.
 - 生命周期: parents=none; children=none; merged_into=n/a
 ### sa-20260325152221633066-3c39 | implementer | 已退休
+- 类型: 策略研究型
 - 摘要: implementer task for legacy_single_branch
 - 临时实例: 是
-- allowed_paths: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
-- expected_artifacts: as_share_research_v1__legacy_single_branch__20260325T152213Z
-- artifact_dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325152221633066-3c39
+- strategy_id: legacy_single_branch
+- 本轮研究内容: implementer task for legacy_single_branch
+- 交付结论: Implementer refreshed the experiment record for legacy_single_branch and linked it to the worker mesh.
+- 对策略决策的影响: 服务策略 `legacy_single_branch` 的研究推进；是否继续由主代理统一裁决。
+- 可写路径: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\pools\branch, C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments, C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents
+- 预期产物: as_share_research_v1__legacy_single_branch__20260325T152213Z
+- 产物目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\subagents\sa-20260325152221633066-3c39
+- 关闭或最近状态说明: Implementer refreshed the experiment record for legacy_single_branch and linked it to the worker mesh.
 - 生命周期: parents=none; children=none; merged_into=n/a

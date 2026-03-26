@@ -133,6 +133,9 @@ System-level docs:
 
 Tracked project memory for the default project:
 - [PROJECT_STATE.md](memory/projects/as_share_research_v1/PROJECT_STATE.md)
+- [STRATEGY_BOARD.md](memory/projects/as_share_research_v1/STRATEGY_BOARD.md)
+- [STRATEGY_CANDIDATES/](memory/projects/as_share_research_v1/STRATEGY_CANDIDATES/)
+- [RESEARCH_PROGRESS.md](memory/projects/as_share_research_v1/RESEARCH_PROGRESS.md)
 - [HYPOTHESIS_QUEUE.md](memory/projects/as_share_research_v1/HYPOTHESIS_QUEUE.md)
 - [POSTMORTEMS.md](memory/projects/as_share_research_v1/POSTMORTEMS.md)
 - [EXPERIMENT_LEDGER.jsonl](memory/projects/as_share_research_v1/EXPERIMENT_LEDGER.jsonl)
@@ -145,6 +148,7 @@ Tracked project memory for the default project:
 - [SUBAGENT_LEDGER.jsonl](memory/projects/as_share_research_v1/SUBAGENT_LEDGER.jsonl)
 
 `SESSION_STATE.json` is the canonical tracked state. The markdown handoff, migration, verify, and summary files are derived views.
+`STRATEGY_BOARD.md` and `STRATEGY_CANDIDATES/` are the human-first entrypoint when you need to answer “the system is researching which strategy right now?” before reading loop or governance details.
 
 Runtime/high-noise outputs:
 - `data/projects/<project>/meta/`

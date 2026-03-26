@@ -9,6 +9,7 @@ from typing import Any, Protocol
 from ..config import load_config
 from ..data.validate_flow import run_data_validate_flow
 from ..memory.localization import humanize_text, zh_bool
+from ..memory.strategy_visibility import summarize_strategy_visibility
 from ..memory.writeback import load_machine_state, record_iterative_run, save_machine_state
 from ..promotion import promote_candidate
 from ..research_audit import run_research_audit
@@ -98,6 +99,16 @@ def _subagent_status_snapshot(*, state: dict[str, Any], plan: dict[str, Any]) ->
     records = list(state.get("subagents", []))
     active_ids = [str(item.get("subagent_id", "")) for item in records if item.get("status") == "active" and item.get("subagent_id")]
     blocked_ids = [str(item.get("subagent_id", "")) for item in records if item.get("status") == "blocked" and item.get("subagent_id")]
+    active_research_ids = [
+        str(item.get("subagent_id", ""))
+        for item in records
+        if item.get("status") == "active" and item.get("subagent_type") == "research" and item.get("subagent_id")
+    ]
+    active_infrastructure_ids = [
+        str(item.get("subagent_id", ""))
+        for item in records
+        if item.get("status") == "active" and item.get("subagent_type") == "infrastructure" and item.get("subagent_id")
+    ]
     active_count = sum(1 for item in records if item.get("status") == "active")
     blocked_count = sum(1 for item in records if item.get("status") == "blocked")
     retired_count = sum(1 for item in records if item.get("status") == "retired")
@@ -111,6 +122,8 @@ def _subagent_status_snapshot(*, state: dict[str, Any], plan: dict[str, Any]) ->
         "should_expand": bool(plan.get("should_expand", False)),
         "active_ids": active_ids,
         "blocked_ids": blocked_ids,
+        "active_research_ids": active_research_ids,
+        "active_infrastructure_ids": active_infrastructure_ids,
         "active_count": active_count,
         "blocked_count": blocked_count,
         "retired_count": retired_count,
@@ -1143,6 +1156,8 @@ def run_iterative_loop(
         save_machine_state(project, refreshed_state, repo_root=repo_root, rebuild_progress=False)
         _, refreshed_state = load_machine_state(project, repo_root=repo_root)
     result["research_progress"] = dict(refreshed_state.get("research_progress", {}) or {})
+    result["strategy_visibility"] = summarize_strategy_visibility(refreshed_state)
+    result["strategy_candidates"] = list(refreshed_state.get("strategy_candidates", []) or [])
     result["checkpoint"] = render_iterative_checkpoint(result)
     return result
 
@@ -1151,62 +1166,33 @@ def render_iterative_checkpoint(result: dict[str, Any]) -> str:
     status = dict(result.get("subagent_status", {}) or {})
     auto_closed = list(result.get("auto_closed_subagents", []) or [])
     alternatives = list(result.get("alternative_subagents", []) or [])
-    progress = dict(result.get("research_progress", {}) or {})
-    dimension_rows = {
-        str(item.get("dimension", "")): item
-        for item in progress.get("dimensions", [])
-        if isinstance(item, dict)
-    }
-    active_ids = list(status.get("active_ids", []) or [])
-    active_summary = ", ".join(active_ids) if active_ids else f"无（current={status.get('active_count', 0)}）"
+    strategy = dict(result.get("strategy_visibility", {}) or {})
+    active_research = ", ".join(status.get("active_research_ids", []) or []) or "none"
+    active_infrastructure = ", ".join(status.get("active_infrastructure_ids", []) or []) or "none"
     retired_this_run = sum(1 for item in auto_closed if isinstance(item, dict) and item.get("status") == "retired")
     merged_this_run = sum(1 for item in auto_closed if isinstance(item, dict) and item.get("status") == "merged")
     archived_this_run = sum(1 for item in auto_closed if isinstance(item, dict) and item.get("status") == "archived")
-    if not result.get("subagents_used") and not auto_closed and not alternatives:
-        subagent_explanation = f"未额外启用 subagents：{humanize_text(result.get('subagent_reason', status.get('reason', 'none recorded')))}"
-    else:
-        subagent_explanation = (
-            f"本轮 subagent 结论：{humanize_text(result.get('subagent_reason', status.get('reason', 'none recorded')))}；"
-            f"替代分支={', '.join(item.get('subagent_id', '') for item in alternatives) if alternatives else '无'}"
-        )
+    subagent_explanation = humanize_text(result.get("subagent_reason", status.get("reason", "none recorded")))
     lines = [
         "Done",
-        f"- 本轮真正完成：{humanize_text(result.get('completed', 'none recorded'))}",
-        f"- 本轮是否发生方向修正：{zh_bool(result.get('direction_change', False))}",
-        "Not done",
-        f"- 本轮没有完成：{humanize_text(result.get('not_done', 'none recorded'))}",
+        f"- 系统推进：{strategy.get('system_line', humanize_text(result.get('completed', 'none recorded')))}",
+        f"- 策略推进：{strategy.get('strategy_line', '本轮未记录到明确的策略推进对象。')}",
+        "Evidence",
+        f"- 当前主线：{', '.join(strategy.get('primary_names', [])) or '尚未记录'}",
+        f"- 当前支线：{', '.join(strategy.get('secondary_names', [])) or '当前为空'}",
+        f"- 当前 blocked：{', '.join(strategy.get('blocked_names', [])) or '当前为空'}",
+        f"- 当前 rejected / promoted：{', '.join(strategy.get('rejected_names', [])) or '当前为空'} / {', '.join(strategy.get('promoted_names', [])) or '当前为空'}",
         f"- 当前 blocker：{humanize_text(result.get('current_blocker', 'unknown'))}",
-        "Research progress",
-        "| Dimension | Status | Score | Evidence |",
-        "|---|---|---:|---|",
+        f"- 本轮完成内容：{humanize_text(result.get('completed', 'none recorded'))}",
+        f"- 本轮未完成内容：{humanize_text(result.get('not_done', 'none recorded'))}",
+        "Next action",
+        f"- {humanize_text(result.get('next_recommendation', 'none recorded'))}",
+        "Subagent status",
+        f"- gate mode: {result.get('subagent_gate_mode', status.get('gate_mode', 'AUTO'))}",
+        f"- active research: {active_research}",
+        f"- active infrastructure: {active_infrastructure}",
+        f"- retired/merged/archived this run: {retired_this_run}/{merged_this_run}/{archived_this_run}",
+        f"- 替代或收尾: {', '.join(item.get('subagent_id', '') for item in alternatives) if alternatives else 'none'}",
+        f"- 结论: {subagent_explanation}",
     ]
-    for dimension in [
-        "Data inputs",
-        "Strategy integrity",
-        "Validation stack",
-        "Promotion readiness",
-        "Subagent effectiveness",
-    ]:
-        item = dimension_rows.get(dimension, {})
-        evidence = str(item.get("evidence", "未记录")).replace("|", "/")
-        lines.append(
-            f"| {dimension} | {item.get('status', 'blocked')} | {int(item.get('score', 0))}/4 | {evidence} |"
-        )
-    lines.extend(
-        [
-            f"- Overall trajectory: {progress.get('overall_trajectory', 'blocked')}",
-            f"- This-run delta: {progress.get('this_run_delta', 'unchanged')}",
-            f"- Current blocker: {humanize_text(progress.get('current_blocker', result.get('current_blocker', 'unknown')))}",
-            f"- Next milestone: {humanize_text(progress.get('next_milestone', result.get('next_recommendation', 'none recorded')))}",
-            f"- Confidence: {progress.get('confidence', 'low')}",
-            "Next recommendation",
-            f"- {humanize_text(result.get('next_recommendation', 'none recorded'))}",
-            "Subagent status",
-            f"- gate mode: {result.get('subagent_gate_mode', status.get('gate_mode', 'AUTO'))}",
-            f"- max active this run: {result.get('max_active_subagents', 0)}",
-            f"- active: {active_summary}",
-            f"- retired/merged/archived this run: {retired_this_run}/{merged_this_run}/{archived_this_run}",
-            f"- {subagent_explanation}",
-        ],
-    )
     return "\n".join(lines)

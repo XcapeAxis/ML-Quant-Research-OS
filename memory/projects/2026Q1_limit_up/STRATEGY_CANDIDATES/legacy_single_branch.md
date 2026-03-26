@@ -1,0 +1,22 @@
+# 旧单分支兼容路径
+
+- strategy_id: legacy_single_branch
+- name: 旧单分支兼容路径
+- category: other
+- core_hypothesis: 先把旧 `agent_cycle` 兼容跑通，再谈更复杂的多分支研究。
+- economic_rationale: 这不是市场行为假设，只是为了兼容旧控制面而保留的一条过渡路径。
+- required_data: 无额外市场数据要求；它主要依赖旧控制面的兼容行为。
+- current_stage: rejected
+- latest_action: 已从策略研究主线移除，仅保留为兼容历史记录。
+- latest_result: 它不再代表独立的策略研究问题，只保留历史兼容意义。
+- decision: reject
+- next_validation: 无；除非再次需要排查旧单分支兼容行为。
+- owner: main
+- subagents_assigned:
+  - none
+- artifact_refs:
+  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\BRANCH_LEDGER.jsonl
+  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\EVIDENCE_LEDGER.jsonl
+- blocked_by:
+  - 它只是旧控制面兼容路径，不再作为策略研究主线。
+- kill_criteria: 只要旧单分支兼容不再是必须前提，就不要再把它当作策略研究候选。
