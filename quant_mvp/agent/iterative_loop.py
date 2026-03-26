@@ -62,6 +62,55 @@ def _worktree_safe(root: Path) -> bool:
     return not bool(conflicts)
 
 
+def _historical_blocker_count(truth: RepoTruth, blocker_key: str | None = None) -> int:
+    loop = (truth.state_snapshot.get("iterative_loop", {}) or {}) if truth.state_snapshot else {}
+    history = dict(loop.get("blocker_history", {}) or {})
+    key = str(blocker_key or truth.blocker_key or "").strip()
+    if not key:
+        return 0
+    payload = dict(history.get(key, {}) or {})
+    return int(payload.get("count", 0) or 0)
+
+
+def _effective_next_recommendation(
+    *,
+    blocker_key: str,
+    blocker_repeat_count: int,
+    direction_changed: bool,
+    default_next_recommendation: str,
+    fallback_next_action: str,
+) -> str:
+    recommendation = str(default_next_recommendation or fallback_next_action or "").strip()
+    if blocker_key in {"", "none"} or direction_changed:
+        return recommendation
+    if blocker_repeat_count >= 3:
+        return (
+            f"Escalated blocker `{blocker_key}`: stop automatic retries, narrow the path, and write back the root-cause "
+            "diagnosis before the next run."
+        )
+    if blocker_repeat_count == 2:
+        return f"Run a finer root-cause diagnosis for `{blocker_key}` before another automation iteration."
+    return recommendation
+
+
+def _subagent_status_snapshot(*, state: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
+    records = list(state.get("subagents", []))
+    active_count = sum(1 for item in records if item.get("status") == "active")
+    blocked_count = sum(1 for item in records if item.get("status") == "blocked")
+    retired_count = sum(1 for item in records if item.get("status") in {"retired", "archived", "canceled", "refactored"})
+    merged_count = sum(1 for item in records if item.get("status") == "merged")
+    return {
+        "gate_mode": str(state.get("subagent_gate_mode", "AUTO")),
+        "recommended_count": int(plan.get("recommended_count", 0) or 0),
+        "should_expand": bool(plan.get("should_expand", False)),
+        "active_count": active_count,
+        "blocked_count": blocked_count,
+        "retired_count": retired_count,
+        "merged_count": merged_count,
+        "reason": str(plan.get("reason") or state.get("subagent_continue_reason") or "n/a"),
+    }
+
+
 @dataclass(frozen=True)
 class LoopConfig:
     target_iterations: int = 3
@@ -358,7 +407,7 @@ def _decision_to_stop_reason(
     config: LoopConfig,
     truth: RepoTruth,
     verification: VerificationResult,
-    blocker_count: int,
+    blocker_repeat_count: int,
     no_new_information_streak: int,
 ) -> str | None:
     if verification.stop_reason:
@@ -369,7 +418,7 @@ def _decision_to_stop_reason(
         return "worktree_not_suitable"
     if not truth.context_clear:
         return "insufficient_context"
-    if blocker_count >= 3:
+    if blocker_repeat_count >= 3:
         return "low_roi_repeated_blocker"
     if not verification.verified_progress and not verification.new_information:
         if no_new_information_streak >= 2:
@@ -402,11 +451,24 @@ def run_iterative_loop(
     direction_change = False
     blocker_escalation = False
     max_active_subagents = 0
+    blocker_repeat_count = 0
+    historical_blocker_count = 0
     final_truth: RepoTruth | None = None
     final_verification: VerificationResult | None = None
     subagent_reason = "No subagents were activated."
     subagents_used: list[str] = []
     classification = "no_meaningful_progress"
+    subagent_status = {
+        "gate_mode": "AUTO",
+        "recommended_count": 0,
+        "should_expand": False,
+        "active_count": 0,
+        "blocked_count": 0,
+        "retired_count": 0,
+        "merged_count": 0,
+        "reason": subagent_reason,
+    }
+    effective_next_recommendation = ""
 
     for iteration in range(1, config.max_iterations + 1):
         before = driver.rescan(project=project, repo_root=repo_root, config_path=config_path)
@@ -428,7 +490,9 @@ def run_iterative_loop(
         subagent_reason = str(subagent_plan.get("reason", subagent_reason))
         subagents_used = list(subagent_plan.get("recommended_roles", [])) if subagent_plan.get("should_expand") else []
         _, state = load_machine_state(project, repo_root=repo_root)
-        max_active_subagents = max(max_active_subagents, len(summarize_subagent_state(state).get("active_ids", [])))
+        summarized = summarize_subagent_state(state)
+        max_active_subagents = max(max_active_subagents, len(summarized.get("active_ids", [])))
+        subagent_status = _subagent_status_snapshot(state=state, plan=subagent_plan)
 
         execution = driver.execute(project=project, action=action, repo_root=repo_root, config_path=config_path)
         after = driver.rescan(project=project, repo_root=repo_root, config_path=config_path)
@@ -444,13 +508,22 @@ def run_iterative_loop(
         direction_change = direction_change or verification.direction_changed
 
         blocker_key = after.blocker_key
+        historical_blocker_count = _historical_blocker_count(before, blocker_key)
         if blocker_key == last_blocker_key and blocker_key not in {"", "none"}:
             blocker_count += 1
         else:
             blocker_count = 1 if blocker_key not in {"", "none"} else 0
             last_blocker_key = blocker_key
-        blocker_escalation = blocker_escalation or blocker_count >= 3
+        blocker_repeat_count = historical_blocker_count + blocker_count
+        blocker_escalation = blocker_escalation or blocker_repeat_count >= 3
         no_new_information_streak = no_new_information_streak + 1 if not verification.new_information else 0
+        effective_next_recommendation = _effective_next_recommendation(
+            blocker_key=blocker_key,
+            blocker_repeat_count=blocker_repeat_count,
+            direction_changed=verification.direction_changed,
+            default_next_recommendation=verification.next_recommendation,
+            fallback_next_action=after.next_priority_action,
+        )
 
         history.append(
             {
@@ -462,6 +535,10 @@ def run_iterative_loop(
                 "verification": verification.to_dict(),
                 "subagent_plan": subagent_plan,
                 "blocker_count": blocker_count,
+                "historical_blocker_count": historical_blocker_count,
+                "blocker_repeat_count": blocker_repeat_count,
+                "effective_next_recommendation": effective_next_recommendation,
+                "subagent_status": dict(subagent_status),
             },
         )
         final_truth = after
@@ -472,7 +549,7 @@ def run_iterative_loop(
             config=config,
             truth=after,
             verification=verification,
-            blocker_count=blocker_count,
+            blocker_repeat_count=blocker_repeat_count,
             no_new_information_streak=no_new_information_streak,
         )
         if stop:
@@ -481,12 +558,26 @@ def run_iterative_loop(
 
     final_truth = final_truth or driver.rescan(project=project, repo_root=repo_root, config_path=config_path)
     completed = final_verification.summary if final_verification else "No iteration ran because the loop stopped at the initial safety gate."
+    if stop_reason == "low_roi_repeated_blocker":
+        completed = f"Escalated repeated blocker `{final_truth.blocker_key}` and stopped automatic retries."
     not_done = final_truth.current_blocker if final_truth.current_blocker else stop_reason
     next_recommendation = (
-        final_verification.next_recommendation
-        if final_verification and final_verification.next_recommendation
-        else final_truth.next_priority_action
+        effective_next_recommendation
+        or (final_verification.next_recommendation if final_verification and final_verification.next_recommendation else final_truth.next_priority_action)
     )
+    if not history:
+        historical_blocker_count = _historical_blocker_count(final_truth)
+        blocker_repeat_count = historical_blocker_count
+        _, state = load_machine_state(project, repo_root=repo_root)
+        subagent_status = _subagent_status_snapshot(
+            state=state,
+            plan={
+                "recommended_count": state.get("subagent_plan", {}).get("recommended_count", 0),
+                "should_expand": state.get("subagent_continue_recommended", False),
+                "reason": state.get("subagent_continue_reason", subagent_reason),
+            },
+        )
+        subagent_reason = str(subagent_status.get("reason", subagent_reason))
     result = {
         "run_id": run_id,
         "timestamp": _utc_now(),
@@ -498,6 +589,8 @@ def run_iterative_loop(
         "direction_change": direction_change,
         "blocker_escalation": blocker_escalation,
         "blocker_key": final_truth.blocker_key,
+        "historical_blocker_count": historical_blocker_count,
+        "blocker_repeat_count": blocker_repeat_count,
         "classification": classification,
         "verified_progress": bool(final_verification and final_verification.verified_progress),
         "new_information": bool(final_verification and final_verification.new_information),
@@ -513,6 +606,8 @@ def run_iterative_loop(
         "max_active_subagents": max_active_subagents,
         "subagents_used": subagents_used,
         "subagent_reason": subagent_reason,
+        "subagent_gate_mode": subagent_status.get("gate_mode", "AUTO"),
+        "subagent_status": subagent_status,
         "iterations": history,
         "postmortem_required": stop_reason in {"no_verified_progress", "no_new_information_twice", "low_roi_repeated_blocker", "verification_failed_scope_expanded"},
         "postmortem_summary": not_done,
@@ -524,18 +619,18 @@ def run_iterative_loop(
 
 
 def render_iterative_checkpoint(result: dict[str, Any]) -> str:
+    status = dict(result.get("subagent_status", {}) or {})
     lines = [
         "Done",
         f"- {result.get('completed', 'none recorded')}",
         f"- direction_change: {result.get('direction_change', False)}",
         "Evidence",
-        f"- stop_reason={result.get('stop_reason', 'unknown')}",
+        f"- stop_reason={result.get('stop_reason', 'unknown')}; blocker_key={result.get('blocker_key', 'unknown')}; repeats={result.get('blocker_repeat_count', 0)}",
         f"- iterations={result.get('iteration_count', 0)}/{result.get('target_iterations', 0)} target, max={result.get('max_iterations', 0)}",
         "Next action",
         f"- {result.get('next_recommendation', 'none recorded')}",
         "Subagent status",
-        f"- gate mode: AUTO",
-        f"- max active: {result.get('max_active_subagents', 0)}",
-        f"- active/blocked/retired/merged: main agent only; {result.get('subagent_reason', 'no extra subagents')}",
+        f"- gate mode: {result.get('subagent_gate_mode', status.get('gate_mode', 'AUTO'))}; max active: {result.get('max_active_subagents', 0)}",
+        f"- active/blocked/retired/merged={status.get('active_count', 0)}/{status.get('blocked_count', 0)}/{status.get('retired_count', 0)}/{status.get('merged_count', 0)}; {result.get('subagent_reason', status.get('reason', 'no extra subagents'))}",
     ]
     return "\n".join(lines)

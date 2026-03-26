@@ -14,3 +14,5 @@
 
 ## 2026-03-26
 - Keep benchmark baseline input separate from the strategy close panel so promotion and dry-run evaluation can load `000001` even when it is not ranked, without changing equal-weight baseline semantics.
+- Keep the automation loop bounded and stateful across runs: repeated blockers now upgrade from normal tracking to root-cause guidance on the second sighting and escalated stop-on-writeback on the third.
+- Keep repo-local automation execution pinned to the repository virtualenv when available so scheduled runs do not depend on whichever `python` happens to be on PATH.

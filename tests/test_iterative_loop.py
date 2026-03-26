@@ -6,6 +6,7 @@ import pytest
 
 from quant_mvp.agent.iterative_loop import LoopAction, LoopConfig, RepoTruth, VerificationResult, render_iterative_checkpoint, run_iterative_loop
 from quant_mvp.agent.subagent_controller import register_worker_subagent
+from quant_mvp.memory.writeback import load_machine_state, save_machine_state
 
 
 def _truth(
@@ -18,6 +19,7 @@ def _truth(
     worktree_safe: bool = True,
     context_clear: bool = True,
     failure_scope_score: int = 1,
+    state_snapshot: dict | None = None,
 ) -> RepoTruth:
     return RepoTruth(
         current_task="bounded automation loop",
@@ -35,7 +37,7 @@ def _truth(
         last_failed_capability="test failed",
         failure_scope_score=failure_scope_score,
         sources=["test"],
-        state_snapshot={},
+        state_snapshot=state_snapshot or {},
     )
 
 
@@ -177,6 +179,101 @@ def test_iterative_run_escalates_repeated_blocker(limit_up_project) -> None:
     assert session["iterative_loop"]["blocker_escalation"] is True
 
 
+def test_iterative_run_requests_root_cause_on_second_blocker_occurrence(limit_up_project) -> None:
+    project = limit_up_project["project"]
+    _, state = load_machine_state(project)
+    blocker_history = {
+        "max_drawdown": {
+            "count": 1,
+            "last_seen": "2026-03-25T00:00:00+00:00",
+            "last_stop_reason": "no_verified_progress",
+            "escalated": False,
+        },
+    }
+    state["iterative_loop"]["blocker_history"] = blocker_history
+    save_machine_state(project, state)
+
+    driver = _SequenceDriver(
+        truths=[
+            (
+                _truth(
+                    blocker="drawdown",
+                    blocker_key="max_drawdown",
+                    direction="strategy_diagnostics",
+                    data_ready=True,
+                    state_snapshot={"iterative_loop": {"blocker_history": blocker_history}},
+                ),
+                _truth(
+                    blocker="drawdown narrowed",
+                    blocker_key="max_drawdown",
+                    direction="strategy_diagnostics",
+                    data_ready=True,
+                    state_snapshot={"iterative_loop": {"blocker_history": blocker_history}},
+                ),
+            ),
+        ],
+        verifications=[
+            VerificationResult(classification="blocker_clarified", summary="second sighting", verified_progress=False, new_information=True, next_recommendation="run diagnostics"),
+        ],
+    )
+
+    result = run_iterative_loop(project=project, target_iterations=1, max_iterations=1, driver=driver)
+    session = json.loads(limit_up_project["paths"].session_state_path.read_text(encoding="utf-8"))
+
+    assert result["blocker_repeat_count"] == 2
+    assert result["historical_blocker_count"] == 1
+    assert "root-cause diagnosis" in result["next_recommendation"]
+    assert session["iterative_loop"]["blocker_repeat_count"] == 2
+
+
+def test_iterative_run_escalates_repeated_blocker_across_runs(limit_up_project) -> None:
+    project = limit_up_project["project"]
+    _, state = load_machine_state(project)
+    blocker_history = {
+        "max_drawdown": {
+            "count": 2,
+            "last_seen": "2026-03-25T00:00:00+00:00",
+            "last_stop_reason": "no_verified_progress",
+            "escalated": False,
+        },
+    }
+    state["iterative_loop"]["blocker_history"] = blocker_history
+    save_machine_state(project, state)
+
+    driver = _SequenceDriver(
+        truths=[
+            (
+                _truth(
+                    blocker="drawdown",
+                    blocker_key="max_drawdown",
+                    direction="strategy_diagnostics",
+                    data_ready=True,
+                    state_snapshot={"iterative_loop": {"blocker_history": blocker_history}},
+                ),
+                _truth(
+                    blocker="drawdown unchanged",
+                    blocker_key="max_drawdown",
+                    direction="strategy_diagnostics",
+                    data_ready=True,
+                    state_snapshot={"iterative_loop": {"blocker_history": blocker_history}},
+                ),
+            ),
+        ],
+        verifications=[
+            VerificationResult(classification="blocker_clarified", summary="third sighting", verified_progress=False, new_information=True, next_recommendation="run diagnostics"),
+        ],
+    )
+
+    result = run_iterative_loop(project=project, driver=driver)
+    session = json.loads(limit_up_project["paths"].session_state_path.read_text(encoding="utf-8"))
+
+    assert result["stop_reason"] == "low_roi_repeated_blocker"
+    assert result["blocker_repeat_count"] == 3
+    assert result["blocker_escalation"] is True
+    assert "Escalated blocker" in result["next_recommendation"]
+    assert session["iterative_loop"]["blocker_escalation"] is True
+
+
 def test_iterative_checkpoint_stays_lightweight() -> None:
     checkpoint = render_iterative_checkpoint(
         {
@@ -187,9 +284,18 @@ def test_iterative_checkpoint_stays_lightweight() -> None:
             "target_iterations": 2,
             "max_iterations": 5,
             "blocker_key": "data_inputs",
+            "blocker_repeat_count": 1,
             "next_recommendation": "run dry-run cycle",
             "max_active_subagents": 0,
+            "subagent_gate_mode": "AUTO",
             "subagent_reason": "Keeping the gate effectively OFF is correct while the task stays single-path.",
+            "subagent_status": {
+                "active_count": 0,
+                "blocked_count": 0,
+                "retired_count": 0,
+                "merged_count": 0,
+                "gate_mode": "AUTO",
+            },
         },
     )
 

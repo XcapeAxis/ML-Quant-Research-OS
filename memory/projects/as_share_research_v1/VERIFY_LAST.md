@@ -1,6 +1,6 @@
 # Verify Last
 
-- head: d19962e89e811dbdf20fd53f8becd66f470ec318
+- head: 0ae42b6a8ca3908105491e81f7d7c0a3f0fdc324
 - branch: main
 - passed_commands:
   - python -m quant_mvp data_validate --project as_share_research_v1
@@ -15,16 +15,18 @@
 - recent_subagent_event: iterative_assess
 
 ## Iterative Loop
-- iteration_count: 2
+- iteration_count: 1
 - target_iterations: 3
 - max_iterations: 5
 - stop_reason: no_verified_progress
 - direction_change: False
 - blocker_escalation: False
+- blocker_key: max_drawdown (repeat_count=2, historical_count=1)
 - last_classification: no_meaningful_progress
 - max_active_subagents: 0
+- subagent_gate_mode: AUTO (blocked/retired/merged=0/31/0)
 - subagents_used: none
 - subagent_reason: Task breadth is below the minimum threshold for safe decomposition.
 - completed: `promote_candidate` did not produce a new verified state change.
 - not_done: Max drawdown 50.44% exceeds 30.00%.; Benchmark or equal-weight baselines are incomplete.
-- next_recommendation: Break down whether drawdown comes from time-window concentration, name concentration, or long holding tails.
+- next_recommendation: Run a finer root-cause diagnosis for `max_drawdown` before another automation iteration.

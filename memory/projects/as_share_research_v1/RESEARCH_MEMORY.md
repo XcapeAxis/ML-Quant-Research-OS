@@ -26,8 +26,8 @@
 - Do not rely on `python -m quant_mvp research_readiness` as a callable CLI step in the current build; use the stored readiness artifacts or supported commands instead.
 
 ## Next-Step Memory
+- Run a finer root-cause diagnosis for `max_drawdown` before another automation iteration.
 - Break down whether drawdown comes from time-window concentration, name concentration, or long holding tails.
 - Use STRATEGY_FAILURE_REPORT and the branch ledger to choose the first bounded drawdown-focused experiment now that baseline completeness passes.
 - Break down whether the 56.50% max drawdown is driven by time-window concentration, name concentration, or long holding tails.
 - Compare a risk-constrained strategy variant against the current version before opening a broad parameter sweep.
-- Keep the subagent gate dynamic: default effectively OFF, escalate only when real-time task structure justifies it, and retire transient workers promptly after execution.

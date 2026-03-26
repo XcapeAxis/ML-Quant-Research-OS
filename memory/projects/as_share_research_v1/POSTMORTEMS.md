@@ -161,3 +161,21 @@ No recorded failures yet in this bootstrap state. Append new failures with date,
 - root_cause: Max drawdown 50.44% exceeds 30.00%.; Benchmark or equal-weight baselines are incomplete.
 - corrective_action: Break down whether drawdown comes from time-window concentration, name concentration, or long holding tails.
 - resolution_status: not_fixed
+
+## promotion-gate | promote_candidate
+- summary: Promotion gate blocked the current candidate.
+- root_cause: Max drawdown 50.44% exceeds 30.00%.; Benchmark or equal-weight baselines are incomplete.
+- corrective_action: Break down whether drawdown comes from time-window concentration, name concentration, or long holding tails.
+- resolution_status: not_fixed
+
+## 2026-03-26T03:46:08 | as_share_research_v1-20260326T034608
+- summary: Promotion gate blocked: Max drawdown 56.50% exceeds 30.00%.
+- root_cause: Max drawdown 56.50% exceeds 30.00%.
+- corrective_action: Restore a usable frozen universe plus local bars before rerunning the dry-run cycle.
+- resolution_status: not_fixed
+
+## 2026-03-26T03:46:08+00:00 | as_share_research_v1-iterative-20260326T034540Z
+- summary: Max drawdown 50.44% exceeds 30.00%.; Benchmark or equal-weight baselines are incomplete.
+- root_cause: Max drawdown 50.44% exceeds 30.00%.; Benchmark or equal-weight baselines are incomplete.
+- corrective_action: Run a finer root-cause diagnosis for `max_drawdown` before another automation iteration.
+- resolution_status: not_fixed

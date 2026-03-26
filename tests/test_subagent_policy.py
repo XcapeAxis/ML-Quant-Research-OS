@@ -82,3 +82,24 @@ def test_high_overlap_task_is_suppressed() -> None:
 
     assert plan.recommended_gate == "OFF"
     assert "overlap" in plan.no_split_reason.lower()
+
+
+def test_auto_mode_respects_soft_limit_for_broad_but_non_stretch_task() -> None:
+    plan = evaluate_subagent_plan(
+        SubagentTaskProfile(
+            task_summary="Coordinate data validation memory tooling merge work after one bounded loop",
+            breadth=3,
+            independence=0.95,
+            file_overlap=0.1,
+            validation_load=0.9,
+            coordination_cost=0.1,
+            risk_isolation=0.6,
+            focus_tags=["data", "validation", "memory", "tool", "merge"],
+        ),
+        gate_mode="AUTO",
+        policy=_policy(),
+        role_templates=_roles(),
+    )
+
+    assert plan.should_expand
+    assert plan.recommended_count == 2
