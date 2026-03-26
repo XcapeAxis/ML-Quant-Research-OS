@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -26,15 +28,25 @@ def _roles_path(root: Path) -> Path:
 
 
 def _next_subagent_id(records: list[dict[str, Any]]) -> str:
-    max_seq = 0
-    for record in records:
-        raw = str(record.get("subagent_id", ""))
-        if raw.startswith("sa-"):
-            try:
-                max_seq = max(max_seq, int(raw.split("-", 1)[1]))
-            except Exception:
-                continue
-    return f"sa-{max_seq + 1:03d}"
+    salt = uuid.uuid4().hex[:4]
+    stamp = datetime.now(UTC).strftime("%Y%m%d%H%M%S%f")
+    candidate = f"sa-{stamp}-{salt}"
+    existing = {str(record.get("subagent_id", "")) for record in records}
+    if candidate not in existing:
+        return candidate
+    for seq in range(1, 1000):
+        retry = f"{candidate}-{seq:03d}"
+        if retry not in existing:
+            return retry
+    raise RuntimeError("Unable to allocate a unique subagent id.")
+
+
+def _active_subagent_count(records: list[dict[str, Any]]) -> int:
+    return sum(1 for item in records if item.get("status") == "active")
+
+
+def _hard_limit(policy: dict[str, Any]) -> int:
+    return int(policy.get("hard_limit", 6))
 
 
 def _append_event(paths, event: SubagentEvent) -> None:
@@ -67,6 +79,8 @@ def plan_subagents(
     plan = evaluate_subagent_plan(profile, gate_mode=gate_mode, policy=policy, role_templates=roles)
 
     records = list(state.get("subagents", []))
+    if activate and _active_subagent_count(records) + len(plan.work_packages) > _hard_limit(policy):
+        raise ValueError(f"Subagent hard limit exceeded: {_hard_limit(policy)}")
     created_ids: list[str] = []
     timestamp = _utc_now()
     for work_package in plan.work_packages:
@@ -132,6 +146,83 @@ def plan_subagents(
         "created_ids": created_ids,
         "registry_path": str(paths.subagent_registry_path),
         "ledger_path": str(paths.subagent_ledger_path),
+    }
+
+
+def register_worker_subagent(
+    *,
+    project: str,
+    role: str,
+    summary: str,
+    mission_id: str,
+    branch_id: str,
+    candidate_id: str,
+    worker_task_id: str,
+    expected_artifacts: list[str],
+    allowed_paths: list[str],
+    requested_by_subagent_id: str | None = None,
+    repo_root: Path | None = None,
+) -> dict[str, Any]:
+    if requested_by_subagent_id:
+        raise ValueError("Recursive subagent spawning is prohibited.")
+
+    paths, state = load_machine_state(project, repo_root=repo_root)
+    policy = load_subagent_policy(_policy_path(paths.root))
+    records = list(state.get("subagents", []))
+    if _active_subagent_count(records) >= _hard_limit(policy):
+        raise ValueError(f"Subagent hard limit exceeded: {_hard_limit(policy)}")
+
+    subagent_id = _next_subagent_id(records)
+    artifact_dir = ensure_subagent_runtime_dir(paths, subagent_id)
+    timestamp = _utc_now()
+    lineage_root = hashlib.sha1(f"{mission_id}|{branch_id}|{candidate_id}".encode("utf-8")).hexdigest()[:12]
+    record = SubagentRecord(
+        subagent_id=subagent_id,
+        role=role,
+        summary=summary,
+        status="active",
+        transient=True,
+        allowed_paths=list(allowed_paths),
+        expected_artifacts=list(expected_artifacts),
+        artifact_dir=str(artifact_dir),
+        mission_id=mission_id,
+        branch_id=branch_id,
+        candidate_id=candidate_id,
+        worker_task_id=worker_task_id,
+        lineage_root_id=f"lineage-{lineage_root}",
+        spawn_depth=0,
+        created_at=timestamp,
+        updated_at=timestamp,
+        last_action="spawn_worker",
+        last_note=summary,
+    )
+    records.append(record.to_dict())
+    state["subagents"] = records
+    state["subagent_last_event"] = {
+        "timestamp": timestamp,
+        "action": "spawn_worker",
+        "summary": summary,
+        "related_ids": [subagent_id],
+    }
+    save_machine_state(project, state, repo_root=repo_root)
+    _append_event(
+        paths,
+        SubagentEvent(
+            timestamp=timestamp,
+            action="spawn_worker",
+            project=project,
+            subagent_id=subagent_id,
+            from_status="none",
+            to_status="active",
+            summary=summary,
+            related_ids=[worker_task_id, branch_id],
+            artifact_refs=[str(artifact_dir)],
+        ),
+    )
+    return {
+        "subagent_id": subagent_id,
+        "artifact_dir": str(artifact_dir),
+        "registry_path": str(paths.subagent_registry_path),
     }
 
 
@@ -241,6 +332,17 @@ def archive_subagent(project: str, *, subagent_id: str, summary: str, repo_root:
         subagent_id=subagent_id,
         to_status="archived",
         action="archive",
+        summary=summary,
+        repo_root=repo_root,
+    )
+
+
+def refactor_subagent(project: str, *, subagent_id: str, summary: str, repo_root: Path | None = None) -> dict[str, Any]:
+    return _transition_subagent(
+        project=project,
+        subagent_id=subagent_id,
+        to_status="refactored",
+        action="refactor",
         summary=summary,
         repo_root=repo_root,
     )

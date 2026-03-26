@@ -102,7 +102,7 @@ def generate_bars(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate synthetic OHLCV bars.")
-    parser.add_argument("--project", type=str, default="2026Q1_limit_up")
+    parser.add_argument("--project", type=str, default="as_share_research_v1")
     parser.add_argument("--n-stocks", type=int, default=200)
     parser.add_argument("--start", type=str, default="2023-01-01")
     parser.add_argument("--end", type=str, default="2026-02-28")

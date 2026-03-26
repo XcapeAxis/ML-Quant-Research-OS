@@ -39,21 +39,27 @@ logs/**
 # Keep data ignored by default, but allow selected showcase metadata
 data/**
 !data/projects/
-!data/projects/2026Q1_limit_up/
-data/projects/2026Q1_limit_up/**
-!data/projects/2026Q1_limit_up/meta/
-data/projects/2026Q1_limit_up/meta/**
-!data/projects/2026Q1_limit_up/meta/run_manifest.json
+!data/projects/as_share_research_v1/
+data/projects/as_share_research_v1/**
+!data/projects/as_share_research_v1/meta/
+data/projects/as_share_research_v1/meta/**
+!data/projects/as_share_research_v1/meta/run_manifest.json
 
 # Keep artifacts ignored by default, but allow selected showcase outputs
 artifacts/**
 !artifacts/projects/
-!artifacts/projects/2026Q1_limit_up/
-artifacts/projects/2026Q1_limit_up/**
-!artifacts/projects/2026Q1_limit_up/equity_curve.png
-!artifacts/projects/2026Q1_limit_up/summary_metrics.csv
-!artifacts/projects/2026Q1_limit_up/report.md
+!artifacts/projects/as_share_research_v1/
+artifacts/projects/as_share_research_v1/**
+!artifacts/projects/as_share_research_v1/equity_curve.png
+!artifacts/projects/as_share_research_v1/summary_metrics.csv
+!artifacts/projects/as_share_research_v1/report.md
 
 # IDE / tool-specific
 .trae/
 *.plan.md
+
+# Local debug / manual scratch files
+debug_limit_up_config.json
+manual_limit_up_test_config.json
+memory/projects/debug_*/
+memory/projects/manual_limit_up_test/

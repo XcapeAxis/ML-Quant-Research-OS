@@ -1,2 +1,0 @@
-{"action": "plan", "artifact_refs": [], "from_status": "AUTO", "project": "2026Q1_limit_up", "related_ids": [], "subagent_id": "plan", "summary": "Task breadth is below the minimum threshold for safe decomposition.", "timestamp": "2026-03-24T17:58:05+00:00", "to_status": "OFF"}
-{"action": "plan", "artifact_refs": [], "from_status": "AUTO", "project": "2026Q1_limit_up", "related_ids": [], "subagent_id": "plan", "summary": "The coordination-adjusted score is too low.", "timestamp": "2026-03-25T03:14:30+00:00", "to_status": "OFF"}

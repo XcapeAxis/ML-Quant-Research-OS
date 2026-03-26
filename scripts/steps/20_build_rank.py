@@ -16,6 +16,7 @@ if str(ROOT) not in sys.path:
 
 from quant_mvp.config import load_config
 from quant_mvp.manifest import candidate_count_stats, update_run_manifest
+from quant_mvp.pools import resolve_research_universe_codes
 from quant_mvp.ranking import build_momentum_rank
 from quant_mvp.research_core import build_limit_up_rank_artifacts
 from quant_mvp.universe import load_universe_codes
@@ -90,9 +91,21 @@ def _run_limit_up_screening(cfg: dict, paths, universe: list[str]) -> None:
     )
 
 
+def _load_strategy_universe(project: str, config_path: Path | None) -> list[str]:
+    try:
+        return load_universe_codes(project)
+    except FileNotFoundError:
+        universe, _ = resolve_research_universe_codes(
+            project,
+            config_path=config_path,
+            build_if_missing=True,
+        )
+        return universe
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build project-scoped stock ranking.")
-    parser.add_argument("--project", type=str, default="2026Q1_limit_up")
+    parser.add_argument("--project", type=str, default="as_share_research_v1")
     parser.add_argument("--config", type=Path, default=None)
     parser.add_argument("--freq", type=str, default=None)
     parser.add_argument("--lookback", type=int, default=None)
@@ -115,7 +128,7 @@ def main() -> None:
         },
     )
     paths.ensure_dirs()
-    universe = load_universe_codes(args.project)
+    universe = _load_strategy_universe(args.project, args.config)
 
     mode = str(cfg.get("strategy_mode", "momentum"))
     if mode == "limit_up_screening":

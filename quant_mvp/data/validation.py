@@ -131,11 +131,15 @@ def validate_project_data(
     ]
 
     coverage_ratio = float((coverage["bars_count"] > 0).mean()) if not coverage.empty else 0.0
+    covered_symbols = int((coverage["bars_count"] > 0).sum()) if not coverage.empty else 0
+    universe_symbols = int(len(universe_codes))
     return DataQualityReport(
         project=project,
         frequency=freq,
         source_provider=provider_name,
         coverage_ratio=coverage_ratio,
+        covered_symbols=covered_symbols,
+        universe_symbols=universe_symbols,
         raw_rows=raw_rows,
         cleaned_rows=cleaned_rows,
         validated_rows=validated_rows,

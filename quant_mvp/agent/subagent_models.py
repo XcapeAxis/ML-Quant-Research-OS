@@ -5,7 +5,7 @@ from typing import Any, Literal
 
 
 GateMode = Literal["OFF", "AUTO", "FORCE"]
-SubagentStatus = Literal["proposed", "active", "blocked", "merged", "retired", "canceled", "archived"]
+SubagentStatus = Literal["proposed", "active", "blocked", "merged", "retired", "canceled", "archived", "refactored"]
 
 
 @dataclass(frozen=True)
@@ -77,6 +77,12 @@ class SubagentRecord:
     parent_ids: list[str] = field(default_factory=list)
     child_ids: list[str] = field(default_factory=list)
     merged_into: str | None = None
+    mission_id: str | None = None
+    branch_id: str | None = None
+    candidate_id: str | None = None
+    worker_task_id: str | None = None
+    lineage_root_id: str | None = None
+    spawn_depth: int = 0
     created_at: str = ""
     updated_at: str = ""
     last_action: str = ""

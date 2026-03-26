@@ -9,6 +9,7 @@ __all__ = [
     "generate_handoff",
     "load_machine_state",
     "record_agent_cycle",
+    "record_iterative_run",
     "record_experiment_result",
     "record_failure",
     "save_machine_state",

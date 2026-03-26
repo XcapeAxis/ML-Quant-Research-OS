@@ -71,6 +71,7 @@ def run_agent_cycle(
             volume_panel=backtest_artifacts.volume_panel,
             metrics_df=backtest_artifacts.metrics_df,
             hypothesis=plan.primary_hypothesis,
+            benchmark_series=backtest_artifacts.benchmark_series,
         )
     except Exception as exc:
         evaluation = EvaluationRecord(

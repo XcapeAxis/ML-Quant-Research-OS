@@ -6,118 +6,58 @@ from typing import Any
 from .config import load_config
 from .memory.ledger import stable_hash
 from .memory.writeback import record_experiment_result, record_failure, sync_project_state
-from .research_core import build_limit_up_rank_artifacts, run_limit_up_backtest_artifacts
-from .universe import load_universe_codes
-from .validation.baselines import run_simple_baselines
-from .validation.leakage import audit_strategy_leakage
-from .validation.promotion_gate import evaluate_promotion_gate
-from .validation.robustness import cost_sensitivity_summary, parameter_perturbation_summary
-from .validation.walk_forward import walk_forward_summary
+from .pools import resolve_research_universe_codes
+from .strategy_diagnostics import run_strategy_diagnostics
 
 
 def promote_candidate(project: str, *, config_path=None) -> dict[str, Any]:
     cfg, paths = load_config(project, config_path=config_path)
-    try:
-        universe = load_universe_codes(project)
-        rank_artifacts = build_limit_up_rank_artifacts(cfg=cfg, paths=paths, universe_codes=universe)
-        backtest_artifacts = run_limit_up_backtest_artifacts(
-            cfg=cfg,
-            paths=paths,
-            rank_df=rank_artifacts.selection.rank_df,
-            save="none",
-            no_show=True,
-        )
-        leakage = audit_strategy_leakage(
-            rank_df=rank_artifacts.selection.rank_df,
-            close_panel=backtest_artifacts.close_panel,
-            volume_panel=backtest_artifacts.volume_panel,
-            cfg=cfg,
-            universe_codes=universe,
-        )
-        walk_forward = walk_forward_summary(
-            rank_df=rank_artifacts.selection.rank_df,
-            windows=list(cfg.get("walk_forward", {}).get("windows", [])),
-        )
-        baselines = run_simple_baselines(
-            close_panel=backtest_artifacts.close_panel,
-            benchmark_code=str(cfg.get("baselines", {}).get("benchmark_code", "000001")),
-        )
-        cost = cost_sensitivity_summary(
-            metrics_df=backtest_artifacts.metrics_df,
-            commission_grid=list(cfg.get("cost_sweep", {}).get("commission_grid", [])),
-            slippage_grid=list(cfg.get("cost_sweep", {}).get("slippage_grid", [])),
-        )
-        parameter_robustness = parameter_perturbation_summary(
-            cfg=cfg,
-            perturbations=list(cfg.get("research_validation", {}).get("parameter_perturbations", [])),
-        )
-        metrics = backtest_artifacts.metrics_df.iloc[0].to_dict() if not backtest_artifacts.metrics_df.empty else {}
-        decision = evaluate_promotion_gate(
-            metrics=metrics,
-            leakage_report=leakage,
-            walk_forward=walk_forward,
-            cost_sensitivity=cost,
-            parameter_robustness=parameter_robustness,
-            research_hypothesis=str(
-                cfg.get("research_hypothesis")
-                or "Repeated limit-up behaviour may identify persistent re-accumulation candidates."
-            ),
-            cfg=cfg,
-        )
-        payload = decision.to_dict()
-        payload["leakage"] = leakage.to_dict()
-        payload["walk_forward"] = walk_forward
-        payload["baselines"] = baselines
-        payload["cost_sensitivity"] = cost
-        payload["parameter_robustness"] = parameter_robustness
-    except Exception as exc:
-        payload = {
-            "promotable": False,
-            "reasons": [f"missing_research_inputs: {exc}"],
-            "checks": {},
-        }
-
+    hypothesis = str(
+        cfg.get("research_hypothesis")
+        or "Repeated limit-up behaviour may identify persistent re-accumulation candidates."
+    )
+    universe_codes, research_universe_source = resolve_research_universe_codes(
+        project,
+        config_path=config_path,
+    )
+    diagnostics = run_strategy_diagnostics(
+        project=project,
+        cfg=cfg,
+        paths=paths,
+        universe_codes=universe_codes,
+        hypothesis=hypothesis,
+        core_snapshot_id=research_universe_source if research_universe_source.startswith("core-") else None,
+        branch_candidate_codes=universe_codes,
+    )
+    payload = diagnostics["decision"]
     report_json_path = paths.artifacts_dir / "promotion_gate.json"
     report_md_path = paths.artifacts_dir / "promotion_gate.md"
-    report_json_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-
-    lines = [
-        "# Promotion Gate",
-        "",
-        f"- promotable: {payload['promotable']}",
-        f"- max_drawdown: {payload.get('checks', {}).get('max_drawdown', 'n/a')}",
-        f"- leakage_passed: {payload.get('checks', {}).get('leakage_passed', 'n/a')}",
-        f"- walk_forward_windows_alive: {payload.get('checks', {}).get('walk_forward_windows_alive', 'n/a')}",
-        f"- cost_return_retention_ratio: {payload.get('checks', {}).get('cost_return_retention_ratio', 'n/a')}",
-        "",
-        "## Reasons",
-    ]
-    if payload["reasons"]:
-        lines.extend(f"- {reason}" for reason in payload["reasons"])
+    failure_report = diagnostics["strategy_failure_report"]
+    readiness = payload.get("checks", {}).get("research_readiness", {}) if isinstance(payload, dict) else {}
+    research_ready = bool(readiness.get("ready"))
+    if payload["promotable"]:
+        boundary = "Promotion gate currently passes for the evaluated candidate."
+        next_action = "Confirm the passing result on a fresh validated snapshot before trusting it as durable evidence."
+        last_failed = "none"
+    elif research_ready:
+        boundary = "Research inputs are ready, but the candidate still fails strategy-quality checks."
+        next_action = failure_report.get("next_experiment_themes", ["Choose one bounded strategy experiment."])[0]
+        last_failed = "Promotion gate blocked on strategy-quality checks."
     else:
-        lines.append("- Candidate meets the current Phase 1 promotion gate.")
-    report_md_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+        boundary = "Engineering guardrails work; promotion remains blocked on data readiness or the current research boundary."
+        next_action = "Restore readiness on the current research universe before retrying promotion."
+        last_failed = "Promotion gate blocked on data readiness."
 
     sync_project_state(
         project,
         {
-            "current_phase": "Phase 1 Research OS",
-            "current_task": "Keep the Phase 1 Research OS reproducible with tracked memory and honest runtime artifacts.",
+            "current_phase": "Phase 1 Research OS - promotion evaluation",
+            "current_task": "Keep promotion honest by separating data-readiness blockers from strategy-quality blockers.",
             "current_blocker": "; ".join(payload.get("reasons", [])) if payload.get("reasons") else "none",
-            "current_capability_boundary": (
-                "Engineering guardrails work; default-project promotion remains blocked on data coverage."
-                if not payload["promotable"]
-                else "Promotion gate currently passes for the evaluated candidate."
-            ),
-            "next_priority_action": (
-                "Resolve missing research inputs for the default project before rerunning promotion."
-                if not payload["promotable"]
-                else "Confirm promotion output with fresh validated data before relying on it."
-            ),
-            "last_verified_capability": "Promotion gate report was generated and written to runtime artifacts.",
-            "last_failed_capability": (
-                "Promotion gate blocked the candidate." if not payload["promotable"] else "none"
-            ),
+            "current_capability_boundary": boundary,
+            "next_priority_action": next_action,
+            "last_verified_capability": "Promotion gate diagnostics were generated and written to runtime artifacts.",
+            "last_failed_capability": last_failed,
         },
     )
     record_experiment_result(
@@ -125,11 +65,16 @@ def promote_candidate(project: str, *, config_path=None) -> dict[str, Any]:
         {
             "timestamp": "promotion-gate",
             "experiment_id": "promote_candidate",
-            "hypothesis": str(cfg.get("research_hypothesis", "")),
+            "hypothesis": hypothesis,
             "config_hash": stable_hash(cfg),
             "result": "passed" if payload["promotable"] else "blocked",
             "blockers": payload.get("reasons", []),
-            "artifact_refs": [str(report_json_path), str(report_md_path)],
+            "artifact_refs": [
+                str(report_json_path),
+                str(report_md_path),
+                str(diagnostics["strategy_failure_report_json"]),
+                str(diagnostics["strategy_failure_report_md"]),
+            ],
         },
     )
     if not payload["promotable"]:
@@ -138,9 +83,9 @@ def promote_candidate(project: str, *, config_path=None) -> dict[str, Any]:
             {
                 "timestamp": "promotion-gate",
                 "experiment_id": "promote_candidate",
-                "summary": "Candidate failed the current promotion gate.",
+                "summary": "Promotion gate blocked the current candidate.",
                 "root_cause": "; ".join(payload.get("reasons", [])),
-                "corrective_action": "Resolve the failed gate reasons before the next promotion attempt.",
+                "corrective_action": next_action,
                 "resolution_status": "not_fixed",
             },
         )
@@ -148,4 +93,9 @@ def promote_candidate(project: str, *, config_path=None) -> dict[str, Any]:
         "promotion_report_json": str(report_json_path),
         "promotion_report_md": str(report_md_path),
         "decision": payload,
+        "strategy_failure_report_json": str(diagnostics["strategy_failure_report_json"]),
+        "strategy_failure_report_md": str(diagnostics["strategy_failure_report_md"]),
+        "strategy_failure_report": failure_report,
+        "readiness_report": diagnostics["readiness_report"].to_dict(),
+        "research_universe_source": research_universe_source,
     }

@@ -15,6 +15,7 @@ Implemented in this refactor:
 - one audited limit-up research core shared by the step pipeline and the standalone strategy script
 - provider abstraction over AKShare
 - raw -> cleaned -> validated data flow with project-scoped quality reports
+- a research-readiness gate that classifies empty / pilot / ready data coverage before promotion
 - leakage, walk-forward, cost-sensitivity, and promotion-gate modules
 - AGENTS files plus tracked project memory under `memory/projects/<project>/` and runtime artifacts under `data/` / `artifacts/`
 - a dry-run agent cycle that writes plan / execution / evaluation / reflection to disk
@@ -31,10 +32,14 @@ Not implemented yet:
 
 Historical performance claims that existed in earlier repo states are not trusted unless they can be reproduced from the current local data snapshot.
 
-At the time of this refactor, the default project `2026Q1_limit_up` can freeze a universe and generate audit / memory artifacts, but `data_validate` reports that the local market database does not currently contain usable bar data for that project universe. Because of that:
-- promotion is blocked
-- the dry-run agent records a data-input failure instead of pretending success
-- any README-level return claims have been removed
+The default project `as_share_research_v1` should now be interpreted through two explicit gates:
+- `data_validate` tells you what validated coverage exists for the frozen universe.
+- `research_readiness` decides whether that snapshot is empty, only a pilot subset, or good enough for promotion-grade research.
+
+Because of that:
+- promotion is blocked whenever research readiness is not met
+- partial coverage is treated as pilot recovery, not as full-universe evidence
+- any README-level return claims remain removed unless they can be reproduced from the current local snapshot
 
 ## Canonical Strategy
 
@@ -58,51 +63,63 @@ pip install -r requirements.txt
 Freeze the project universe:
 
 ```bash
-python scripts/steps/10_symbols.py --project 2026Q1_limit_up --config configs/projects/2026Q1_limit_up.json
+python scripts/steps/10_symbols.py --project as_share_research_v1 --config configs/projects/as_share_research_v1.json
 ```
 
 Validate and clean data:
 
 ```bash
-python -m quant_mvp data_validate --project 2026Q1_limit_up --config configs/projects/2026Q1_limit_up.json --full-refresh
+python -m quant_mvp data_validate --project as_share_research_v1 --config configs/projects/as_share_research_v1.json --full-refresh
+```
+
+Evaluate whether the validated snapshot is promotion-ready:
+
+```bash
+python -m quant_mvp research_readiness --project as_share_research_v1 --config configs/projects/as_share_research_v1.json
 ```
 
 Run the audited repo audit:
 
 ```bash
-python -m quant_mvp research_audit --project 2026Q1_limit_up --config configs/projects/2026Q1_limit_up.json
+python -m quant_mvp research_audit --project as_share_research_v1 --config configs/projects/as_share_research_v1.json
 ```
 
 Run one dry-run research cycle:
 
 ```bash
-python -m quant_mvp agent_cycle --project 2026Q1_limit_up --config configs/projects/2026Q1_limit_up.json --dry-run
+python -m quant_mvp agent_cycle --project as_share_research_v1 --config configs/projects/as_share_research_v1.json --dry-run
+```
+
+Run one bounded higher-order automation loop:
+
+```bash
+python -m quant_mvp iterative_run --project as_share_research_v1 --config configs/projects/as_share_research_v1.json --target-iterations 3 --max-iterations 5 --format checkpoint
 ```
 
 Bootstrap tracked memory and handoff files:
 
 ```bash
-python -m quant_mvp memory_bootstrap --project 2026Q1_limit_up
-python -m quant_mvp memory_sync --project 2026Q1_limit_up
-python -m quant_mvp generate_handoff --project 2026Q1_limit_up
+python -m quant_mvp memory_bootstrap --project as_share_research_v1
+python -m quant_mvp memory_sync --project as_share_research_v1
+python -m quant_mvp generate_handoff --project as_share_research_v1
 ```
 
 Evaluate whether subagents are worth enabling for a task:
 
 ```bash
-python -m quant_mvp subagent_plan --project 2026Q1_limit_up --task-summary "Assess future data and validation split after bars are restored" --breadth 2 --independence 0.7 --file-overlap 0.2 --validation-load 0.8 --coordination-cost 0.3 --risk-isolation 0.5
+python -m quant_mvp subagent_plan --project as_share_research_v1 --task-summary "Assess future data and validation split after bars are restored" --breadth 2 --independence 0.7 --file-overlap 0.2 --validation-load 0.8 --coordination-cost 0.3 --risk-isolation 0.5
 ```
 
 Attempt promotion:
 
 ```bash
-python -m quant_mvp promote_candidate --project 2026Q1_limit_up --config configs/projects/2026Q1_limit_up.json
+python -m quant_mvp promote_candidate --project as_share_research_v1 --config configs/projects/as_share_research_v1.json
 ```
 
 Run the end-to-end strategy pipeline when data is available:
 
 ```bash
-python scripts/run_limit_up_screening.py --project 2026Q1_limit_up --config configs/projects/2026Q1_limit_up.json --no-show --save auto
+python scripts/run_limit_up_screening.py --project as_share_research_v1 --config configs/projects/as_share_research_v1.json --no-show --save auto
 ```
 
 ## Memory and Audit Files
@@ -115,21 +132,25 @@ System-level docs:
 - [RESEARCH_PROMOTION_RULES.md](docs/RESEARCH_PROMOTION_RULES.md)
 
 Tracked project memory for the default project:
-- [PROJECT_STATE.md](memory/projects/2026Q1_limit_up/PROJECT_STATE.md)
-- [HYPOTHESIS_QUEUE.md](memory/projects/2026Q1_limit_up/HYPOTHESIS_QUEUE.md)
-- [POSTMORTEMS.md](memory/projects/2026Q1_limit_up/POSTMORTEMS.md)
-- [EXPERIMENT_LEDGER.jsonl](memory/projects/2026Q1_limit_up/EXPERIMENT_LEDGER.jsonl)
-- [RESEARCH_MEMORY.md](memory/projects/2026Q1_limit_up/RESEARCH_MEMORY.md)
-- [HANDOFF_NEXT_CHAT.md](memory/projects/2026Q1_limit_up/HANDOFF_NEXT_CHAT.md)
-- [MIGRATION_PROMPT_NEXT_CHAT.md](memory/projects/2026Q1_limit_up/MIGRATION_PROMPT_NEXT_CHAT.md)
-- [VERIFY_LAST.md](memory/projects/2026Q1_limit_up/VERIFY_LAST.md)
-- [SESSION_STATE.json](memory/projects/2026Q1_limit_up/SESSION_STATE.json)
-- [SUBAGENT_REGISTRY.md](memory/projects/2026Q1_limit_up/SUBAGENT_REGISTRY.md)
-- [SUBAGENT_LEDGER.jsonl](memory/projects/2026Q1_limit_up/SUBAGENT_LEDGER.jsonl)
+- [PROJECT_STATE.md](memory/projects/as_share_research_v1/PROJECT_STATE.md)
+- [HYPOTHESIS_QUEUE.md](memory/projects/as_share_research_v1/HYPOTHESIS_QUEUE.md)
+- [POSTMORTEMS.md](memory/projects/as_share_research_v1/POSTMORTEMS.md)
+- [EXPERIMENT_LEDGER.jsonl](memory/projects/as_share_research_v1/EXPERIMENT_LEDGER.jsonl)
+- [RESEARCH_MEMORY.md](memory/projects/as_share_research_v1/RESEARCH_MEMORY.md)
+- [HANDOFF_NEXT_CHAT.md](memory/projects/as_share_research_v1/HANDOFF_NEXT_CHAT.md)
+- [MIGRATION_PROMPT_NEXT_CHAT.md](memory/projects/as_share_research_v1/MIGRATION_PROMPT_NEXT_CHAT.md)
+- [VERIFY_LAST.md](memory/projects/as_share_research_v1/VERIFY_LAST.md)
+- [SESSION_STATE.json](memory/projects/as_share_research_v1/SESSION_STATE.json)
+- [SUBAGENT_REGISTRY.md](memory/projects/as_share_research_v1/SUBAGENT_REGISTRY.md)
+- [SUBAGENT_LEDGER.jsonl](memory/projects/as_share_research_v1/SUBAGENT_LEDGER.jsonl)
+
+`SESSION_STATE.json` is the canonical tracked state. The markdown handoff, migration, verify, and summary files are derived views.
 
 Runtime/high-noise outputs:
 - `data/projects/<project>/meta/`
 - `artifacts/projects/<project>/`
+- `artifacts/projects/<project>/automation_runs/`
+- repo-local skill recipe: `skills/research_iteration_loop/SKILL.md`
 
 ## Verification
 
@@ -142,4 +163,4 @@ python -m pytest tests -q
 Current expected result:
 - the test suite passes
 - dry-run agent flow passes
-- promotion may still be blocked on the default project until real bar data is present
+- promotion may still be blocked on the default project until research readiness passes on the current validated snapshot

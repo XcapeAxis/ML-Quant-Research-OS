@@ -1,0 +1,1015 @@
+{
+  "active_branch_ids": [
+    "baseline_limit_up",
+    "risk_constrained_limit_up",
+    "tighter_entry_limit_up"
+  ],
+  "branch": "main",
+  "communication_preference": "Use plain Chinese explanations and avoid unexplained internal jargon when a direct everyday description is available.",
+  "core_universe_snapshot_id": "core-0536a20f13d1",
+  "core_universe_snapshot_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\latest_core_pool.json",
+  "current_blocker": "Max drawdown 50.44% exceeds 30.00%.; Benchmark or equal-weight baselines are incomplete.",
+  "current_capability_boundary": "Research inputs are ready, but the candidate still fails strategy-quality checks.",
+  "current_mission_id": "mission-as_share_research_v1",
+  "current_phase": "Phase 1 Research OS - promotion evaluation",
+  "current_task": "Keep promotion honest by separating data-readiness blockers from strategy-quality blockers.",
+  "durable_facts": [
+    "The long-term north star is still an autonomous quant research agent that can research, iterate, reflect, search for missing tools, operate tools, mine opportunities and factors, and use subagents adaptively.",
+    "Stage 0A completed by shrinking the default project from 3063 symbols to a data-ready 715-symbol range; all stronger research claims must stay inside that restored range.",
+    "The v1 core research pool is built from the restored 715-symbol range and currently keeps 492 mainboard names after ST, history, recent-volume, and liquidity filters.",
+    "Architecture Slice 2 is now live: mission_tick writes mission, branch, and evidence ledgers, formal experiment JSON records, and real scout or implementer worker-task artifacts.",
+    "agent_cycle is only a compatibility shell on top of mission_tick and must not overwrite the primary multi-branch mission state.",
+    "Subagents are now a dynamic resource: the system should switch them on, downgrade them, pause them, or retire them according to real-time task needs instead of keeping them always active.",
+    "Worker subagent ids are collision-resistant so concurrent or closely spaced runs no longer reuse the same tracked id by accident.",
+    "Old strategy scripts still prefer the legacy project universe file when it exists, and only fall back to the new core pool when that file is missing; this is an intentional compatibility bridge, not the final architecture.",
+    "Promotion gate baseline wiring was repaired earlier, and this run completed the remaining benchmark fix by loading the configured benchmark series independently from ranked codes.",
+    "On the current `as_share_research_v1` run, both `promote_candidate` and `agent_cycle --dry-run` now report `baselines_status=pass`, `benchmark_available=true`, and `equal_weight_available=true`.",
+    "The stored readiness artifacts still classify the current 492-name core validated snapshot as ready for promotion-grade checks, so the live blocker is max drawdown 56.50% rather than generic missing bars or benchmark completeness.",
+    "`equal_weight_total_return` remains `1.0497515982053982` after the benchmark repair, so the fix did not widen the equal-weight baseline definition.",
+    "Some readiness payloads still carry the legacy project label `2026Q1_limit_up` even though `as_share_research_v1` is now the live default-project name."
+  ],
+  "head": "d19962e89e811dbdf20fd53f8becd66f470ec318",
+  "iterative_loop": {
+    "artifact_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\automation_runs\\20260326T033031+0000_as_share_research_v1-iterative-20260326T032946Z.json",
+    "blocker_escalation": false,
+    "blocker_history": {
+      "max_drawdown": {
+        "count": 1,
+        "escalated": false,
+        "last_seen": "2026-03-26T03:30:31+00:00",
+        "last_stop_reason": "no_verified_progress"
+      }
+    },
+    "consecutive_no_new_info_runs": 1,
+    "direction_change": false,
+    "iteration_count": 2,
+    "last_classification": "no_meaningful_progress",
+    "last_completed": "`promote_candidate` did not produce a new verified state change.",
+    "last_not_done": "Max drawdown 50.44% exceeds 30.00%.; Benchmark or equal-weight baselines are incomplete.",
+    "last_run_id": "as_share_research_v1-iterative-20260326T032946Z",
+    "max_active_subagents": 0,
+    "max_iterations": 5,
+    "next_recommendation": "Break down whether drawdown comes from time-window concentration, name concentration, or long holding tails.",
+    "stop_reason": "no_verified_progress",
+    "subagent_reason": "Task breadth is below the minimum threshold for safe decomposition.",
+    "subagents_used": [],
+    "target_iterations": 3
+  },
+  "last_failed_capability": "Max drawdown 50.44% exceeds 30.00%.; Benchmark or equal-weight baselines are incomplete.",
+  "last_failure": {
+    "corrective_action": "Break down whether drawdown comes from time-window concentration, name concentration, or long holding tails.",
+    "experiment_id": "as_share_research_v1-iterative-20260326T032946Z",
+    "resolution_status": "not_fixed",
+    "root_cause": "Max drawdown 50.44% exceeds 30.00%.; Benchmark or equal-weight baselines are incomplete.",
+    "summary": "Max drawdown 50.44% exceeds 30.00%.; Benchmark or equal-weight baselines are incomplete.",
+    "timestamp": "2026-03-26T03:30:31+00:00"
+  },
+  "last_updated": "2026-03-26T03:30:32+00:00",
+  "last_verified_capability": "Promotion gate diagnostics were generated and written to runtime artifacts.",
+  "latest_hypotheses": [
+    {
+      "hypothesis": "as_share_research_v1: investigate the highest-severity failed gate before running a live experiment",
+      "status": "pending"
+    }
+  ],
+  "negative_memory": [
+    "Do not describe queued verifier tasks as if full verification already happened.",
+    "Do not treat the 492-name core research pool as a drop-in replacement for every old strategy path before replacement tests are done.",
+    "Do not treat the current compatibility fallback in strategy scripts as a finished dual-pool migration.",
+    "Do not keep subagents permanently active out of habit; if a transient worker has finished, pause or retire it.",
+    "Do not run parallel top-level commands that write the same tracked project state as if they were concurrency-safe research execution.",
+    "Do not claim tool autonomy, multi-direction search, or profitable superagent behavior from Slice 2; verifier execution is still partial and the strategy still fails promotion.",
+    "Do not reopen generic benchmark-missing diagnosis on `as_share_research_v1` unless `baselines_status` falls below `pass`; that wiring bug is fixed.",
+    "Do not rely on `python -m quant_mvp research_readiness` as a callable CLI step in the current build; use the stored readiness artifacts or supported commands instead."
+  ],
+  "next_priority_action": "Break down whether drawdown comes from time-window concentration, name concentration, or long holding tails.",
+  "next_step_memory": [
+    "Break down whether drawdown comes from time-window concentration, name concentration, or long holding tails.",
+    "Use STRATEGY_FAILURE_REPORT and the branch ledger to choose the first bounded drawdown-focused experiment now that baseline completeness passes.",
+    "Break down whether the 56.50% max drawdown is driven by time-window concentration, name concentration, or long holding tails.",
+    "Compare a risk-constrained strategy variant against the current version before opening a broad parameter sweep.",
+    "Keep the subagent gate dynamic: default effectively OFF, escalate only when real-time task structure justifies it, and retire transient workers promptly after execution."
+  ],
+  "project": "as_share_research_v1",
+  "runtime_artifacts_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1",
+  "runtime_meta_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta",
+  "stage0a_decision": {
+    "artifact_paths": {
+      "csv_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\coverage_gap_by_symbol.csv",
+      "json_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\coverage_gap_ledger.json",
+      "markdown_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\COVERAGE_GAP_LEDGER.md"
+    },
+    "auto_refreeze_applied": false,
+    "auto_refreeze_enabled": true,
+    "covered_symbols": 715,
+    "decision": "expand_bars",
+    "decision_reason": "Recoverable symbols 715 meet the readiness floor 680; keep the frozen universe and retry transient failures first.",
+    "decision_style": "conservative",
+    "eligible_refreeze_symbols": 699,
+    "ledger_csv_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\coverage_gap_by_symbol.csv",
+    "ledger_json_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\coverage_gap_ledger.json",
+    "ledger_markdown_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\COVERAGE_GAP_LEDGER.md",
+    "new_universe_size": null,
+    "next_action": "Retry transient bar recovery for 0 symbols listed in the coverage-gap ledger before changing the frozen universe.",
+    "old_universe_size": 715,
+    "recoverable_symbols": 715,
+    "required_symbols_for_readiness": 680,
+    "transient_recoverable_symbols": 0
+  },
+  "subagent_continue_reason": "Task breadth is below the minimum threshold for safe decomposition.",
+  "subagent_continue_recommended": false,
+  "subagent_gate_mode": "AUTO",
+  "subagent_last_event": {
+    "action": "iterative_assess",
+    "related_ids": [],
+    "summary": "Task breadth is below the minimum threshold for safe decomposition.",
+    "timestamp": "2026-03-26T03:30:09+00:00"
+  },
+  "subagent_operating_preference": "Manage subagents dynamically in real time. Default effectively OFF. Escalate to LIGHT or FULL only when the task truly benefits from parallel work, then pause or retire transient workers as soon as their bounded job is done.",
+  "subagent_plan": {
+    "gate_mode": "AUTO",
+    "no_split_reason": "Task breadth is below the minimum threshold for safe decomposition.",
+    "rationale": "The work is still narrow enough for one integrating agent.",
+    "recommended_count": 0,
+    "recommended_gate": "OFF",
+    "recommended_roles": [],
+    "score": -0.2767,
+    "should_expand": false,
+    "work_packages": []
+  },
+  "subagents": [
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-001",
+      "branch_id": "baseline_limit_up",
+      "candidate_id": "candidate::baseline_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:02:43+00:00",
+      "expected_artifacts": [
+        "branch_pool_snapshot",
+        "candidate_notes"
+      ],
+      "last_action": "retire",
+      "last_note": "Retire the stale worker record left behind by an earlier parallel verification run.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "scout",
+      "status": "retired",
+      "subagent_id": "sa-001",
+      "summary": "scout task for baseline_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:05:58+00:00",
+      "worker_task_id": "baseline_limit_up-scout-1-20260325T150243Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-002",
+      "branch_id": "legacy_single_branch",
+      "candidate_id": "candidate::legacy_single_branch",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:02:44+00:00",
+      "expected_artifacts": [
+        "branch_pool_snapshot",
+        "candidate_notes"
+      ],
+      "last_action": "retire",
+      "last_note": "Scout wrote a branch-pool evidence report for legacy_single_branch with 42 candidate codes.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "scout",
+      "status": "retired",
+      "subagent_id": "sa-002",
+      "summary": "scout task for legacy_single_branch",
+      "transient": true,
+      "updated_at": "2026-03-25T15:02:45+00:00",
+      "worker_task_id": "legacy_single_branch-scout-1-20260325T150244Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-003",
+      "branch_id": "legacy_single_branch",
+      "candidate_id": "candidate::legacy_single_branch",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:02:46+00:00",
+      "expected_artifacts": [
+        "as_share_research_v1__legacy_single_branch__20260325T150231Z"
+      ],
+      "last_action": "retire",
+      "last_note": "Implementer refreshed the experiment record for legacy_single_branch and linked it to the worker mesh.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "implementer",
+      "status": "retired",
+      "subagent_id": "sa-003",
+      "summary": "implementer task for legacy_single_branch",
+      "transient": true,
+      "updated_at": "2026-03-25T15:02:46+00:00",
+      "worker_task_id": "legacy_single_branch-implementer-2-20260325T150244Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-004",
+      "branch_id": "risk_constrained_limit_up",
+      "candidate_id": "candidate::risk_constrained_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:02:53+00:00",
+      "expected_artifacts": [
+        "branch_pool_snapshot",
+        "candidate_notes"
+      ],
+      "last_action": "retire",
+      "last_note": "Scout wrote a branch-pool evidence report for risk_constrained_limit_up with 42 candidate codes.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "scout",
+      "status": "retired",
+      "subagent_id": "sa-004",
+      "summary": "scout task for risk_constrained_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:02:54+00:00",
+      "worker_task_id": "risk_constrained_limit_up-scout-1-20260325T150252Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-005",
+      "branch_id": "risk_constrained_limit_up",
+      "candidate_id": "candidate::risk_constrained_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:02:55+00:00",
+      "expected_artifacts": [
+        "as_share_research_v1__risk_constrained_limit_up__20260325T150231Z"
+      ],
+      "last_action": "retire",
+      "last_note": "Implementer refreshed the experiment record for risk_constrained_limit_up and linked it to the worker mesh.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "implementer",
+      "status": "retired",
+      "subagent_id": "sa-005",
+      "summary": "implementer task for risk_constrained_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:02:55+00:00",
+      "worker_task_id": "risk_constrained_limit_up-implementer-2-20260325T150252Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-006",
+      "branch_id": "tighter_entry_limit_up",
+      "candidate_id": "candidate::tighter_entry_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:03:02+00:00",
+      "expected_artifacts": [
+        "branch_pool_snapshot",
+        "candidate_notes"
+      ],
+      "last_action": "retire",
+      "last_note": "Scout wrote a branch-pool evidence report for tighter_entry_limit_up with 42 candidate codes.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "scout",
+      "status": "retired",
+      "subagent_id": "sa-006",
+      "summary": "scout task for tighter_entry_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:03:03+00:00",
+      "worker_task_id": "tighter_entry_limit_up-scout-1-20260325T150302Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-007",
+      "branch_id": "tighter_entry_limit_up",
+      "candidate_id": "candidate::tighter_entry_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:03:04+00:00",
+      "expected_artifacts": [
+        "as_share_research_v1__tighter_entry_limit_up__20260325T150231Z"
+      ],
+      "last_action": "retire",
+      "last_note": "Implementer refreshed the experiment record for tighter_entry_limit_up and linked it to the worker mesh.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "implementer",
+      "status": "retired",
+      "subagent_id": "sa-007",
+      "summary": "implementer task for tighter_entry_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:03:04+00:00",
+      "worker_task_id": "tighter_entry_limit_up-implementer-2-20260325T150302Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325150849781070-932c",
+      "branch_id": "baseline_limit_up",
+      "candidate_id": "candidate::baseline_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:08:49+00:00",
+      "expected_artifacts": [
+        "branch_pool_snapshot",
+        "candidate_notes"
+      ],
+      "last_action": "retire",
+      "last_note": "Scout wrote a branch-pool evidence report for baseline_limit_up with 42 candidate codes.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "scout",
+      "status": "retired",
+      "subagent_id": "sa-20260325150849781070-932c",
+      "summary": "scout task for baseline_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:08:50+00:00",
+      "worker_task_id": "baseline_limit_up-scout-1-20260325T150849Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325150851246437-8049",
+      "branch_id": "baseline_limit_up",
+      "candidate_id": "candidate::baseline_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:08:51+00:00",
+      "expected_artifacts": [
+        "as_share_research_v1__baseline_limit_up__20260325T150840Z"
+      ],
+      "last_action": "retire",
+      "last_note": "Implementer refreshed the experiment record for baseline_limit_up and linked it to the worker mesh.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "implementer",
+      "status": "retired",
+      "subagent_id": "sa-20260325150851246437-8049",
+      "summary": "implementer task for baseline_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:08:51+00:00",
+      "worker_task_id": "baseline_limit_up-implementer-2-20260325T150849Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325150857703676-306c",
+      "branch_id": "risk_constrained_limit_up",
+      "candidate_id": "candidate::risk_constrained_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:08:57+00:00",
+      "expected_artifacts": [
+        "branch_pool_snapshot",
+        "candidate_notes"
+      ],
+      "last_action": "retire",
+      "last_note": "Scout wrote a branch-pool evidence report for risk_constrained_limit_up with 42 candidate codes.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "scout",
+      "status": "retired",
+      "subagent_id": "sa-20260325150857703676-306c",
+      "summary": "scout task for risk_constrained_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:08:58+00:00",
+      "worker_task_id": "risk_constrained_limit_up-scout-1-20260325T150857Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325150859131657-2e6d",
+      "branch_id": "risk_constrained_limit_up",
+      "candidate_id": "candidate::risk_constrained_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:08:59+00:00",
+      "expected_artifacts": [
+        "as_share_research_v1__risk_constrained_limit_up__20260325T150840Z"
+      ],
+      "last_action": "retire",
+      "last_note": "Implementer refreshed the experiment record for risk_constrained_limit_up and linked it to the worker mesh.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "implementer",
+      "status": "retired",
+      "subagent_id": "sa-20260325150859131657-2e6d",
+      "summary": "implementer task for risk_constrained_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:08:59+00:00",
+      "worker_task_id": "risk_constrained_limit_up-implementer-2-20260325T150857Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325150905477175-ee0b",
+      "branch_id": "tighter_entry_limit_up",
+      "candidate_id": "candidate::tighter_entry_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:09:05+00:00",
+      "expected_artifacts": [
+        "branch_pool_snapshot",
+        "candidate_notes"
+      ],
+      "last_action": "retire",
+      "last_note": "Scout wrote a branch-pool evidence report for tighter_entry_limit_up with 42 candidate codes.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "scout",
+      "status": "retired",
+      "subagent_id": "sa-20260325150905477175-ee0b",
+      "summary": "scout task for tighter_entry_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:09:06+00:00",
+      "worker_task_id": "tighter_entry_limit_up-scout-1-20260325T150905Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325150906960445-8e82",
+      "branch_id": "tighter_entry_limit_up",
+      "candidate_id": "candidate::tighter_entry_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:09:06+00:00",
+      "expected_artifacts": [
+        "as_share_research_v1__tighter_entry_limit_up__20260325T150840Z"
+      ],
+      "last_action": "retire",
+      "last_note": "Implementer refreshed the experiment record for tighter_entry_limit_up and linked it to the worker mesh.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "implementer",
+      "status": "retired",
+      "subagent_id": "sa-20260325150906960445-8e82",
+      "summary": "implementer task for tighter_entry_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:09:07+00:00",
+      "worker_task_id": "tighter_entry_limit_up-implementer-2-20260325T150905Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325150925548166-7fcd",
+      "branch_id": "legacy_single_branch",
+      "candidate_id": "candidate::legacy_single_branch",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:09:25+00:00",
+      "expected_artifacts": [
+        "branch_pool_snapshot",
+        "candidate_notes"
+      ],
+      "last_action": "retire",
+      "last_note": "Scout wrote a branch-pool evidence report for legacy_single_branch with 42 candidate codes.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "scout",
+      "status": "retired",
+      "subagent_id": "sa-20260325150925548166-7fcd",
+      "summary": "scout task for legacy_single_branch",
+      "transient": true,
+      "updated_at": "2026-03-25T15:09:26+00:00",
+      "worker_task_id": "legacy_single_branch-scout-1-20260325T150925Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325150926924590-bb25",
+      "branch_id": "legacy_single_branch",
+      "candidate_id": "candidate::legacy_single_branch",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:09:26+00:00",
+      "expected_artifacts": [
+        "as_share_research_v1__legacy_single_branch__20260325T150915Z"
+      ],
+      "last_action": "retire",
+      "last_note": "Implementer refreshed the experiment record for legacy_single_branch and linked it to the worker mesh.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "implementer",
+      "status": "retired",
+      "subagent_id": "sa-20260325150926924590-bb25",
+      "summary": "implementer task for legacy_single_branch",
+      "transient": true,
+      "updated_at": "2026-03-25T15:09:27+00:00",
+      "worker_task_id": "legacy_single_branch-implementer-2-20260325T150925Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325151502176602-ee4c",
+      "branch_id": "baseline_limit_up",
+      "candidate_id": "candidate::baseline_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:15:02+00:00",
+      "expected_artifacts": [
+        "branch_pool_snapshot",
+        "candidate_notes"
+      ],
+      "last_action": "retire",
+      "last_note": "Scout wrote a branch-pool evidence report for baseline_limit_up with 42 candidate codes.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "scout",
+      "status": "retired",
+      "subagent_id": "sa-20260325151502176602-ee4c",
+      "summary": "scout task for baseline_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:15:02+00:00",
+      "worker_task_id": "baseline_limit_up-scout-1-20260325T151501Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325151503532918-ed2b",
+      "branch_id": "baseline_limit_up",
+      "candidate_id": "candidate::baseline_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:15:03+00:00",
+      "expected_artifacts": [
+        "as_share_research_v1__baseline_limit_up__20260325T151453Z"
+      ],
+      "last_action": "retire",
+      "last_note": "Implementer refreshed the experiment record for baseline_limit_up and linked it to the worker mesh.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "implementer",
+      "status": "retired",
+      "subagent_id": "sa-20260325151503532918-ed2b",
+      "summary": "implementer task for baseline_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:15:04+00:00",
+      "worker_task_id": "baseline_limit_up-implementer-2-20260325T151501Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325151509622682-dce5",
+      "branch_id": "risk_constrained_limit_up",
+      "candidate_id": "candidate::risk_constrained_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:15:09+00:00",
+      "expected_artifacts": [
+        "branch_pool_snapshot",
+        "candidate_notes"
+      ],
+      "last_action": "retire",
+      "last_note": "Scout wrote a branch-pool evidence report for risk_constrained_limit_up with 42 candidate codes.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "scout",
+      "status": "retired",
+      "subagent_id": "sa-20260325151509622682-dce5",
+      "summary": "scout task for risk_constrained_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:15:10+00:00",
+      "worker_task_id": "risk_constrained_limit_up-scout-1-20260325T151509Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325151511046386-a98f",
+      "branch_id": "risk_constrained_limit_up",
+      "candidate_id": "candidate::risk_constrained_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:15:11+00:00",
+      "expected_artifacts": [
+        "as_share_research_v1__risk_constrained_limit_up__20260325T151453Z"
+      ],
+      "last_action": "retire",
+      "last_note": "Implementer refreshed the experiment record for risk_constrained_limit_up and linked it to the worker mesh.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "implementer",
+      "status": "retired",
+      "subagent_id": "sa-20260325151511046386-a98f",
+      "summary": "implementer task for risk_constrained_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:15:11+00:00",
+      "worker_task_id": "risk_constrained_limit_up-implementer-2-20260325T151509Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325151516876234-eee5",
+      "branch_id": "tighter_entry_limit_up",
+      "candidate_id": "candidate::tighter_entry_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:15:16+00:00",
+      "expected_artifacts": [
+        "branch_pool_snapshot",
+        "candidate_notes"
+      ],
+      "last_action": "retire",
+      "last_note": "Scout wrote a branch-pool evidence report for tighter_entry_limit_up with 42 candidate codes.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "scout",
+      "status": "retired",
+      "subagent_id": "sa-20260325151516876234-eee5",
+      "summary": "scout task for tighter_entry_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:15:17+00:00",
+      "worker_task_id": "tighter_entry_limit_up-scout-1-20260325T151516Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325151518290134-5820",
+      "branch_id": "tighter_entry_limit_up",
+      "candidate_id": "candidate::tighter_entry_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:15:18+00:00",
+      "expected_artifacts": [
+        "as_share_research_v1__tighter_entry_limit_up__20260325T151453Z"
+      ],
+      "last_action": "retire",
+      "last_note": "Implementer refreshed the experiment record for tighter_entry_limit_up and linked it to the worker mesh.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "implementer",
+      "status": "retired",
+      "subagent_id": "sa-20260325151518290134-5820",
+      "summary": "implementer task for tighter_entry_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:15:18+00:00",
+      "worker_task_id": "tighter_entry_limit_up-implementer-2-20260325T151516Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325151536002718-d679",
+      "branch_id": "legacy_single_branch",
+      "candidate_id": "candidate::legacy_single_branch",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:15:36+00:00",
+      "expected_artifacts": [
+        "branch_pool_snapshot",
+        "candidate_notes"
+      ],
+      "last_action": "retire",
+      "last_note": "Scout wrote a branch-pool evidence report for legacy_single_branch with 42 candidate codes.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "scout",
+      "status": "retired",
+      "subagent_id": "sa-20260325151536002718-d679",
+      "summary": "scout task for legacy_single_branch",
+      "transient": true,
+      "updated_at": "2026-03-25T15:15:36+00:00",
+      "worker_task_id": "legacy_single_branch-scout-1-20260325T151535Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325151537316765-574a",
+      "branch_id": "legacy_single_branch",
+      "candidate_id": "candidate::legacy_single_branch",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:15:37+00:00",
+      "expected_artifacts": [
+        "as_share_research_v1__legacy_single_branch__20260325T151529Z"
+      ],
+      "last_action": "retire",
+      "last_note": "Implementer refreshed the experiment record for legacy_single_branch and linked it to the worker mesh.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "implementer",
+      "status": "retired",
+      "subagent_id": "sa-20260325151537316765-574a",
+      "summary": "implementer task for legacy_single_branch",
+      "transient": true,
+      "updated_at": "2026-03-25T15:15:37+00:00",
+      "worker_task_id": "legacy_single_branch-implementer-2-20260325T151535Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325152148073676-e478",
+      "branch_id": "baseline_limit_up",
+      "candidate_id": "candidate::baseline_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:21:48+00:00",
+      "expected_artifacts": [
+        "branch_pool_snapshot",
+        "candidate_notes"
+      ],
+      "last_action": "retire",
+      "last_note": "Scout wrote a branch-pool evidence report for baseline_limit_up with 42 candidate codes.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "scout",
+      "status": "retired",
+      "subagent_id": "sa-20260325152148073676-e478",
+      "summary": "scout task for baseline_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:21:48+00:00",
+      "worker_task_id": "baseline_limit_up-scout-1-20260325T152147Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325152149433166-7cc9",
+      "branch_id": "baseline_limit_up",
+      "candidate_id": "candidate::baseline_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:21:49+00:00",
+      "expected_artifacts": [
+        "as_share_research_v1__baseline_limit_up__20260325T152141Z"
+      ],
+      "last_action": "retire",
+      "last_note": "Implementer refreshed the experiment record for baseline_limit_up and linked it to the worker mesh.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "implementer",
+      "status": "retired",
+      "subagent_id": "sa-20260325152149433166-7cc9",
+      "summary": "implementer task for baseline_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:21:50+00:00",
+      "worker_task_id": "baseline_limit_up-implementer-2-20260325T152147Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325152154074736-0f4a",
+      "branch_id": "risk_constrained_limit_up",
+      "candidate_id": "candidate::risk_constrained_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:21:54+00:00",
+      "expected_artifacts": [
+        "branch_pool_snapshot",
+        "candidate_notes"
+      ],
+      "last_action": "retire",
+      "last_note": "Scout wrote a branch-pool evidence report for risk_constrained_limit_up with 42 candidate codes.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "scout",
+      "status": "retired",
+      "subagent_id": "sa-20260325152154074736-0f4a",
+      "summary": "scout task for risk_constrained_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:21:54+00:00",
+      "worker_task_id": "risk_constrained_limit_up-scout-1-20260325T152153Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325152155435374-98ca",
+      "branch_id": "risk_constrained_limit_up",
+      "candidate_id": "candidate::risk_constrained_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:21:55+00:00",
+      "expected_artifacts": [
+        "as_share_research_v1__risk_constrained_limit_up__20260325T152141Z"
+      ],
+      "last_action": "retire",
+      "last_note": "Implementer refreshed the experiment record for risk_constrained_limit_up and linked it to the worker mesh.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "implementer",
+      "status": "retired",
+      "subagent_id": "sa-20260325152155435374-98ca",
+      "summary": "implementer task for risk_constrained_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:21:56+00:00",
+      "worker_task_id": "risk_constrained_limit_up-implementer-2-20260325T152153Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325152200232912-ef56",
+      "branch_id": "tighter_entry_limit_up",
+      "candidate_id": "candidate::tighter_entry_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:22:00+00:00",
+      "expected_artifacts": [
+        "branch_pool_snapshot",
+        "candidate_notes"
+      ],
+      "last_action": "retire",
+      "last_note": "Scout wrote a branch-pool evidence report for tighter_entry_limit_up with 42 candidate codes.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "scout",
+      "status": "retired",
+      "subagent_id": "sa-20260325152200232912-ef56",
+      "summary": "scout task for tighter_entry_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:22:00+00:00",
+      "worker_task_id": "tighter_entry_limit_up-scout-1-20260325T152159Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325152201594111-9c87",
+      "branch_id": "tighter_entry_limit_up",
+      "candidate_id": "candidate::tighter_entry_limit_up",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:22:01+00:00",
+      "expected_artifacts": [
+        "as_share_research_v1__tighter_entry_limit_up__20260325T152141Z"
+      ],
+      "last_action": "retire",
+      "last_note": "Implementer refreshed the experiment record for tighter_entry_limit_up and linked it to the worker mesh.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "implementer",
+      "status": "retired",
+      "subagent_id": "sa-20260325152201594111-9c87",
+      "summary": "implementer task for tighter_entry_limit_up",
+      "transient": true,
+      "updated_at": "2026-03-25T15:22:02+00:00",
+      "worker_task_id": "tighter_entry_limit_up-implementer-2-20260325T152159Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325152220234694-cb14",
+      "branch_id": "legacy_single_branch",
+      "candidate_id": "candidate::legacy_single_branch",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:22:20+00:00",
+      "expected_artifacts": [
+        "branch_pool_snapshot",
+        "candidate_notes"
+      ],
+      "last_action": "retire",
+      "last_note": "Scout wrote a branch-pool evidence report for legacy_single_branch with 42 candidate codes.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "scout",
+      "status": "retired",
+      "subagent_id": "sa-20260325152220234694-cb14",
+      "summary": "scout task for legacy_single_branch",
+      "transient": true,
+      "updated_at": "2026-03-25T15:22:20+00:00",
+      "worker_task_id": "legacy_single_branch-scout-1-20260325T152219Z"
+    },
+    {
+      "allowed_paths": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\pools\\branch",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents"
+      ],
+      "artifact_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\subagents\\sa-20260325152221633066-3c39",
+      "branch_id": "legacy_single_branch",
+      "candidate_id": "candidate::legacy_single_branch",
+      "child_ids": [],
+      "created_at": "2026-03-25T15:22:21+00:00",
+      "expected_artifacts": [
+        "as_share_research_v1__legacy_single_branch__20260325T152213Z"
+      ],
+      "last_action": "retire",
+      "last_note": "Implementer refreshed the experiment record for legacy_single_branch and linked it to the worker mesh.",
+      "merged_into": null,
+      "mission_id": "mission-as_share_research_v1",
+      "parent_ids": [],
+      "role": "implementer",
+      "status": "retired",
+      "subagent_id": "sa-20260325152221633066-3c39",
+      "summary": "implementer task for legacy_single_branch",
+      "transient": true,
+      "updated_at": "2026-03-25T15:22:22+00:00",
+      "worker_task_id": "legacy_single_branch-implementer-2-20260325T152219Z"
+    }
+  ],
+  "superagent_state": {
+    "active_branch_ids": [
+      "baseline_limit_up",
+      "risk_constrained_limit_up",
+      "tighter_entry_limit_up"
+    ],
+    "core_universe_snapshot_id": "core-0536a20f13d1",
+    "mission_id": "mission-as_share_research_v1",
+    "mission_state": "active"
+  },
+  "tracked_memory_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1",
+  "verify_last": {
+    "conclusion_boundary_engineering": "Validated data recovery, coverage-gap analysis, and readiness writeback all executed.",
+    "conclusion_boundary_research": "Promotion-grade research can proceed on the current validated snapshot.",
+    "default_project_data_status": "ready coverage: 715/715 symbols with validated bars (coverage_ratio=1.0000, raw_rows=1441021, cleaned_rows=1419045, validated_rows=1419045).",
+    "failed_commands": [],
+    "passed_commands": [
+      "python -m quant_mvp data_validate --project as_share_research_v1"
+    ]
+  }
+}

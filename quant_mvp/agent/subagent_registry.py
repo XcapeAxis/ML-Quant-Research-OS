@@ -31,7 +31,8 @@ def summarize_subagent_state(state: dict[str, Any]) -> dict[str, Any]:
     records = list(state.get("subagents", []))
     active = [item["subagent_id"] for item in records if item.get("status") == "active"]
     blocked = [item["subagent_id"] for item in records if item.get("status") == "blocked"]
-    retired = [item["subagent_id"] for item in records if item.get("status") in {"retired", "merged", "archived", "canceled"}]
+    retired = [item["subagent_id"] for item in records if item.get("status") in {"retired", "merged", "archived", "canceled", "refactored"}]
+    refactored = [item["subagent_id"] for item in records if item.get("status") == "refactored"]
     transient = [item["subagent_id"] for item in records if item.get("transient", True)]
     templates = [item["subagent_id"] for item in records if not item.get("transient", True)]
     plan = state.get("subagent_plan", {}) or {}
@@ -44,6 +45,7 @@ def summarize_subagent_state(state: dict[str, Any]) -> dict[str, Any]:
         "active_ids": active,
         "blocked_ids": blocked,
         "retired_ids": retired,
+        "refactored_ids": refactored,
         "temporary_ids": transient,
         "template_ids": templates,
         "last_event": last_event,
@@ -71,6 +73,7 @@ def render_subagent_registry(
         f"- active: {', '.join(summary['active_ids']) if summary['active_ids'] else 'none'}",
         f"- blocked: {', '.join(summary['blocked_ids']) if summary['blocked_ids'] else 'none'}",
         f"- retired_or_merged: {', '.join(summary['retired_ids']) if summary['retired_ids'] else 'none'}",
+        f"- refactored: {', '.join(summary['refactored_ids']) if summary['refactored_ids'] else 'none'}",
         f"- temporary: {', '.join(summary['temporary_ids']) if summary['temporary_ids'] else 'none'}",
         f"- long_lived_templates: {', '.join(summary['template_ids']) if summary['template_ids'] else 'none'}",
         "",

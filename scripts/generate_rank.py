@@ -8,7 +8,7 @@ import sys
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Wrapper for scripts/steps/20_build_rank.py")
-    parser.add_argument("--project", type=str, default="2026Q1_limit_up")
+    parser.add_argument("--project", type=str, default="as_share_research_v1")
     parser.add_argument("--config", type=Path, default=None)
     parser.add_argument("--lookback", type=int, default=None)
     parser.add_argument("--rebalance-every", type=int, default=None)

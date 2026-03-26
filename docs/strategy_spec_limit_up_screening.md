@@ -77,7 +77,7 @@ seasonal no-trade periods.
 ## Configuration Reference
 
 All parameters are set via the project JSON config (e.g.
-`configs/projects/2026Q1_limit_up.json`). Key fields:
+`configs/projects/as_share_research_v1.json`). Key fields:
 
 ```json
 {

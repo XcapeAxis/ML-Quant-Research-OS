@@ -16,3 +16,5 @@ def test_agent_cycle_dry_run(limit_up_project) -> None:
     assert paths.hypothesis_queue_path.exists()
     assert paths.project_state_path.exists()
     assert paths.runtime_cycles_dir.exists()
+    assert payload["evaluation"]["promotion_decision"]["checks"]["baselines_status"] == "pass"
+    assert payload["evaluation"]["promotion_decision"]["baselines"]["benchmark_available"] is True

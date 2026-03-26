@@ -15,6 +15,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from quant_mvp.config import load_config
+from quant_mvp.data.coverage_gap import load_bars_attempt_status, save_bars_attempt_status
 from quant_mvp.data.cleaning import clean_project_bars
 from quant_mvp.data.contracts import ProviderFetchRequest
 from quant_mvp.data.providers import AkshareDailyProvider
@@ -147,6 +148,7 @@ def run_update(
 
     registry_path = paths.meta_dir / "bars_registry.json"
     registry = _load_registry(registry_path)
+    attempt_status = load_bars_attempt_status(paths.meta_dir)
     stats = {
         "total_codes": len(codes),
         "updated_codes": 0,
@@ -174,22 +176,51 @@ def run_update(
         }
         for future in as_completed(futures):
             code = futures[future]
+            now = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
             try:
                 _, rows, last = future.result()
                 stats["total_rows"] += rows
                 if rows > 0:
                     stats["updated_codes"] += 1
                     stats["updated_code_list"].append(code)
+                    attempt_status[str(code).zfill(6)] = {
+                        "symbol": str(code).zfill(6),
+                        "last_attempted_at": now,
+                        "status": "success",
+                        "last_error": "",
+                        "last_success_end_date": last,
+                        "attempt_count": int(attempt_status.get(str(code).zfill(6), {}).get("attempt_count", 0) or 0) + 1,
+                    }
+                else:
+                    prior = attempt_status.get(str(code).zfill(6), {})
+                    attempt_status[str(code).zfill(6)] = {
+                        "symbol": str(code).zfill(6),
+                        "last_attempted_at": now,
+                        "status": "empty_response",
+                        "last_error": "",
+                        "last_success_end_date": prior.get("last_success_end_date"),
+                        "attempt_count": int(prior.get("attempt_count", 0) or 0) + 1,
+                    }
                 if last:
                     registry[code] = last
             except Exception as exc:
                 stats["failed_codes"].append(code)
                 reason = _friendly_network_error(exc, network_cfg)
+                prior = attempt_status.get(str(code).zfill(6), {})
+                attempt_status[str(code).zfill(6)] = {
+                    "symbol": str(code).zfill(6),
+                    "last_attempted_at": now,
+                    "status": "failed",
+                    "last_error": reason,
+                    "last_success_end_date": prior.get("last_success_end_date"),
+                    "attempt_count": int(prior.get("attempt_count", 0) or 0) + 1,
+                }
                 stats["failure_reason_counts"][reason] = int(stats["failure_reason_counts"].get(reason, 0)) + 1
                 if len(stats["sample_failures"]) < 5:
                     stats["sample_failures"].append(f"{code}: {reason}")
 
     _save_registry(registry_path, registry)
+    save_bars_attempt_status(paths.meta_dir, attempt_status)
 
     quality_stats = None
     if data_quality_cfg and data_quality_cfg.get("enabled", True) and data_quality_cfg.get("auto_clean_after_update", True):
@@ -260,7 +291,7 @@ def run_update(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Update project bars into SQLite.")
-    parser.add_argument("--project", type=str, default="2026Q1_limit_up")
+    parser.add_argument("--project", type=str, default="as_share_research_v1")
     parser.add_argument("--config", type=Path, default=None, help="Optional config path override.")
     parser.add_argument("--mode", type=str, default="incremental", choices=["incremental", "backfill"])
     parser.add_argument("--freq", type=str, default=None)

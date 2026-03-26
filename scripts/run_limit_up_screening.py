@@ -11,13 +11,26 @@ if str(ROOT) not in sys.path:
 
 from quant_mvp.config import load_config
 from quant_mvp.manifest import update_run_manifest
+from quant_mvp.pools import resolve_research_universe_codes
 from quant_mvp.research_core import build_limit_up_rank_artifacts, run_limit_up_backtest_artifacts
 from quant_mvp.universe import load_universe_codes
 
 
+def _load_strategy_universe(project: str, config_path: Path | None) -> list[str]:
+    try:
+        return load_universe_codes(project)
+    except FileNotFoundError:
+        universe, _ = resolve_research_universe_codes(
+            project,
+            config_path=config_path,
+            build_if_missing=True,
+        )
+        return universe
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run the audited limit-up screening strategy.")
-    parser.add_argument("--project", type=str, default="2026Q1_limit_up")
+    parser.add_argument("--project", type=str, default="as_share_research_v1")
     parser.add_argument("--config", type=Path, default=None)
     parser.add_argument("--save", type=str, default="auto")
     parser.add_argument("--no-show", action="store_true")
@@ -26,7 +39,7 @@ def main() -> None:
     cfg, paths = load_config(args.project, config_path=args.config)
     paths.ensure_dirs()
 
-    universe = load_universe_codes(args.project)
+    universe = _load_strategy_universe(args.project, args.config)
     rank_artifacts = build_limit_up_rank_artifacts(
         cfg=cfg,
         paths=paths,

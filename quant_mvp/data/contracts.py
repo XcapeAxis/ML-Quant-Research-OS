@@ -28,6 +28,8 @@ class DataQualityReport:
     frequency: str
     source_provider: str
     coverage_ratio: float
+    covered_symbols: int
+    universe_symbols: int
     raw_rows: int
     cleaned_rows: int
     validated_rows: int

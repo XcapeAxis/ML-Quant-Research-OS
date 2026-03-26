@@ -1,0 +1,38 @@
+{
+  "mission_id": "mission-2026Q1_limit_up",
+  "project": "2026Q1_limit_up",
+  "state": "active",
+  "objective": "Run multi-branch research from a frozen core universe plus branch pools instead of a linear single-cycle control plane.",
+  "created_at": "2026-03-25T14:35:06+00:00",
+  "updated_at": "2026-03-25T15:22:41+00:00",
+  "budget": {
+    "max_branches": 3,
+    "experiments_per_tick": 1
+  },
+  "constraints": {
+    "research_scope": "A-share daily/weekly research only",
+    "no_live_trading": true,
+    "board_scope": "mainboard_a_share_only"
+  },
+  "checkpoints": [
+    {
+      "label": "slice1",
+      "status": "complete",
+      "note": "Mission orchestrator, branch graph, and dual-pool market plane"
+    },
+    {
+      "label": "slice2",
+      "status": "active",
+      "note": "Scout and implementer worker tasks now run with auditable artifacts; verifier remains gated."
+    }
+  ],
+  "active_branch_ids": [
+    "baseline_limit_up",
+    "risk_constrained_limit_up",
+    "tighter_entry_limit_up"
+  ],
+  "core_universe_snapshot_id": "core-0536a20f13d1",
+  "core_universe_snapshot_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\2026Q1_limit_up\\meta\\pools\\latest_core_pool.json",
+  "core_pool_snapshot_id": "core-0536a20f13d1",
+  "core_pool_snapshot_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\2026Q1_limit_up\\meta\\pools\\latest_core_pool.json"
+}

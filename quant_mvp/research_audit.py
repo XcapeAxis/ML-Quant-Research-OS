@@ -112,7 +112,29 @@ def _build_decision_log_markdown() -> str:
 - Move durable project memory into git-tracked `memory/projects/<project>/`.
 - Keep raw cycle payloads, manifests, and other high-noise outputs under ignored runtime directories.
 - Add handoff, migration prompt, verify snapshot, and machine-state files so sessions can migrate without rereading the whole repository.
-"""
+""" 
+
+
+def _merge_decision_log(existing: str) -> str:
+    template = _build_decision_log_markdown().strip()
+    if not existing.strip():
+        return template + "\n"
+
+    merged = existing.strip()
+    for block in [item.strip() for item in template.split("\n## ") if item.strip()]:
+        lines = block.splitlines()
+        heading = lines[0]
+        body_lines = lines[1:]
+        marker = f"## {heading}" if not heading.startswith("# ") else heading
+        if marker not in merged:
+            merged = merged.rstrip() + f"\n\n## {heading}\n" + "\n".join(body_lines)
+            continue
+        anchor = marker
+        insertions = [line for line in body_lines if line.strip().startswith("- ") and line not in merged]
+        if not insertions:
+            continue
+        merged = merged.replace(anchor, anchor + "\n" + "\n".join(insertions), 1)
+    return merged.rstrip() + "\n"
 
 
 def run_research_audit(
@@ -163,7 +185,10 @@ def run_research_audit(
 
     system_audit_path.write_text(_build_system_audit_markdown(project, findings), encoding="utf-8")
     failure_modes_path.write_text(_build_failure_modes_markdown(), encoding="utf-8")
-    decision_log_path.write_text(_build_decision_log_markdown(), encoding="utf-8")
+    decision_log_path.write_text(
+        _merge_decision_log(decision_log_path.read_text(encoding="utf-8") if decision_log_path.exists() else ""),
+        encoding="utf-8",
+    )
 
     return {
         "system_audit_path": str(system_audit_path),

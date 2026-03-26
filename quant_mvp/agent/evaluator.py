@@ -22,6 +22,7 @@ def evaluate_execution(
     volume_panel: pd.DataFrame,
     metrics_df: pd.DataFrame,
     hypothesis: str,
+    benchmark_series: pd.Series | None = None,
 ) -> EvaluationRecord:
     leakage = audit_strategy_leakage(
         rank_df=rank_df,
@@ -37,6 +38,7 @@ def evaluate_execution(
     baselines = run_simple_baselines(
         close_panel=close_panel,
         benchmark_code=str(cfg.get("baselines", {}).get("benchmark_code", "000001")),
+        benchmark_series=benchmark_series,
     )
     cost = cost_sensitivity_summary(
         metrics_df=metrics_df,
@@ -52,6 +54,7 @@ def evaluate_execution(
         metrics=metrics,
         leakage_report=leakage,
         walk_forward=walk_forward,
+        baselines=baselines,
         cost_sensitivity=cost,
         parameter_robustness=perturbations,
         research_hypothesis=hypothesis,

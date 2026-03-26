@@ -15,11 +15,6 @@
 - Letting tools execute outside the allowlist or without being logged.
 - Overwriting failure records instead of appending postmortems and experiment ledgers.
 
-## Subagent Governance
-- Spawning subagents for narrow or high-overlap tasks where coordination cost exceeds the benefit.
-- Letting subagent runtime payloads leak into tracked memory instead of staying under `artifacts/projects/<project>/subagents/`.
-- Merging, retiring, or archiving subagents without recording the lineage and lifecycle event in tracked memory.
-
 ## Memory Layering
 - Writing durable project memory only into ignored runtime directories.
 - Mixing compact tracked ledgers with full raw experiment payloads.

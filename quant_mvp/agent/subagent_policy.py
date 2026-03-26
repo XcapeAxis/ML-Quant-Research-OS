@@ -9,11 +9,14 @@ from .subagent_models import GateMode, SubagentPlan, SubagentRoleTemplate, Subag
 
 DEFAULT_POLICY = {
     "default_gate": "AUTO",
-    "max_recommended_subagents": 3,
+    "soft_limit": 2,
+    "stretch_limit": 4,
+    "hard_limit": 6,
     "min_breadth_for_split": 2,
     "min_independence_for_split": 0.65,
     "max_file_overlap_for_split": 0.4,
     "min_score_for_auto": 1.8,
+    "min_score_for_stretch": 2.45,
     "weights": {
         "breadth": 0.7,
         "independence": 0.8,
@@ -183,9 +186,16 @@ def evaluate_subagent_plan(
     candidate_roles = _keyword_roles(profile.task_summary, profile.focus_tags, role_templates)
     if not candidate_roles:
         candidate_roles = ["integration_merger"]
-    recommended_roles = candidate_roles[: int(policy["max_recommended_subagents"])]
-    recommended_count = min(max(2, len(recommended_roles)), int(policy["max_recommended_subagents"]))
-    recommended_roles = recommended_roles[:recommended_count]
+    soft_limit = int(policy.get("soft_limit", 2))
+    stretch_limit = int(policy.get("stretch_limit", max(soft_limit, 4)))
+    hard_limit = int(policy.get("hard_limit", max(stretch_limit, 6)))
+    target_limit = soft_limit
+    if float(score) >= float(policy.get("min_score_for_stretch", policy["min_score_for_auto"])) and int(profile.breadth) >= 4:
+        target_limit = stretch_limit
+    if gate_mode == "FORCE":
+        target_limit = max(target_limit, min(stretch_limit, hard_limit))
+    recommended_count = min(max(2, len(candidate_roles)), target_limit, hard_limit)
+    recommended_roles = candidate_roles[:recommended_count]
     work_packages = _build_work_packages(recommended_roles, profile.task_summary, role_templates)
     recommended_gate: GateMode = "FORCE" if gate_mode == "FORCE" else "AUTO"
     rationale = "Independent work packages exist and the coordination-adjusted score justifies controlled decomposition."

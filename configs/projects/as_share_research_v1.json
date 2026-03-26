@@ -1,0 +1,92 @@
+{
+  "freq": "1d",
+  "strategy_mode": "limit_up_screening",
+  "lookback": 20,
+  "rebalance_every": 5,
+  "topk": 6,
+  "topn_max": 6,
+  "min_bars": 160,
+  "max_codes_scan": 4000,
+  "cash": 1000000.0,
+  "commission": 0.0001,
+  "stamp_duty": 0.0005,
+  "slippage": 0.002,
+  "calendar_code": "000001",
+  "start_date": "2016-01-01",
+  "end_date": "2025-07-01",
+  "universe_size_target": 715,
+  "risk_free_rate": 0.03,
+  "research_hypothesis": "Repeated historical limit-up behaviour may identify A-share names re-accumulating near their breakout origin, but only after leakage, tradability, and robustness gates pass.",
+  "stock_num": 6,
+  "limit_days_window": 250,
+  "top_pct_limit_up": 0.1,
+  "limit_up_threshold": 0.095,
+  "init_pool_size": 1000,
+  "rebalance_weekday": 1,
+  "min_new_listing_days": 375,
+  "stoploss_limit": 0.91,
+  "take_profit_ratio": 2.0,
+  "market_stoploss_ratio": 0.93,
+  "loss_black_days": 20,
+  "no_trade_months": [
+    1,
+    4
+  ],
+  "min_commission": 5.0,
+  "baselines": {
+    "benchmark_code": "000001",
+    "enable_equal_weight": true,
+    "random_trials": 200,
+    "random_seed": 42
+  },
+  "tradability": {
+    "require_positive_volume": true,
+    "min_volume": 0.0
+  },
+  "data_provider": {
+    "provider": "akshare",
+    "market": "CN-A",
+    "raw_layer": "raw",
+    "cleaned_layer": "cleaned",
+    "validated_layer": "validated",
+    "symbol_format": "six_digit_a_share"
+  },
+  "research_validation": {
+    "enabled": true,
+    "forward_horizon_days": 1,
+    "max_drawdown_limit": 0.3,
+    "min_walk_forward_windows_alive": 2,
+    "max_cost_sensitivity_drawdown_delta": 0.1,
+    "min_cost_sensitivity_return_ratio": 0.5,
+    "require_economic_rationale": true,
+    "require_parameter_robustness": true,
+    "parameter_perturbations": [
+      {
+        "limit_days_window": -0.2
+      },
+      {
+        "limit_days_window": 0.2
+      },
+      {
+        "top_pct_limit_up": -0.2
+      },
+      {
+        "top_pct_limit_up": 0.2
+      }
+    ]
+  },
+  "agent": {
+    "default_backend": "dry_run",
+    "allow_live_execution": false,
+    "max_cycles_per_run": 1,
+    "require_promotion_gate": true,
+    "default_tool_allowlist_path": "configs/tool_allowlist.yaml"
+  },
+  "risk_overlay": {
+    "enabled": false,
+    "vol_target": 0.18,
+    "rolling_days": 20,
+    "max_leverage": 1.0
+  },
+  "topk_multiplier": 2
+}

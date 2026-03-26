@@ -33,6 +33,7 @@ from quant_mvp.backtest_engine import (
 from quant_mvp.config import load_config
 from quant_mvp.db import load_close_volume_panel
 from quant_mvp.manifest import candidate_count_stats, update_run_manifest
+from quant_mvp.pools import resolve_research_universe_codes
 from quant_mvp.research_core import run_limit_up_backtest_artifacts
 from quant_mvp.universe import load_universe_codes
 
@@ -138,10 +139,22 @@ def _resolve_plot_path(args, paths, default_name: str) -> Path | None:
 # Momentum mode
 # ---------------------------------------------------------------------------
 
+def _load_strategy_universe(project: str, config_path: Path | None) -> set[str]:
+    try:
+        return set(load_universe_codes(project))
+    except FileNotFoundError:
+        universe, _ = resolve_research_universe_codes(
+            project,
+            config_path=config_path,
+            build_if_missing=True,
+        )
+        return set(universe)
+
+
 def _run_momentum(args, cfg: dict, paths) -> None:
     rank_path = args.rank_path or (paths.signals_dir / f"rank_top{int(cfg['topk'])}.parquet")
     rank_df = _read_rank(rank_path)
-    universe = set(load_universe_codes(args.project))
+    universe = _load_strategy_universe(args.project, args.config)
     rank_df = rank_df[rank_df["code"].isin(universe)].copy()
     if rank_df.empty:
         raise RuntimeError("Rank file has no rows after universe filter.")
@@ -203,7 +216,7 @@ def _run_limit_up_screening(args, cfg: dict, paths) -> None:
     stock_num = int(cfg.get("stock_num", 6))
     rank_path = args.rank_path or (paths.signals_dir / f"rank_top{stock_num}.parquet")
     rank_df = _read_rank(rank_path)
-    universe = set(load_universe_codes(args.project))
+    universe = _load_strategy_universe(args.project, args.config)
     rank_df = rank_df[rank_df["code"].isin(universe)].copy()
     if rank_df.empty:
         raise RuntimeError("Rank file has no rows after universe filter.")
@@ -228,7 +241,7 @@ def _run_limit_up_screening(args, cfg: dict, paths) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run project-scoped rebalancing backtest.")
-    parser.add_argument("--project", type=str, default="2026Q1_limit_up")
+    parser.add_argument("--project", type=str, default="as_share_research_v1")
     parser.add_argument("--config", type=Path, default=None)
     parser.add_argument("--rank-path", type=Path, default=None)
     parser.add_argument("--freq", type=str, default=None)

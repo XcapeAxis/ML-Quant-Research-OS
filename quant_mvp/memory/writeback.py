@@ -180,6 +180,33 @@ def _render_research_memory(state: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _iterative_loop_state(state: dict[str, Any]) -> dict[str, Any]:
+    payload = dict(_default_iterative_loop_state())
+    payload.update(state.get("iterative_loop", {}) or {})
+    payload["subagents_used"] = _normalize_list(payload.get("subagents_used"))
+    payload["blocker_history"] = dict(payload.get("blocker_history", {}) or {})
+    return payload
+
+
+def _render_loop_summary_lines(state: dict[str, Any]) -> list[str]:
+    loop = _iterative_loop_state(state)
+    return [
+        f"- iteration_count: {loop.get('iteration_count', 0)}",
+        f"- target_iterations: {loop.get('target_iterations', 0)}",
+        f"- max_iterations: {loop.get('max_iterations', 0)}",
+        f"- stop_reason: {loop.get('stop_reason', 'unknown')}",
+        f"- direction_change: {loop.get('direction_change', False)}",
+        f"- blocker_escalation: {loop.get('blocker_escalation', False)}",
+        f"- last_classification: {loop.get('last_classification', 'unknown')}",
+        f"- max_active_subagents: {loop.get('max_active_subagents', 0)}",
+        f"- subagents_used: {', '.join(loop.get('subagents_used', [])) or 'none'}",
+        f"- subagent_reason: {loop.get('subagent_reason', 'n/a')}",
+        f"- completed: {loop.get('last_completed', 'none recorded')}",
+        f"- not_done: {loop.get('last_not_done', 'none recorded')}",
+        f"- next_recommendation: {loop.get('next_recommendation', 'none recorded')}",
+    ]
+
+
 def _extract_last_postmortem(text: str) -> dict[str, str]:
     blocks = [block.strip() for block in text.split("\n## ") if block.strip()]
     if not blocks:
@@ -235,6 +262,28 @@ def _compact_legacy_ledger_entry(project: str, raw_line: str, state: dict[str, A
     }
 
 
+def _default_iterative_loop_state() -> dict[str, Any]:
+    return {
+        "last_run_id": "",
+        "iteration_count": 0,
+        "target_iterations": 0,
+        "max_iterations": 0,
+        "stop_reason": "not_run",
+        "direction_change": False,
+        "blocker_escalation": False,
+        "blocker_history": {},
+        "consecutive_no_new_info_runs": 0,
+        "last_completed": "none recorded",
+        "last_not_done": "none recorded",
+        "next_recommendation": "none recorded",
+        "subagents_used": [],
+        "subagent_reason": "No iterative loop run has been recorded yet.",
+        "max_active_subagents": 0,
+        "artifact_path": "",
+        "last_classification": "not_run",
+    }
+
+
 def _default_session_state(project: str, *, root: Path, paths) -> dict[str, Any]:
     base = {
         "project": project,
@@ -272,6 +321,7 @@ def _default_session_state(project: str, *, root: Path, paths) -> dict[str, Any]
         "head": _git_value(root, "rev-parse", "HEAD"),
         "branch": _git_value(root, "rev-parse", "--abbrev-ref", "HEAD"),
         "last_updated": _utc_now(),
+        "iterative_loop": _default_iterative_loop_state(),
     }
     base.update(default_subagent_state(paths))
     return base
@@ -288,6 +338,7 @@ def _merge_state(base: dict[str, Any], updates: dict[str, Any]) -> dict[str, Any
 
 def _render_project_state(state: dict[str, Any]) -> str:
     subagents = summarize_subagent_state(state)
+    stage0a = dict(state.get("stage0a_decision", {}) or {})
     lines = [
         "# Project State",
         "",
@@ -303,6 +354,15 @@ def _render_project_state(state: dict[str, Any]) -> str:
         f"- subagent_blocked: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
         f"- subagent_recent_event: {subagents['last_event'].get('action', 'none recorded')}",
     ]
+    if stage0a:
+        lines.extend(
+            [
+                f"- stage0a_last_decision: {stage0a.get('decision', 'unknown')}",
+                f"- stage0a_universe_shift: {stage0a.get('old_universe_size', 'n/a')} -> {stage0a.get('new_universe_size', 'n/a')}",
+            ],
+        )
+    lines.extend(["", "## Last Iterative Run"])
+    lines.extend(_render_loop_summary_lines(state))
     return "\n".join(lines)
 
 
@@ -340,8 +400,11 @@ def _render_verify_last(state: dict[str, Any]) -> str:
             f"- active_subagents: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
             f"- blocked_subagents: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
             f"- recent_subagent_event: {subagents['last_event'].get('action', 'none recorded')}",
+            "",
+            "## Iterative Loop",
         ],
     )
+    lines.extend(_render_loop_summary_lines(state))
     return "\n".join(lines)
 
 
@@ -378,6 +441,12 @@ def _render_handoff(state: dict[str, Any], paths) -> str:
         f"- recent_transition: {subagents['last_event'].get('action', 'none recorded')}",
         f"- continue_using_subagents: {'yes' if subagents['should_expand'] else 'no'}",
         "",
+        "## Last Iterative Run",
+    ]
+    lines.extend(_render_loop_summary_lines(state))
+    lines.extend(
+        [
+            "",
         "## Next Highest-Priority Action",
         state.get("next_priority_action", "unknown"),
         "",
@@ -386,7 +455,8 @@ def _render_handoff(state: dict[str, Any], paths) -> str:
         f"- {paths.verify_last_path}",
         f"- {paths.migration_prompt_path}",
         f"- {paths.research_memory_path}",
-    ]
+        ],
+    )
     return "\n".join(lines)
 
 
@@ -430,15 +500,22 @@ def _render_migration_prompt(state: dict[str, Any], paths) -> str:
         f"- recent_transition: {subagents['last_event'].get('action', 'none recorded')}",
         f"- continue_using_subagents: {'yes' if subagents['should_expand'] else 'no'}",
         "",
-        "## Next Highest-Priority Action",
-        state.get("next_priority_action", "unknown"),
-        "",
-        "## Avoid Repeating Work",
-        "- Do not move durable memory back into ignored runtime directories.",
-        "- Do not trust default-project research claims until validated bars exist for the frozen universe.",
-        "",
-        "## Required Verification First",
+        "## Last Iterative Run",
     ]
+    lines.extend(_render_loop_summary_lines(state))
+    lines.extend(
+        [
+            "",
+            "## Next Highest-Priority Action",
+            state.get("next_priority_action", "unknown"),
+            "",
+            "## Avoid Repeating Work",
+            "- Do not move durable memory back into ignored runtime directories.",
+            "- Do not trust default-project research claims until validated bars exist for the frozen universe.",
+            "",
+            "## Required Verification First",
+        ],
+    )
     lines.extend([f"- {item}" for item in _normalize_list(verify.get("passed_commands"))] or ["- Run the tracked-memory and contract test suite first."])
     lines.extend(
         [
@@ -568,6 +645,7 @@ def _refresh_derived_memory(paths, state: dict[str, Any]) -> None:
     state.update({key: state.get(key) for key in default_subagent_state(paths).keys() if key in state})
     for key, value in default_subagent_state(paths).items():
         state.setdefault(key, value)
+    state.setdefault("iterative_loop", _default_iterative_loop_state())
     state["head"] = _git_value(paths.root, "rev-parse", "HEAD")
     state["branch"] = _git_value(paths.root, "rev-parse", "--abbrev-ref", "HEAD")
     state["tracked_memory_dir"] = str(paths.memory_dir)
@@ -580,6 +658,20 @@ def _refresh_derived_memory(paths, state: dict[str, Any]) -> None:
     _write_text(paths.verify_last_path, _render_verify_last(state))
     _write_text(paths.handoff_path, _render_handoff(state, paths))
     _write_text(paths.migration_prompt_path, _render_migration_prompt(state, paths))
+    loop = _iterative_loop_state(state)
+    _write_text(
+        paths.next_round_plan_path,
+        "\n".join(
+            [
+                "# Next Round Research Plan",
+                "",
+                f"- stop_reason: {loop.get('stop_reason', 'unknown')}",
+                f"- next_recommendation: {loop.get('next_recommendation', 'none recorded')}",
+                f"- blocker_escalation: {loop.get('blocker_escalation', False)}",
+                f"- direction_change: {loop.get('direction_change', False)}",
+            ],
+        ),
+    )
     _write_text(
         paths.subagent_registry_path,
         render_subagent_registry(state, role_templates=load_subagent_roles(_subagent_roles_path(paths.root))),
@@ -604,10 +696,16 @@ def bootstrap_memory_files(project: str, *, repo_root: Path | None = None) -> di
         "session_state": paths.session_state_path,
         "subagent_registry": paths.subagent_registry_path,
         "subagent_ledger": paths.subagent_ledger_path,
+        "mission_state": paths.mission_state_path,
+        "branch_ledger": paths.branch_ledger_path,
+        "evidence_ledger": paths.evidence_ledger_path,
+        "portfolio_status": paths.portfolio_status_path,
+        "next_round_plan": paths.next_round_plan_path,
         "memory_dir": paths.memory_dir,
         "runtime_meta_dir": paths.meta_dir,
         "runtime_cycles_dir": paths.runtime_cycles_dir,
         "runtime_subagent_artifacts_dir": paths.subagent_artifacts_dir,
+        "runtime_automation_runs_dir": paths.automation_runs_dir,
     }
 
     state = _read_json(paths.session_state_path, default=_default_session_state(project, root=paths.root, paths=paths))
@@ -620,6 +718,13 @@ def bootstrap_memory_files(project: str, *, repo_root: Path | None = None) -> di
         paths.experiment_ledger_path.write_text("", encoding="utf-8")
     if not paths.subagent_ledger_path.exists():
         paths.subagent_ledger_path.write_text("", encoding="utf-8")
+    if not paths.branch_ledger_path.exists():
+        paths.branch_ledger_path.write_text("", encoding="utf-8")
+    if not paths.evidence_ledger_path.exists():
+        paths.evidence_ledger_path.write_text("", encoding="utf-8")
+    _write_if_missing(paths.next_round_plan_path, "# Next Round Research Plan\n\n- none recorded\n")
+    _write_if_missing(paths.portfolio_status_path, "# Portfolio Status\n\n- none recorded\n")
+    _write_if_missing(paths.mission_state_path, json.dumps({}, ensure_ascii=False, indent=2) + "\n")
     _refresh_derived_memory(paths, state)
     return tracked_files
 
@@ -800,6 +905,100 @@ def record_agent_cycle(project: str, payload: dict[str, Any], *, repo_root: Path
     return {
         "cycle_path": cycle_path,
         "ledger_path": paths.experiment_ledger_path,
+    }
+
+
+def record_iterative_run(project: str, payload: dict[str, Any], *, repo_root: Path | None = None) -> dict[str, Path]:
+    paths, state = _load_state(project, repo_root=repo_root)
+    timestamp = str(payload.get("timestamp") or _utc_now())
+    run_id = str(payload.get("run_id") or f"{project}-iterative-run")
+    jsonable = to_jsonable(payload)
+    paths.automation_runs_dir.mkdir(parents=True, exist_ok=True)
+    run_path = paths.automation_runs_dir / f"{timestamp.replace(':', '').replace('-', '')}_{run_id}.json"
+    run_path.write_text(json.dumps(jsonable, ensure_ascii=False, indent=2, sort_keys=True).rstrip() + "\n", encoding="utf-8")
+
+    loop = _iterative_loop_state(state)
+    blocker_key = str(payload.get("blocker_key", "") or "").strip()
+    blocker_history = dict(loop.get("blocker_history", {}) or {})
+    if blocker_key:
+        history = dict(blocker_history.get(blocker_key, {}) or {})
+        history["count"] = int(history.get("count", 0) or 0) + 1
+        history["last_seen"] = timestamp
+        history["last_stop_reason"] = str(payload.get("stop_reason", "unknown"))
+        history["escalated"] = bool(payload.get("blocker_escalation", False))
+        blocker_history[blocker_key] = history
+
+    no_new_information = not bool(payload.get("new_information", True))
+    consecutive_no_new_info_runs = int(loop.get("consecutive_no_new_info_runs", 0) or 0)
+    loop.update(
+        {
+            "last_run_id": run_id,
+            "iteration_count": int(payload.get("iteration_count", 0) or 0),
+            "target_iterations": int(payload.get("target_iterations", 0) or 0),
+            "max_iterations": int(payload.get("max_iterations", 0) or 0),
+            "stop_reason": str(payload.get("stop_reason", "unknown")),
+            "direction_change": bool(payload.get("direction_change", False)),
+            "blocker_escalation": bool(payload.get("blocker_escalation", False)),
+            "blocker_history": blocker_history,
+            "consecutive_no_new_info_runs": consecutive_no_new_info_runs + 1 if no_new_information else 0,
+            "last_completed": str(payload.get("completed", "none recorded")),
+            "last_not_done": str(payload.get("not_done", "none recorded")),
+            "next_recommendation": str(payload.get("next_recommendation", "none recorded")),
+            "subagents_used": _normalize_list(payload.get("subagents_used")),
+            "subagent_reason": str(payload.get("subagent_reason", "n/a")),
+            "max_active_subagents": int(payload.get("max_active_subagents", 0) or 0),
+            "artifact_path": str(run_path),
+            "last_classification": str(payload.get("classification", "unknown")),
+        },
+    )
+    state["iterative_loop"] = loop
+    state["current_task"] = str(payload.get("current_task") or state.get("current_task"))
+    state["current_phase"] = str(payload.get("current_phase") or state.get("current_phase"))
+    state["current_blocker"] = str(payload.get("current_blocker") or state.get("current_blocker"))
+    state["next_priority_action"] = str(payload.get("next_recommendation") or state.get("next_priority_action"))
+    if payload.get("last_verified_capability"):
+        state["last_verified_capability"] = str(payload["last_verified_capability"])
+    if payload.get("last_failed_capability"):
+        state["last_failed_capability"] = str(payload["last_failed_capability"])
+    if payload.get("current_capability_boundary"):
+        state["current_capability_boundary"] = str(payload["current_capability_boundary"])
+
+    next_step_memory = _normalize_list(state.get("next_step_memory"))
+    recommendation = str(payload.get("next_recommendation", "")).strip()
+    if recommendation:
+        next_step_memory = [recommendation, *[item for item in next_step_memory if item != recommendation]][:5]
+        state["next_step_memory"] = next_step_memory
+
+    _refresh_derived_memory(paths, state)
+    record_experiment_result(
+        project,
+        {
+            "timestamp": timestamp,
+            "experiment_id": run_id,
+            "hypothesis": str(payload.get("selected_hypothesis", "")),
+            "result": "passed" if bool(payload.get("verified_progress", False)) else "blocked",
+            "blockers": [state.get("current_blocker", "")] if state.get("current_blocker") else [],
+            "artifact_refs": [str(run_path)],
+        },
+        repo_root=repo_root,
+    )
+    if payload.get("postmortem_required"):
+        record_failure(
+            project,
+            {
+                "timestamp": timestamp,
+                "experiment_id": run_id,
+                "summary": str(payload.get("postmortem_summary", payload.get("not_done", ""))),
+                "root_cause": str(payload.get("current_blocker", "")),
+                "corrective_action": recommendation,
+                "resolution_status": "not_fixed",
+            },
+            repo_root=repo_root,
+        )
+    return {
+        "run_path": run_path,
+        "ledger_path": paths.experiment_ledger_path,
+        "session_state_path": paths.session_state_path,
     }
 
 

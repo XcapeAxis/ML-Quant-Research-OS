@@ -20,7 +20,7 @@ from quant_mvp.universe import load_universe_codes
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run walk-forward validation by configured windows.")
-    parser.add_argument("--project", type=str, default="2026Q1_limit_up")
+    parser.add_argument("--project", type=str, default="as_share_research_v1")
     parser.add_argument("--config", type=Path, default=None)
     parser.add_argument("--topn", type=int, default=None)
     args = parser.parse_args()

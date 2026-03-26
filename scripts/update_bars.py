@@ -8,7 +8,7 @@ import sys
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Wrapper for scripts/steps/11_update_bars.py")
-    parser.add_argument("--project", type=str, default="2026Q1_limit_up")
+    parser.add_argument("--project", type=str, default="as_share_research_v1")
     parser.add_argument("--config", type=Path, default=None)
     parser.add_argument("--mode", type=str, default="incremental", choices=["incremental", "backfill"])
     parser.add_argument("--start-date", type=str, default=None)

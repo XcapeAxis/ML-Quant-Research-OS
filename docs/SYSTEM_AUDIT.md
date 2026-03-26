@@ -1,7 +1,7 @@
 # System Audit
 
-- Date: 2026-03-25
-- Project: 2026Q1_limit_up
+- Date: 2026-03-26
+- Project: as_share_research_v1
 - Scope: Phase 1 A-share daily/weekly research operating system audit
 
 ## Findings
@@ -12,7 +12,7 @@
 | weekday_contract | pass | Tuesday rebalance helper returns only weekday=1 dates. |
 | strategy_defaults | pass | Limit-up window defaults are centralized in the schema and set to 250 trading days. |
 | manifest_paths | pass | Manifest path block should point to the current repository root rather than a stale machine-specific location. |
-| reproducible_project_artifacts | warn | The default project needs both a frozen universe and usable local bars before any historical claim is treated as reproducible. |
+| reproducible_project_artifacts | pass | The default project needs both a frozen universe and usable local bars before any historical claim is treated as reproducible. |
 
 ## Key Observations
 

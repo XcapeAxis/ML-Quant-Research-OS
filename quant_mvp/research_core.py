@@ -38,6 +38,7 @@ class LimitUpBacktestArtifacts:
     rank_df: pd.DataFrame
     close_panel: pd.DataFrame
     volume_panel: pd.DataFrame
+    benchmark_series: pd.Series
     tradability_mask: pd.DataFrame
     equity: pd.Series
     metrics_df: pd.DataFrame
@@ -238,6 +239,21 @@ def run_limit_up_backtest_artifacts(
     close = close.reindex(columns=rank_codes).astype(float)
     volume = volume.reindex(columns=rank_codes).astype(float)
 
+    benchmark_code = str(cfg.get("baselines", {}).get("benchmark_code", "")).zfill(6)
+    benchmark_series = pd.Series(dtype=float)
+    if benchmark_code:
+        if benchmark_code in close.columns:
+            benchmark_series = close[benchmark_code].dropna().astype(float)
+        else:
+            benchmark_close, _ = load_close_volume_panel(
+                db_path=Path(str(cfg["db_path"])),
+                freq=str(cfg["freq"]),
+                codes=[benchmark_code],
+                start=start,
+                end=panel_end,
+            )
+            benchmark_series = benchmark_close.get(benchmark_code, pd.Series(dtype=float)).dropna().astype(float)
+
     tradability_cfg = cfg.get("tradability", {})
     tradability_mask = build_tradability_mask(
         close,
@@ -332,6 +348,7 @@ def run_limit_up_backtest_artifacts(
         rank_df=rank_df,
         close_panel=close,
         volume_panel=volume,
+        benchmark_series=benchmark_series,
         tradability_mask=tradability_mask,
         equity=equity,
         metrics_df=metrics_df,

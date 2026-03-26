@@ -12,11 +12,14 @@ from .agent.subagent_controller import (
     cancel_subagent,
     merge_subagent,
     plan_subagents,
+    refactor_subagent,
     retire_subagent,
     sync_subagent_memory,
 )
 from .agent.subagent_models import SubagentTaskProfile
+from .agent.iterative_loop import render_iterative_checkpoint, run_iterative_loop
 from .agent.runner import run_agent_cycle
+from .data import run_data_validate_flow
 from .factors import build_factors_for_project
 from .memory.writeback import bootstrap_memory_files, generate_handoff, sync_project_state, write_verify_snapshot
 from .platform.readiness import project_doctor
@@ -26,9 +29,6 @@ from .project import find_repo_root
 from .promotion import promote_candidate
 from .research_audit import run_research_audit
 from .config import load_config
-from .data.cleaning import clean_project_bars
-from .data.validation import validate_project_data
-from .universe import load_universe_codes
 
 
 TASK_TO_SCRIPT = {
@@ -95,6 +95,13 @@ def main() -> None:
     cycle_parser.add_argument("--config", type=Path, default=None)
     cycle_parser.add_argument("--dry-run", action="store_true")
 
+    iterative_parser = sub.add_parser("iterative_run", help="Run a bounded higher-order automation loop")
+    iterative_parser.add_argument("--project", type=str, required=True)
+    iterative_parser.add_argument("--config", type=Path, default=None)
+    iterative_parser.add_argument("--target-iterations", type=int, default=3)
+    iterative_parser.add_argument("--max-iterations", type=int, default=5)
+    iterative_parser.add_argument("--format", type=str, choices=["json", "checkpoint"], default="json")
+
     reflect_parser = sub.add_parser("agent_reflect", help="Alias for a dry-run agent cycle")
     reflect_parser.add_argument("--project", type=str, required=True)
     reflect_parser.add_argument("--config", type=Path, default=None)
@@ -135,6 +142,11 @@ def main() -> None:
     subagent_archive_parser.add_argument("--project", type=str, required=True)
     subagent_archive_parser.add_argument("--id", type=str, required=True)
     subagent_archive_parser.add_argument("--summary", type=str, required=True)
+
+    subagent_refactor_parser = sub.add_parser("subagent_refactor", help="Mark a subagent as refactored and preserve the transition")
+    subagent_refactor_parser.add_argument("--project", type=str, required=True)
+    subagent_refactor_parser.add_argument("--id", type=str, required=True)
+    subagent_refactor_parser.add_argument("--summary", type=str, required=True)
 
     subagent_block_parser = sub.add_parser("subagent_block", help="Mark a subagent as blocked and keep the event in tracked memory")
     subagent_block_parser.add_argument("--project", type=str, required=True)
@@ -222,6 +234,20 @@ def main() -> None:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return
 
+    if args.command == "iterative_run":
+        result = run_iterative_loop(
+            project=args.project,
+            target_iterations=args.target_iterations,
+            max_iterations=args.max_iterations,
+            repo_root=find_repo_root(),
+            config_path=args.config,
+        )
+        if args.format == "checkpoint":
+            print(render_iterative_checkpoint(result))
+        else:
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
     if args.command == "agent_reflect":
         result = run_agent_cycle(
             project=args.project,
@@ -297,6 +323,11 @@ def main() -> None:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return
 
+    if args.command == "subagent_refactor":
+        result = refactor_subagent(args.project, subagent_id=args.id, summary=args.summary, repo_root=find_repo_root())
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
     if args.command == "subagent_block":
         result = block_subagent(args.project, subagent_id=args.id, summary=args.summary, repo_root=find_repo_root())
         print(json.dumps(result, ensure_ascii=False, indent=2))
@@ -335,50 +366,12 @@ def main() -> None:
         return
 
     if args.command == "data_validate":
-        cfg, paths = load_config(args.project, config_path=args.config)
-        universe = load_universe_codes(args.project)
-        clean_stats = clean_project_bars(
+        result = run_data_validate_flow(
             project=args.project,
-            db_path=Path(cfg["db_path"]),
-            freq=str(cfg["freq"]),
-            codes=universe,
-            meta_dir=paths.meta_dir,
-            data_quality_cfg=cfg.get("data_quality"),
+            config_path=args.config,
             full_refresh=args.full_refresh,
         )
-        report = validate_project_data(
-            project=args.project,
-            db_path=Path(cfg["db_path"]),
-            freq=str(cfg["freq"]),
-            universe_codes=universe,
-            provider_name=str(cfg.get("data_provider", {}).get("provider", "akshare")),
-            data_quality_cfg=cfg.get("data_quality"),
-            limit_threshold=float(cfg.get("limit_up_threshold", 0.095)),
-        )
-        md_path = paths.meta_dir / "DATA_QUALITY_REPORT.md"
-        lines = [
-            "# Data Quality Report",
-            "",
-            f"- project: {report.project}",
-            f"- frequency: {report.frequency}",
-            f"- provider: {report.source_provider}",
-            f"- coverage_ratio: {report.coverage_ratio:.4f}",
-            f"- raw_rows: {report.raw_rows}",
-            f"- cleaned_rows: {report.cleaned_rows}",
-            f"- validated_rows: {report.validated_rows}",
-            f"- duplicate_rows: {report.duplicate_rows}",
-            f"- missing_rows: {report.missing_rows}",
-            f"- zero_volume_rows: {report.zero_volume_rows}",
-            f"- limit_locked_rows: {report.limit_locked_rows}",
-            "",
-            "## Findings",
-        ]
-        if report.findings:
-            lines.extend(f"- {item.code}: {item.message} ({item.count})" for item in report.findings)
-        else:
-            lines.append("- No critical findings.")
-        md_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
-        print(json.dumps({"clean_stats": clean_stats, "report": report.to_dict(), "markdown_path": str(md_path)}, ensure_ascii=False, indent=2))
+        print(json.dumps(result, ensure_ascii=False, indent=2))
         return
 
     if args.command == "research_audit":

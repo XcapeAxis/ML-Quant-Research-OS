@@ -164,7 +164,7 @@ def build_symbols(project: str, db_path: Path, freq: str, target_size: int | Non
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Freeze the project universe.")
-    parser.add_argument("--project", type=str, default="2026Q1_limit_up")
+    parser.add_argument("--project", type=str, default="as_share_research_v1")
     parser.add_argument("--config", type=Path, default=None)
     args = parser.parse_args()
 
