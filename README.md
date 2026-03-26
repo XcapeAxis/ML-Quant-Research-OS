@@ -93,7 +93,7 @@ python -m quant_mvp agent_cycle --project as_share_research_v1 --config configs/
 Run one bounded higher-order automation loop:
 
 ```bash
-python -m quant_mvp iterative_run --project as_share_research_v1 --config configs/projects/as_share_research_v1.json --target-iterations 3 --max-iterations 5 --format checkpoint
+python -m quant_mvp iterative_run --project as_share_research_v1 --config configs/projects/as_share_research_v1.json --target-productive-minutes 40 --target-iterations 4 --max-iterations 6 --min-substantive-actions 2 --target-substantive-actions 3 --clarify-only-limit 1 --format checkpoint
 ```
 
 Bootstrap tracked memory and handoff files:

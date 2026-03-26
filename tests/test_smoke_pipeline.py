@@ -87,6 +87,8 @@ def test_smoke_project_pipeline(limit_up_project) -> None:
         meta / "run_manifest.json",
         meta / "DATA_QUALITY_REPORT.md",
         memory / "PROJECT_STATE.md",
+        memory / "RESEARCH_MEMORY.md",
+        memory / "EXECUTION_QUEUE.md",
         memory / "EXPERIMENT_LEDGER.jsonl",
         memory / "HANDOFF_NEXT_CHAT.md",
         memory / "MIGRATION_PROMPT_NEXT_CHAT.md",
@@ -109,3 +111,6 @@ def test_smoke_project_pipeline(limit_up_project) -> None:
     assert any((meta / "agent_cycles").iterdir())
     assert ctx["paths"].subagent_artifacts_dir.exists()
     assert any(ctx["paths"].subagent_artifacts_dir.iterdir())
+    assert "研究进度" in (memory / "PROJECT_STATE.md").read_text(encoding="utf-8")
+    assert "研究进度" in (memory / "RESEARCH_MEMORY.md").read_text(encoding="utf-8")
+    assert "执行队列" in (memory / "EXECUTION_QUEUE.md").read_text(encoding="utf-8")

@@ -11,6 +11,7 @@ ROOT_AGENTS_TEMPLATE = """# Research OS Instructions
 ## Response Contract
 - Follow `docs/RESPONSE_CONTRACT.md`.
 - Default to `CHECKPOINT` replies unless the user explicitly asks for targeted evidence or full forensics.
+- `CHECKPOINT` replies must include the stable `Research progress` snapshot alongside `Done`, `Not done`, `Next recommendation`, and `Subagent status`.
 
 ## Memory Layers
 - Git-tracked long-term memory lives under `memory/projects/<project>/`.
@@ -25,6 +26,7 @@ ROOT_AGENTS_TEMPLATE = """# Research OS Instructions
 
 ## Required Verification
 - Run contract tests for strategy specs, weekday rebalance, tracked memory writeback, and leakage guards.
+- Run contract tests for the `Research progress` table, score bounds, delta classification, and tracked-memory writeback when the checkpoint format changes.
 - Run `python -m quant_mvp research_audit --project <project>`.
 - Run `python -m quant_mvp data_validate --project <project>` when data changes.
 - Run `python -m quant_mvp agent_cycle --project <project> --dry-run` before trusting the control plane.
@@ -94,6 +96,17 @@ HYPOTHESIS_QUEUE_TEMPLATE = """# 假设队列
 1. [阻塞] 先恢复 frozen default universe 的 validated daily bars，再重跑 promotion。
 2. [待处理] 仅在已验证数据上重新校验审计后的 limit-up screening 规格。
 3. [待处理] 任何 promotion 结论前，先与基线和成本压力场景做对比。
+"""
+
+
+EXECUTION_QUEUE_TEMPLATE = """# 执行队列
+
+| 任务ID | 标题 | 影响 | 风险 | 前置条件 | 当前状态 | Owner | 成功条件 | 停止条件 |
+|---|---|---|---|---|---|---|---|---|
+| recover_daily_bars | 恢复默认项目可用日频 bars | 高 | 低 | 无 | 就绪 | main | `data_validate` 后 blocker 缩小或 `data_ready=True` | full refresh 后仍无新证据且 blocker 未缩小 |
+| refresh_research_audit | 刷新 repo truth 与审计基线 | 中 | 低 | 以当前 blocker 重新确认 repo truth | 待排队 | main | 审计结果让下一轮选择更确定 | 审计结果没有带来新的边界信息 |
+| refresh_promotion_boundary | 刷新晋级边界诊断 | 高 | 中 | 默认项目具备可研究输入 | 阻塞 | main | promotion 失败边界被重新确认 | 输入仍不足，继续执行 ROI 过低 |
+| dry_run_agent_cycle | 跑一次 dry-run control plane | 中 | 中 | 默认项目具备可研究输入 | 阻塞 | main | dry-run 结果带来新的候选或 blocker 收敛 | dry-run 只重复旧 blocker 且没有新信息 |
 """
 
 

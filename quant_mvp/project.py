@@ -49,6 +49,7 @@ class ProjectPaths:
     research_memory_path: Path
     postmortems_path: Path
     hypothesis_queue_path: Path
+    execution_queue_path: Path
     experiment_ledger_path: Path
     handoff_path: Path
     migration_prompt_path: Path
@@ -110,6 +111,7 @@ def resolve_project_paths(project: str, root: Path | None = None) -> ProjectPath
         research_memory_path=memory_dir / "RESEARCH_MEMORY.md",
         postmortems_path=memory_dir / "POSTMORTEMS.md",
         hypothesis_queue_path=memory_dir / "HYPOTHESIS_QUEUE.md",
+        execution_queue_path=memory_dir / "EXECUTION_QUEUE.md",
         experiment_ledger_path=memory_dir / "EXPERIMENT_LEDGER.jsonl",
         handoff_path=memory_dir / "HANDOFF_NEXT_CHAT.md",
         migration_prompt_path=memory_dir / "MIGRATION_PROMPT_NEXT_CHAT.md",

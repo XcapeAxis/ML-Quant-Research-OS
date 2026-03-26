@@ -234,8 +234,15 @@ def reconcile_loop_subagents(
     summary: str,
     repo_root: Path | None = None,
     close_status_if_unused: str = "retired",
+    state_override: dict[str, Any] | None = None,
+    paths_override: Any | None = None,
+    persist: bool = True,
 ) -> dict[str, Any]:
-    paths, state = load_machine_state(project, repo_root=repo_root)
+    if paths_override is not None and state_override is not None:
+        paths = paths_override
+        state = state_override
+    else:
+        paths, state = load_machine_state(project, repo_root=repo_root)
     policy = load_subagent_policy(_policy_path(paths.root))
     role_templates = load_subagent_roles(_roles_path(paths.root))
     records = [dict(item) for item in state.get("subagents", [])]
@@ -369,7 +376,8 @@ def reconcile_loop_subagents(
         "summary": summary,
         "related_ids": [*created_ids, *[item["subagent_id"] for item in auto_closed]],
     }
-    save_machine_state(project, state, repo_root=repo_root)
+    if persist:
+        save_machine_state(project, state, repo_root=repo_root)
     return {
         "created_ids": created_ids,
         "created_roles": created_roles,

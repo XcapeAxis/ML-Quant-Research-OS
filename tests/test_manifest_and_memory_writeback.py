@@ -29,8 +29,13 @@ def test_manifest_and_memory_writeback(limit_up_project) -> None:
     assert paths.experiment_ledger_path.exists()
     assert paths.subagent_registry_path.exists()
     assert paths.subagent_ledger_path.exists()
+    assert paths.execution_queue_path.exists()
     assert paths.meta_dir.joinpath("PROJECT_STATE.md").exists() is False
     assert handoff["handoff_next_chat"] == paths.handoff_path
     assert "# 项目状态" in paths.project_state_path.read_text(encoding="utf-8")
+    assert "## 研究进度" in paths.project_state_path.read_text(encoding="utf-8")
     assert "# 研究记忆" in paths.research_memory_path.read_text(encoding="utf-8")
+    assert "## 研究进度" in paths.research_memory_path.read_text(encoding="utf-8")
     assert "# 最近验证快照" in paths.verify_last_path.read_text(encoding="utf-8")
+    assert "## 研究进度" in paths.verify_last_path.read_text(encoding="utf-8")
+    assert "# 执行队列" in paths.execution_queue_path.read_text(encoding="utf-8")

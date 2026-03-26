@@ -98,8 +98,12 @@ def main() -> None:
     iterative_parser = sub.add_parser("iterative_run", help="Run a bounded higher-order automation loop")
     iterative_parser.add_argument("--project", type=str, required=True)
     iterative_parser.add_argument("--config", type=Path, default=None)
-    iterative_parser.add_argument("--target-iterations", type=int, default=3)
-    iterative_parser.add_argument("--max-iterations", type=int, default=5)
+    iterative_parser.add_argument("--target-productive-minutes", type=int, default=40)
+    iterative_parser.add_argument("--target-iterations", type=int, default=4)
+    iterative_parser.add_argument("--max-iterations", type=int, default=6)
+    iterative_parser.add_argument("--min-substantive-actions", type=int, default=2)
+    iterative_parser.add_argument("--target-substantive-actions", type=int, default=3)
+    iterative_parser.add_argument("--clarify-only-limit", type=int, default=1)
     iterative_parser.add_argument("--format", type=str, choices=["json", "checkpoint"], default="json")
 
     reflect_parser = sub.add_parser("agent_reflect", help="Alias for a dry-run agent cycle")
@@ -237,8 +241,12 @@ def main() -> None:
     if args.command == "iterative_run":
         result = run_iterative_loop(
             project=args.project,
+            target_productive_minutes=args.target_productive_minutes,
             target_iterations=args.target_iterations,
             max_iterations=args.max_iterations,
+            min_substantive_actions=args.min_substantive_actions,
+            target_substantive_actions=args.target_substantive_actions,
+            clarify_only_limit=args.clarify_only_limit,
             repo_root=find_repo_root(),
             config_path=args.config,
         )

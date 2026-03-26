@@ -13,6 +13,7 @@ from .ledger import append_jsonl, to_jsonable
 from .localization import humanize_text, zh_bool, zh_status, zh_stop_reason
 from .templates import (
     DOCS_AGENTS_TEMPLATE,
+    EXECUTION_QUEUE_TEMPLATE,
     HYPOTHESIS_QUEUE_TEMPLATE,
     POSTMORTEMS_TEMPLATE,
     PROJECT_STATE_TEMPLATE,
@@ -42,7 +43,10 @@ def _read_text(path: Path) -> str:
 
 def _write_text(path: Path, text: str) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text.rstrip() + "\n", encoding="utf-8")
+    normalized = text.rstrip() + "\n"
+    if path.exists() and path.read_text(encoding="utf-8") == normalized:
+        return path
+    path.write_text(normalized, encoding="utf-8")
     return path
 
 
@@ -61,6 +65,8 @@ def _read_json(path: Path, default: dict[str, Any] | None = None) -> dict[str, A
 def _write_json(path: Path, payload: dict[str, Any]) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     text = json.dumps(to_jsonable(payload), ensure_ascii=False, indent=2, sort_keys=True).rstrip() + "\n"
+    if path.exists() and path.read_text(encoding="utf-8") == text:
+        return path
     path.write_text(text, encoding="utf-8")
     return path
 
@@ -195,6 +201,145 @@ def _render_research_memory(state: dict[str, Any]) -> str:
     lines.extend([f"- {humanize_text(item)}" for item in negative] or ["- 未记录"])
     lines.extend(["", "## 下一步记忆"])
     lines.extend([f"- {humanize_text(item)}" for item in next_steps] or ["- 未记录"])
+    lines.extend(["", *_render_research_progress_lines(state)])
+    return "\n".join(lines)
+
+
+_QUEUE_IMPACT_ZH = {
+    "high": "高",
+    "medium": "中",
+    "low": "低",
+}
+
+_QUEUE_RISK_ZH = {
+    "low": "低",
+    "medium": "中",
+    "high": "高",
+}
+
+_QUEUE_STATUS_ZH = {
+    "queued": "待排队",
+    "ready": "就绪",
+    "in_progress": "进行中",
+    "advanced": "已推进",
+    "done": "已完成",
+    "blocked": "阻塞",
+    "deferred": "暂缓",
+}
+
+
+def _default_execution_queue_state() -> list[dict[str, Any]]:
+    return [
+        {
+            "task_id": "recover_daily_bars",
+            "title": "恢复默认项目可用日频 bars",
+            "impact": "high",
+            "risk": "low",
+            "prerequisite": "无",
+            "current_status": "ready",
+            "owner": "main",
+            "success_condition": "`data_validate` 后 blocker 缩小或 `data_ready=True`。",
+            "stop_condition": "full refresh 后仍无新证据且 blocker 未缩小。",
+            "action_name": "data_validate",
+            "requires_data_ready": False,
+        },
+        {
+            "task_id": "refresh_research_audit",
+            "title": "刷新 repo truth 与审计基线",
+            "impact": "medium",
+            "risk": "low",
+            "prerequisite": "以当前 blocker 重新确认 repo truth。",
+            "current_status": "queued",
+            "owner": "main",
+            "success_condition": "审计结果让下一轮选择更确定。",
+            "stop_condition": "审计结果没有带来新的边界信息。",
+            "action_name": "research_audit",
+            "requires_data_ready": False,
+        },
+        {
+            "task_id": "refresh_promotion_boundary",
+            "title": "刷新晋级边界诊断",
+            "impact": "high",
+            "risk": "medium",
+            "prerequisite": "默认项目具备可研究输入。",
+            "current_status": "blocked",
+            "owner": "main",
+            "success_condition": "promotion 失败边界被重新确认或收窄。",
+            "stop_condition": "输入仍不足，继续执行 ROI 过低。",
+            "action_name": "promote_candidate",
+            "requires_data_ready": True,
+        },
+        {
+            "task_id": "dry_run_agent_cycle",
+            "title": "跑一次 dry-run control plane",
+            "impact": "medium",
+            "risk": "medium",
+            "prerequisite": "默认项目具备可研究输入。",
+            "current_status": "blocked",
+            "owner": "main",
+            "success_condition": "dry-run 结果带来新的候选或 blocker 收敛。",
+            "stop_condition": "dry-run 只重复旧 blocker 且没有新信息。",
+            "action_name": "agent_cycle_dry_run",
+            "requires_data_ready": True,
+        },
+    ]
+
+
+def _normalize_execution_queue(entries: Any) -> list[dict[str, Any]]:
+    normalized: list[dict[str, Any]] = []
+    for raw in entries or []:
+        if not isinstance(raw, dict):
+            continue
+        task_id = str(raw.get("task_id", "")).strip()
+        if not task_id:
+            continue
+        normalized.append(
+            {
+                "task_id": task_id,
+                "title": str(raw.get("title", "")).strip() or task_id,
+                "impact": str(raw.get("impact", "medium")).strip().lower() or "medium",
+                "risk": str(raw.get("risk", "medium")).strip().lower() or "medium",
+                "prerequisite": str(raw.get("prerequisite", "无")).strip() or "无",
+                "current_status": str(raw.get("current_status", "queued")).strip().lower() or "queued",
+                "owner": str(raw.get("owner", "main")).strip() or "main",
+                "success_condition": str(raw.get("success_condition", "未记录")).strip() or "未记录",
+                "stop_condition": str(raw.get("stop_condition", "未记录")).strip() or "未记录",
+                "action_name": str(raw.get("action_name", "")).strip(),
+                "requires_data_ready": bool(raw.get("requires_data_ready", False)),
+                "selected_count": int(raw.get("selected_count", 0) or 0),
+                "last_iteration": int(raw.get("last_iteration", 0) or 0),
+                "last_summary": str(raw.get("last_summary", "")).strip(),
+                "last_classification": str(raw.get("last_classification", "")).strip(),
+            },
+        )
+    return normalized
+
+
+def _render_execution_queue(state: dict[str, Any]) -> str:
+    tasks = _normalize_execution_queue(state.get("execution_queue"))
+    lines = [
+        "# 执行队列",
+        "",
+        "| 任务ID | 标题 | 影响 | 风险 | 前置条件 | 当前状态 | Owner | 成功条件 | 停止条件 |",
+        "|---|---|---|---|---|---|---|---|---|",
+    ]
+    if not tasks:
+        lines.append("| none | 未记录 | 中 | 中 | 无 | 待排队 | main | 未记录 | 未记录 |")
+        return "\n".join(lines)
+    for item in tasks:
+        lines.append(
+            "| {task_id} | {title} | {impact} | {risk} | {prerequisite} | {status} | {owner} | {success} | {stop} |".format(
+                task_id=item["task_id"],
+                title=humanize_text(item["title"]).replace("|", "/"),
+                impact=_QUEUE_IMPACT_ZH.get(item["impact"], humanize_text(item["impact"])),
+                risk=_QUEUE_RISK_ZH.get(item["risk"], humanize_text(item["risk"])),
+                prerequisite=humanize_text(item["prerequisite"]).replace("|", "/"),
+                status=_QUEUE_STATUS_ZH.get(item["current_status"], humanize_text(item["current_status"])),
+                owner=humanize_text(item["owner"]).replace("|", "/"),
+                success=humanize_text(item["success_condition"]).replace("|", "/"),
+                stop=humanize_text(item["stop_condition"]).replace("|", "/"),
+            ),
+        )
     return "\n".join(lines)
 
 
@@ -209,9 +354,16 @@ def _iterative_loop_state(state: dict[str, Any]) -> dict[str, Any]:
 def _render_loop_summary_lines(state: dict[str, Any]) -> list[str]:
     loop = _iterative_loop_state(state)
     return [
+        f"- workflow_mode: {loop.get('workflow_mode', 'campaign')}",
+        f"- target_productive_minutes: {loop.get('target_productive_minutes', 40)}",
+        f"- max_runtime_mode: {loop.get('max_runtime_mode', 'bounded')}",
         f"- iteration_count: {loop.get('iteration_count', 0)}",
         f"- target_iterations: {loop.get('target_iterations', 0)}",
         f"- max_iterations: {loop.get('max_iterations', 0)}",
+        f"- substantive_action_count: {loop.get('substantive_action_count', 0)} / {loop.get('target_substantive_actions', 3)}",
+        f"- effective_progress_count: {loop.get('effective_progress_count', 0)}",
+        f"- clarify_only_iterations: {loop.get('clarify_only_iterations', 0)} / {loop.get('clarify_only_limit', 1)}",
+        f"- controlled_refresh_count: {loop.get('controlled_refresh_count', 0)} (run_start_read_count={loop.get('run_start_read_count', 0)})",
         f"- stop_reason: {zh_stop_reason(str(loop.get('stop_reason', 'unknown')))}",
         f"- direction_change: {zh_bool(loop.get('direction_change', False))}",
         f"- blocker_escalation: {zh_bool(loop.get('blocker_escalation', False))}",
@@ -332,9 +484,20 @@ def _compact_legacy_ledger_entry(project: str, raw_line: str, state: dict[str, A
 def _default_iterative_loop_state() -> dict[str, Any]:
     return {
         "last_run_id": "",
+        "workflow_mode": "campaign",
+        "target_productive_minutes": 40,
+        "max_runtime_mode": "bounded",
         "iteration_count": 0,
         "target_iterations": 0,
         "max_iterations": 0,
+        "min_substantive_actions": 2,
+        "target_substantive_actions": 3,
+        "substantive_action_count": 0,
+        "effective_progress_count": 0,
+        "clarify_only_iterations": 0,
+        "clarify_only_limit": 1,
+        "controlled_refresh_count": 0,
+        "run_start_read_count": 0,
         "stop_reason": "not_run",
         "direction_change": False,
         "blocker_escalation": False,
@@ -363,6 +526,296 @@ def _default_iterative_loop_state() -> dict[str, Any]:
     }
 
 
+_RESEARCH_PROGRESS_DIMENSIONS = (
+    ("Data inputs", "data_inputs"),
+    ("Strategy integrity", "strategy_integrity"),
+    ("Validation stack", "validation_stack"),
+    ("Promotion readiness", "promotion_readiness"),
+    ("Subagent effectiveness", "subagent_effectiveness"),
+)
+
+_PROGRESS_STATUS_ZH = {
+    "blocked": "阻塞",
+    "bootstrap": "起步",
+    "partial": "部分可用",
+    "validation-ready": "可进入验证",
+    "promotion-ready": "可进入晋级评估",
+    "operational": "当前阶段可运行",
+    "not-needed-yet": "当前阶段暂不需要",
+}
+
+_PROGRESS_TRAJECTORY_ZH = {
+    "on-track": "在轨",
+    "narrowed": "已收敛",
+    "redirected": "已转向",
+    "blocked": "阻塞",
+}
+
+_PROGRESS_DELTA_ZH = {
+    "improved": "有改进",
+    "unchanged": "无实质变化",
+    "regressed": "有回退",
+}
+
+_PROGRESS_CONFIDENCE_ZH = {
+    "high": "高",
+    "medium": "中",
+    "low": "低",
+}
+
+
+def _progress_status_zh(status: str) -> str:
+    return _PROGRESS_STATUS_ZH.get(str(status or "").strip(), str(status or "").strip() or "未记录")
+
+
+def _bounded_score(value: Any) -> int:
+    try:
+        score = int(value)
+    except (TypeError, ValueError):
+        score = 0
+    return max(0, min(4, score))
+
+
+def _dimension_payload(dimension: str, *, status: str, score: int, evidence: str) -> dict[str, Any]:
+    return {
+        "dimension": dimension,
+        "status": str(status or "blocked").strip(),
+        "score": _bounded_score(score),
+        "evidence": str(evidence or "").strip() or "未记录",
+    }
+
+
+def _progress_signature(progress: dict[str, Any] | None) -> str:
+    payload = dict(progress or {})
+    return json.dumps(
+        {
+            "dimensions": [
+                {
+                    "dimension": str(item.get("dimension", "")),
+                    "status": str(item.get("status", "")),
+                    "score": _bounded_score(item.get("score", 0)),
+                    "evidence": str(item.get("evidence", "")),
+                }
+                for item in payload.get("dimensions", [])
+                if isinstance(item, dict)
+            ],
+            "overall_trajectory": str(payload.get("overall_trajectory", "")),
+            "current_blocker": str(payload.get("current_blocker", "")),
+            "next_milestone": str(payload.get("next_milestone", "")),
+            "confidence": str(payload.get("confidence", "")),
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+    )
+
+
+def _score_data_inputs(state: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
+    verify = dict(state.get("verify_last", {}) or {})
+    data_status = str(verify.get("default_project_data_status") or payload.get("default_project_data_status") or "").strip()
+    lowered = data_status.lower()
+    blocker_key = str(payload.get("blocker_key") or "").strip().lower()
+    data_ready = payload.get("data_ready", None)
+    blocker = humanize_text(state.get("current_blocker", "unknown"))
+
+    if (
+        blocker_key == "data_inputs"
+        or data_ready is False
+        or any(token in lowered for token in ["missing", "blocked", "unknown", "no bars", "coverage near zero", "near zero"])
+    ):
+        status = "blocked" if blocker_key == "data_inputs" or data_ready is False else "bootstrap"
+        evidence = f"默认项目数据状态：{humanize_text(data_status or 'unknown')}；当前 blocker：{blocker}"
+        return _dimension_payload("Data inputs", status=status, score=1, evidence=evidence)
+    if any(token in lowered for token in ["partial", "pilot", "fixture", "synthetic"]):
+        evidence = f"默认项目数据状态：{humanize_text(data_status)}；已具备部分可用输入，但仍不足以覆盖 Phase-1 目标。"
+        return _dimension_payload("Data inputs", status="partial", score=2, evidence=evidence)
+    if any(token in lowered for token in ["operational", "robust", "phase-ready"]):
+        evidence = f"默认项目数据状态：{humanize_text(data_status)}；当前描述已接近阶段边界可运行。"
+        return _dimension_payload("Data inputs", status="operational", score=4, evidence=evidence)
+    if any(token in lowered for token in ["validation-ready", "validated snapshot", "ready coverage", "research-readiness", "promotion-grade"]):
+        evidence = f"默认项目数据状态：{humanize_text(data_status)}；当前输入已可支撑本阶段验证。"
+        return _dimension_payload("Data inputs", status="validation-ready", score=3, evidence=evidence)
+    if data_ready is True:
+        evidence = f"本轮 truth 显示 data_ready=True；但缺少更强覆盖证据，按保守口径仅记为部分可用。"
+        return _dimension_payload("Data inputs", status="partial", score=2, evidence=evidence)
+    evidence = f"默认项目数据状态：{humanize_text(data_status or 'unknown')}；未发现足够证据支持更高评分。"
+    return _dimension_payload("Data inputs", status="bootstrap", score=1, evidence=evidence)
+
+
+def _score_strategy_integrity(state: dict[str, Any], payload: dict[str, Any], data_inputs: dict[str, Any]) -> dict[str, Any]:
+    blocker_key = str(payload.get("blocker_key") or "").strip().lower()
+    classification = str(payload.get("classification") or "").strip().lower()
+    verified_progress = bool(payload.get("verified_progress", False))
+    last_verified = humanize_text(state.get("last_verified_capability", "unknown"))
+    last_failed = humanize_text(state.get("last_failed_capability", "unknown"))
+
+    if blocker_key in {"leakage", "baseline_integrity"}:
+        evidence = f"当前 blocker 指向 {blocker_key}；最近失败能力：{last_failed}。"
+        return _dimension_payload("Strategy integrity", status="blocked", score=1, evidence=evidence)
+    if verified_progress and data_inputs.get("score", 0) >= 2 and classification in {"verified_progress", "direction_corrected"}:
+        evidence = f"最近已验证能力：{last_verified}；本轮已出现受控验证进展。"
+        return _dimension_payload("Strategy integrity", status="validation-ready", score=3, evidence=evidence)
+    evidence = f"单一研究核心与契约护栏已存在；最近已验证能力：{last_verified}。"
+    return _dimension_payload("Strategy integrity", status="partial", score=2, evidence=evidence)
+
+
+def _score_validation_stack(state: dict[str, Any], payload: dict[str, Any], data_inputs: dict[str, Any]) -> dict[str, Any]:
+    verify = dict(state.get("verify_last", {}) or {})
+    passed = _normalize_list(verify.get("passed_commands"))
+    last_verified = humanize_text(state.get("last_verified_capability", "unknown"))
+    if data_inputs.get("score", 0) >= 3 and passed:
+        evidence = f"已记录通过命令 {len(passed)} 条；当前验证栈已可作用于本阶段真实输入。"
+        return _dimension_payload("Validation stack", status="validation-ready", score=3, evidence=evidence)
+    if passed or str(payload.get("classification", "")).strip():
+        evidence = f"审计/泄漏/晋级框架存在；最近已验证能力：{last_verified}。"
+        return _dimension_payload("Validation stack", status="partial", score=2, evidence=evidence)
+    evidence = "仅具备基础验证入口，尚缺少足够已记录证据支持更高评分。"
+    return _dimension_payload("Validation stack", status="bootstrap", score=1, evidence=evidence)
+
+
+def _score_promotion_readiness(
+    state: dict[str, Any],
+    payload: dict[str, Any],
+    data_inputs: dict[str, Any],
+    validation_stack: dict[str, Any],
+) -> dict[str, Any]:
+    blocker_key = str(payload.get("blocker_key") or "").strip().lower()
+    blocker = humanize_text(state.get("current_blocker", "unknown"))
+    if data_inputs.get("score", 0) <= 1 or blocker_key == "data_inputs":
+        evidence = f"当前 blocker：{blocker}；研究输入仍不足以支撑晋级评估。"
+        return _dimension_payload("Promotion readiness", status="blocked", score=1, evidence=evidence)
+    if data_inputs.get("score", 0) == 2 or validation_stack.get("score", 0) <= 2:
+        evidence = f"输入与验证框架仅部分可用；当前仍只能做局部晋级判断。"
+        return _dimension_payload("Promotion readiness", status="partial", score=2, evidence=evidence)
+    if blocker_key not in {"", "none"}:
+        evidence = f"输入已可验证；当前 blocker 已转向策略或控制面问题，可进行有意义的晋级评估。"
+        return _dimension_payload("Promotion readiness", status="promotion-ready", score=3, evidence=evidence)
+    evidence = "输入与验证均已到位，当前阶段已接近可直接用于晋级决策。"
+    return _dimension_payload("Promotion readiness", status="operational", score=4, evidence=evidence)
+
+
+def _score_subagent_effectiveness(state: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
+    gate_mode = str(payload.get("subagent_gate_mode") or state.get("subagent_gate_mode", "AUTO")).strip()
+    max_active = int(payload.get("max_active_subagents", 0) or 0)
+    used = _normalize_list(payload.get("subagents_used"))
+    verified_progress = bool(payload.get("verified_progress", False))
+    auto_closed = list(payload.get("auto_closed_subagents", []) or [])
+
+    if max_active > 1 and used and verified_progress:
+        evidence = f"本轮最大活跃 subagent 数为 {max_active}，且伴随已验证进展。"
+        return _dimension_payload("Subagent effectiveness", status="operational", score=4, evidence=evidence)
+    if max_active > 0 or used:
+        evidence = f"本轮实际使用 subagents：{', '.join(used) or '已记录但未命名'}；存在真实任务执行证据。"
+        return _dimension_payload("Subagent effectiveness", status="validation-ready", score=3, evidence=evidence)
+    evidence = f"治理与生命周期可用，但本轮保持有效 OFF；gate={gate_mode}，自动关停 {len(auto_closed)} 个。"
+    return _dimension_payload("Subagent effectiveness", status="partial", score=2, evidence=evidence)
+
+
+def _classify_progress_delta(previous: dict[str, Any] | None, current: dict[str, Any], payload: dict[str, Any]) -> str:
+    if not previous or not previous.get("dimensions"):
+        return "unchanged"
+    previous_scores = {
+        str(item.get("dimension", "")): _bounded_score(item.get("score", 0))
+        for item in previous.get("dimensions", [])
+        if isinstance(item, dict)
+    }
+    current_scores = {
+        str(item.get("dimension", "")): _bounded_score(item.get("score", 0))
+        for item in current.get("dimensions", [])
+        if isinstance(item, dict)
+    }
+    if any(current_scores.get(name, 0) < previous_scores.get(name, 0) for name, _ in _RESEARCH_PROGRESS_DIMENSIONS):
+        return "regressed"
+    if any(current_scores.get(name, 0) > previous_scores.get(name, 0) for name, _ in _RESEARCH_PROGRESS_DIMENSIONS):
+        return "improved"
+    if str(payload.get("stop_reason", "")).strip() == "verification_failed_scope_expanded":
+        return "regressed"
+    previous_blocker = str(previous.get("current_blocker", "")).strip()
+    current_blocker = str(current.get("current_blocker", "")).strip()
+    classification = str(payload.get("classification", "")).strip().lower()
+    if previous_blocker and current_blocker and previous_blocker != current_blocker and classification in {"blocker_clarified", "direction_corrected", "verified_progress"}:
+        return "improved"
+    return "unchanged"
+
+
+def _classify_overall_trajectory(current: dict[str, Any], payload: dict[str, Any]) -> str:
+    blocker_key = str(payload.get("blocker_key") or "").strip().lower()
+    if payload.get("direction_change", False):
+        return "redirected"
+    if current.get("this_run_delta") == "regressed":
+        return "blocked"
+    if blocker_key in {"", "none"} and all(item.get("score", 0) >= 3 for item in current.get("dimensions", []) if isinstance(item, dict) and item.get("dimension") != "Subagent effectiveness"):
+        return "on-track"
+    if current.get("this_run_delta") == "improved":
+        return "narrowed"
+    return "blocked"
+
+
+def _classify_progress_confidence(current: dict[str, Any], payload: dict[str, Any]) -> str:
+    scores = {
+        str(item.get("dimension", "")): _bounded_score(item.get("score", 0))
+        for item in current.get("dimensions", [])
+        if isinstance(item, dict)
+    }
+    if payload.get("verified_progress", False) and min(scores.get("Data inputs", 0), scores.get("Validation stack", 0)) >= 3:
+        return "high"
+    if min(scores.get("Strategy integrity", 0), scores.get("Validation stack", 0)) >= 2:
+        return "medium"
+    return "low"
+
+
+def _build_research_progress(
+    *,
+    state: dict[str, Any],
+    payload: dict[str, Any] | None = None,
+    previous: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    payload = dict(payload or {})
+    data_inputs = _score_data_inputs(state, payload)
+    strategy_integrity = _score_strategy_integrity(state, payload, data_inputs)
+    validation_stack = _score_validation_stack(state, payload, data_inputs)
+    promotion_readiness = _score_promotion_readiness(state, payload, data_inputs, validation_stack)
+    subagent_effectiveness = _score_subagent_effectiveness(state, payload)
+
+    progress = {
+        "dimensions": [
+            data_inputs,
+            strategy_integrity,
+            validation_stack,
+            promotion_readiness,
+            subagent_effectiveness,
+        ],
+        "current_blocker": str(state.get("current_blocker", "unknown")),
+        "next_milestone": str(state.get("next_priority_action", "unknown")),
+    }
+    progress["this_run_delta"] = _classify_progress_delta(previous, progress, payload)
+    progress["overall_trajectory"] = _classify_overall_trajectory(progress, payload)
+    progress["confidence"] = _classify_progress_confidence(progress, payload)
+    progress["materially_changed"] = _progress_signature(previous) != _progress_signature(progress)
+    return progress
+
+
+def _render_research_progress_lines(state: dict[str, Any], *, heading: str = "## 研究进度") -> list[str]:
+    progress = dict(state.get("research_progress", {}) or {})
+    lines = [heading]
+    for item in progress.get("dimensions", []):
+        if not isinstance(item, dict):
+            continue
+        lines.append(
+            f"- {item.get('dimension', 'unknown')}: {_progress_status_zh(str(item.get('status', 'blocked')))}，"
+            f"{_bounded_score(item.get('score', 0))}/4。证据：{humanize_text(item.get('evidence', 'unknown'))}"
+        )
+    lines.extend(
+        [
+            f"- 总体轨迹: {_PROGRESS_TRAJECTORY_ZH.get(str(progress.get('overall_trajectory', 'blocked')), humanize_text(progress.get('overall_trajectory', 'blocked')))}",
+            f"- 本轮增量: {_PROGRESS_DELTA_ZH.get(str(progress.get('this_run_delta', 'unchanged')), humanize_text(progress.get('this_run_delta', 'unchanged')))}",
+            f"- 当前 blocker: {humanize_text(progress.get('current_blocker', 'unknown'))}",
+            f"- 下一里程碑: {humanize_text(progress.get('next_milestone', 'unknown'))}",
+            f"- 置信度: {_PROGRESS_CONFIDENCE_ZH.get(str(progress.get('confidence', 'low')), humanize_text(progress.get('confidence', 'low')))}",
+        ],
+    )
+    return lines
+
+
 def _default_session_state(project: str, *, root: Path, paths) -> dict[str, Any]:
     base = {
         "project": project,
@@ -386,6 +839,7 @@ def _default_session_state(project: str, *, root: Path, paths) -> dict[str, Any]
             "Keep compact tracked ledgers and handoff files in sync with runtime experiment payloads.",
         ],
         "latest_hypotheses": _parse_hypotheses(HYPOTHESIS_QUEUE_TEMPLATE),
+        "execution_queue": _default_execution_queue_state(),
         "last_failure": {},
         "verify_last": {
             "passed_commands": [],
@@ -403,6 +857,7 @@ def _default_session_state(project: str, *, root: Path, paths) -> dict[str, Any]
         "iterative_loop": _default_iterative_loop_state(),
     }
     base.update(default_subagent_state(paths))
+    base["research_progress"] = _build_research_progress(state=base)
     return base
 
 
@@ -440,6 +895,7 @@ def _render_project_state(state: dict[str, Any]) -> str:
                 f"- stage0a 宇宙变化: {stage0a.get('old_universe_size', 'n/a')} -> {stage0a.get('new_universe_size', 'n/a')}",
             ],
         )
+    lines.extend(["", *_render_research_progress_lines(state)])
     lines.extend(["", "## 最近一次高阶迭代"])
     lines.extend(_render_loop_summary_lines(state))
     return "\n".join(lines)
@@ -486,6 +942,8 @@ def _render_verify_last(state: dict[str, Any]) -> str:
             f"- blocked_subagents: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
             f"- 最近 subagent 事件: {humanize_text(subagents['last_event'].get('action', 'none recorded'))}",
             "",
+            *_render_research_progress_lines(state),
+            "",
             "## 高阶迭代摘要",
         ],
     )
@@ -525,6 +983,8 @@ def _render_handoff(state: dict[str, Any], paths) -> str:
         f"- blocked: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
         f"- recent_transition: {humanize_text(subagents['last_event'].get('action', 'none recorded'))}",
         f"- continue_using_subagents: {zh_bool(subagents['should_expand'])}",
+        "",
+        *_render_research_progress_lines(state),
         "",
         "## 最近一次高阶迭代",
     ]
@@ -584,6 +1044,8 @@ def _render_migration_prompt(state: dict[str, Any], paths) -> str:
         f"- blocked: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
         f"- recent_transition: {humanize_text(subagents['last_event'].get('action', 'none recorded'))}",
         f"- continue_using_subagents: {zh_bool(subagents['should_expand'])}",
+        "",
+        *_render_research_progress_lines(state),
         "",
         "## 最近一次高阶迭代",
     ]
@@ -745,6 +1207,9 @@ def _refresh_derived_memory(paths, state: dict[str, Any]) -> None:
     for key, value in default_subagent_state(paths).items():
         state.setdefault(key, value)
     state.setdefault("iterative_loop", _default_iterative_loop_state())
+    state["execution_queue"] = _normalize_execution_queue(state.get("execution_queue"))
+    if not state.get("research_progress"):
+        state["research_progress"] = _build_research_progress(state=state)
     state["head"] = _git_value(paths.root, "rev-parse", "HEAD")
     state["branch"] = _git_value(paths.root, "rev-parse", "--abbrev-ref", "HEAD")
     state["tracked_memory_dir"] = str(paths.memory_dir)
@@ -754,6 +1219,7 @@ def _refresh_derived_memory(paths, state: dict[str, Any]) -> None:
     _write_text(paths.project_state_path, _render_project_state(state))
     _write_text(paths.research_memory_path, _render_research_memory(state))
     _write_text(paths.hypothesis_queue_path, _render_hypothesis_queue(state.get("latest_hypotheses", [])))
+    _write_text(paths.execution_queue_path, _render_execution_queue(state))
     _write_text(paths.verify_last_path, _render_verify_last(state))
     _write_text(paths.handoff_path, _render_handoff(state, paths))
     _write_text(paths.migration_prompt_path, _render_migration_prompt(state, paths))
@@ -802,6 +1268,7 @@ def bootstrap_memory_files(project: str, *, repo_root: Path | None = None) -> di
         "research_memory": paths.research_memory_path,
         "postmortems": paths.postmortems_path,
         "hypothesis_queue": paths.hypothesis_queue_path,
+        "execution_queue": paths.execution_queue_path,
         "experiment_ledger": paths.experiment_ledger_path,
         "handoff_next_chat": paths.handoff_path,
         "migration_prompt_next_chat": paths.migration_prompt_path,
@@ -827,6 +1294,7 @@ def bootstrap_memory_files(project: str, *, repo_root: Path | None = None) -> di
     _write_if_missing(paths.project_state_path, PROJECT_STATE_TEMPLATE)
     _write_if_missing(paths.postmortems_path, POSTMORTEMS_TEMPLATE)
     _write_if_missing(paths.hypothesis_queue_path, HYPOTHESIS_QUEUE_TEMPLATE)
+    _write_if_missing(paths.execution_queue_path, EXECUTION_QUEUE_TEMPLATE)
     _write_if_missing(paths.verify_last_path, VERIFY_LAST_TEMPLATE)
     if not paths.experiment_ledger_path.exists():
         paths.experiment_ledger_path.write_text("", encoding="utf-8")
@@ -854,8 +1322,17 @@ def load_machine_state(project: str, *, repo_root: Path | None = None) -> tuple[
     return _load_state(project, repo_root=repo_root)
 
 
-def save_machine_state(project: str, state: dict[str, Any], *, repo_root: Path | None = None) -> Path:
+def save_machine_state(
+    project: str,
+    state: dict[str, Any],
+    *,
+    repo_root: Path | None = None,
+    rebuild_progress: bool = True,
+) -> Path:
     paths, _ = _load_state(project, repo_root=repo_root)
+    state = dict(state)
+    if rebuild_progress:
+        state["research_progress"] = _build_research_progress(state=state, previous=state.get("research_progress"))
     _refresh_derived_memory(paths, state)
     return paths.session_state_path
 
@@ -878,6 +1355,7 @@ def sync_project_state(project: str, summary: dict[str, Any], *, repo_root: Path
             "last_failed_capability": summary.get("last_failed_capability") or state.get("last_failed_capability"),
         },
     )
+    state["research_progress"] = _build_research_progress(state=state, previous=state.get("research_progress"))
     _refresh_derived_memory(paths, state)
     return paths.project_state_path
 
@@ -973,6 +1451,7 @@ def record_failure(
     state["last_failed_capability"] = payload["summary"] or state.get("last_failed_capability")
     if payload["root_cause"]:
         state["current_blocker"] = payload["root_cause"]
+    state["research_progress"] = _build_research_progress(state=state, previous=state.get("research_progress"))
     _refresh_derived_memory(paths, state)
     if append_ledger:
         record_experiment_result(
@@ -1022,8 +1501,18 @@ def record_agent_cycle(project: str, payload: dict[str, Any], *, repo_root: Path
     }
 
 
-def record_iterative_run(project: str, payload: dict[str, Any], *, repo_root: Path | None = None) -> dict[str, Path]:
-    paths, state = _load_state(project, repo_root=repo_root)
+def record_iterative_run(
+    project: str,
+    payload: dict[str, Any],
+    *,
+    repo_root: Path | None = None,
+    state_override: dict[str, Any] | None = None,
+) -> dict[str, Path]:
+    paths, persisted_state = _load_state(project, repo_root=repo_root)
+    previous_progress = dict(persisted_state.get("research_progress", {}) or {})
+    state = dict(persisted_state)
+    if state_override:
+        state.update(dict(state_override))
     timestamp = str(payload.get("timestamp") or _utc_now())
     run_id = str(payload.get("run_id") or f"{project}-iterative-run")
     jsonable = to_jsonable(payload)
@@ -1047,9 +1536,20 @@ def record_iterative_run(project: str, payload: dict[str, Any], *, repo_root: Pa
     loop.update(
         {
             "last_run_id": run_id,
+            "workflow_mode": str(payload.get("workflow_mode", "campaign")),
+            "target_productive_minutes": int(payload.get("target_productive_minutes", loop.get("target_productive_minutes", 40)) or 40),
+            "max_runtime_mode": str(payload.get("max_runtime_mode", loop.get("max_runtime_mode", "bounded"))),
             "iteration_count": int(payload.get("iteration_count", 0) or 0),
             "target_iterations": int(payload.get("target_iterations", 0) or 0),
             "max_iterations": int(payload.get("max_iterations", 0) or 0),
+            "min_substantive_actions": int(payload.get("min_substantive_actions", loop.get("min_substantive_actions", 2)) or 2),
+            "target_substantive_actions": int(payload.get("target_substantive_actions", loop.get("target_substantive_actions", 3)) or 3),
+            "substantive_action_count": int(payload.get("substantive_action_count", 0) or 0),
+            "effective_progress_count": int(payload.get("effective_progress_count", 0) or 0),
+            "clarify_only_iterations": int(payload.get("clarify_only_iterations", 0) or 0),
+            "clarify_only_limit": int(payload.get("clarify_only_limit", loop.get("clarify_only_limit", 1)) or 1),
+            "controlled_refresh_count": int(payload.get("controlled_refresh_count", 0) or 0),
+            "run_start_read_count": int(payload.get("run_start_read_count", 0) or 0),
             "stop_reason": str(payload.get("stop_reason", "unknown")),
             "direction_change": bool(payload.get("direction_change", False)),
             "blocker_escalation": bool(payload.get("blocker_escalation", False)),
@@ -1103,6 +1603,9 @@ def record_iterative_run(project: str, payload: dict[str, Any], *, repo_root: Pa
         next_step_memory = [recommendation, *[item for item in next_step_memory if item != recommendation]][:5]
         state["next_step_memory"] = next_step_memory
 
+    if "execution_queue" in payload:
+        state["execution_queue"] = _normalize_execution_queue(payload.get("execution_queue"))
+    state["research_progress"] = _build_research_progress(state=state, payload=payload, previous=previous_progress)
     _refresh_derived_memory(paths, state)
     record_experiment_result(
         project,
@@ -1156,6 +1659,7 @@ def write_verify_snapshot(project: str, summary: dict[str, Any], *, repo_root: P
     )
     state["verify_last"] = verify
     state["last_verified_capability"] = summary.get("last_verified_capability") or state.get("last_verified_capability")
+    state["research_progress"] = _build_research_progress(state=state, previous=state.get("research_progress"))
     _refresh_derived_memory(paths, state)
     return paths.verify_last_path
 

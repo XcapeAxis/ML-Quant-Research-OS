@@ -28,55 +28,136 @@
     "`equal_weight_total_return` remains `1.0497515982053982` after the benchmark repair, so the fix did not widen the equal-weight baseline definition.",
     "Some readiness payloads still carry the legacy project label `2026Q1_limit_up` even though `as_share_research_v1` is now the live default-project name."
   ],
-  "head": "9efa25a06e8f7003fd30c868a09a45232883135e",
+  "execution_queue": [
+    {
+      "action_name": "data_validate",
+      "current_status": "advanced",
+      "impact": "high",
+      "last_classification": "",
+      "last_iteration": 0,
+      "last_summary": "",
+      "owner": "main",
+      "prerequisite": "无",
+      "requires_data_ready": false,
+      "risk": "low",
+      "selected_count": 0,
+      "stop_condition": "full refresh 后仍无新证据且 blocker 未缩小。",
+      "success_condition": "`data_validate` 后 blocker 缩小或 `data_ready=True`。",
+      "task_id": "recover_daily_bars",
+      "title": "恢复默认项目可用日频 bars"
+    },
+    {
+      "action_name": "research_audit",
+      "current_status": "queued",
+      "impact": "medium",
+      "last_classification": "",
+      "last_iteration": 0,
+      "last_summary": "",
+      "owner": "main",
+      "prerequisite": "以当前 blocker 重新确认 repo truth。",
+      "requires_data_ready": false,
+      "risk": "low",
+      "selected_count": 0,
+      "stop_condition": "审计结果没有带来新的边界信息。",
+      "success_condition": "审计结果让下一轮选择更确定。",
+      "task_id": "refresh_research_audit",
+      "title": "刷新 repo truth 与审计基线"
+    },
+    {
+      "action_name": "promote_candidate",
+      "current_status": "advanced",
+      "impact": "high",
+      "last_classification": "blocker_clarified",
+      "last_iteration": 1,
+      "last_summary": "`promote_candidate` clarified the current blocker without clearing it.",
+      "owner": "main",
+      "prerequisite": "默认项目具备可研究输入。",
+      "requires_data_ready": true,
+      "risk": "medium",
+      "selected_count": 1,
+      "stop_condition": "输入仍不足，继续执行 ROI 过低。",
+      "success_condition": "promotion 失败边界被重新确认或收窄。",
+      "task_id": "refresh_promotion_boundary",
+      "title": "刷新晋级边界诊断"
+    },
+    {
+      "action_name": "agent_cycle_dry_run",
+      "current_status": "queued",
+      "impact": "medium",
+      "last_classification": "",
+      "last_iteration": 0,
+      "last_summary": "",
+      "owner": "main",
+      "prerequisite": "默认项目具备可研究输入。",
+      "requires_data_ready": true,
+      "risk": "medium",
+      "selected_count": 0,
+      "stop_condition": "dry-run 只重复旧 blocker 且没有新信息。",
+      "success_condition": "dry-run 结果带来新的候选或 blocker 收敛。",
+      "task_id": "dry_run_agent_cycle",
+      "title": "跑一次 dry-run control plane"
+    }
+  ],
+  "head": "71b9dd4195b58aebb48496b0097226cb0021dd99",
   "iterative_loop": {
     "alternative_subagents": [],
     "archived_subagent_count": 0,
-    "artifact_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\automation_runs\\20260326T042345+0000_as_share_research_v1-iterative-20260326T042319Z.json",
+    "artifact_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\automation_runs\\20260326T071102+0000_as_share_research_v1-iterative-20260326T071026Z.json",
     "auto_closed_subagents": [],
     "blocked_subagent_count": 0,
     "blocker_escalation": true,
     "blocker_history": {
       "max_drawdown": {
-        "count": 4,
+        "count": 5,
         "escalated": true,
-        "last_seen": "2026-03-26T04:23:45+00:00",
+        "last_seen": "2026-03-26T07:11:02+00:00",
         "last_stop_reason": "low_roi_repeated_blocker"
       }
     },
     "blocker_key": "max_drawdown",
-    "blocker_repeat_count": 4,
+    "blocker_repeat_count": 5,
     "canceled_subagent_count": 0,
+    "clarify_only_iterations": 1,
+    "clarify_only_limit": 1,
     "consecutive_no_new_info_runs": 0,
+    "controlled_refresh_count": 1,
     "direction_change": false,
-    "historical_blocker_count": 3,
+    "effective_progress_count": 1,
+    "historical_blocker_count": 4,
     "iteration_count": 1,
     "last_classification": "blocker_clarified",
-    "last_completed": "Escalated repeated blocker `max_drawdown` and stopped automatic retries.",
-    "last_not_done": "Max drawdown 50.44% exceeds 30.00%.; Benchmark or equal-weight baselines are incomplete.",
-    "last_run_id": "as_share_research_v1-iterative-20260326T042319Z",
+    "last_completed": "推进执行队列：刷新晋级边界诊断",
+    "last_not_done": "刷新 repo truth 与审计基线",
+    "last_run_id": "as_share_research_v1-iterative-20260326T071026Z",
     "max_active_subagents": 0,
-    "max_iterations": 5,
+    "max_iterations": 6,
+    "max_runtime_mode": "bounded",
     "merged_subagent_count": 0,
+    "min_substantive_actions": 2,
     "next_recommendation": "Escalated blocker `max_drawdown`: stop automatic retries, narrow the path, and write back the root-cause diagnosis before the next run.",
     "refactored_subagent_count": 0,
     "retired_subagent_count": 31,
+    "run_start_read_count": 7,
     "stop_reason": "low_roi_repeated_blocker",
     "subagent_gate_mode": "AUTO",
     "subagent_reason": "Task breadth is below the minimum threshold for safe decomposition.",
     "subagents_used": [],
-    "target_iterations": 3
+    "substantive_action_count": 0,
+    "target_iterations": 4,
+    "target_productive_minutes": 40,
+    "target_substantive_actions": 3,
+    "workflow_mode": "campaign"
   },
-  "last_failed_capability": "Max drawdown 50.44% exceeds 30.00%.; Benchmark or equal-weight baselines are incomplete.",
+  "last_failed_capability": "刷新 repo truth 与审计基线",
   "last_failure": {
     "corrective_action": "Escalated blocker `max_drawdown`: stop automatic retries, narrow the path, and write back the root-cause diagnosis before the next run.",
-    "experiment_id": "as_share_research_v1-iterative-20260326T042319Z",
+    "experiment_id": "as_share_research_v1-iterative-20260326T071026Z",
     "resolution_status": "not_fixed",
     "root_cause": "Max drawdown 50.44% exceeds 30.00%.; Benchmark or equal-weight baselines are incomplete.",
-    "summary": "Max drawdown 50.44% exceeds 30.00%.; Benchmark or equal-weight baselines are incomplete.",
-    "timestamp": "2026-03-26T04:23:45+00:00"
+    "summary": "刷新 repo truth 与审计基线",
+    "timestamp": "2026-03-26T07:11:02+00:00"
   },
-  "last_updated": "2026-03-26T04:23:46+00:00",
+  "last_updated": "2026-03-26T07:11:04+00:00",
   "last_verified_capability": "Promotion gate diagnostics were generated and written to runtime artifacts.",
   "latest_hypotheses": [
     {
@@ -103,6 +184,46 @@
     "Use STRATEGY_FAILURE_REPORT and the branch ledger to choose the first bounded drawdown-focused experiment now that baseline completeness passes."
   ],
   "project": "as_share_research_v1",
+  "research_progress": {
+    "confidence": "medium",
+    "current_blocker": "Max drawdown 50.44% exceeds 30.00%.; Benchmark or equal-weight baselines are incomplete.",
+    "dimensions": [
+      {
+        "dimension": "Data inputs",
+        "evidence": "默认项目数据状态：已就绪覆盖： 715/715 个标的具备已验证 bars (coverage_ratio=1.0000, raw_rows=1441021, cleaned_rows=1419045, validated_rows=1419045).；当前输入已可支撑本阶段验证。",
+        "score": 3,
+        "status": "validation-ready"
+      },
+      {
+        "dimension": "Strategy integrity",
+        "evidence": "单一研究核心与契约护栏已存在；最近已验证能力：晋级门诊断已生成并写入 runtime artifacts。。",
+        "score": 2,
+        "status": "partial"
+      },
+      {
+        "dimension": "Validation stack",
+        "evidence": "已记录通过命令 1 条；当前验证栈已可作用于本阶段真实输入。",
+        "score": 3,
+        "status": "validation-ready"
+      },
+      {
+        "dimension": "Promotion readiness",
+        "evidence": "输入与验证均已到位，当前阶段已接近可直接用于晋级决策。",
+        "score": 4,
+        "status": "operational"
+      },
+      {
+        "dimension": "Subagent effectiveness",
+        "evidence": "治理与生命周期可用，但本轮保持有效 OFF；gate=AUTO，自动关停 0 个。",
+        "score": 2,
+        "status": "partial"
+      }
+    ],
+    "materially_changed": true,
+    "next_milestone": "Escalated blocker `max_drawdown`: stop automatic retries, narrow the path, and write back the root-cause diagnosis before the next run.",
+    "overall_trajectory": "narrowed",
+    "this_run_delta": "improved"
+  },
   "runtime_artifacts_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1",
   "runtime_meta_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta",
   "stage0a_decision": {
@@ -135,7 +256,7 @@
     "action": "iterative_relevance_review",
     "related_ids": [],
     "summary": "Task breadth is below the minimum threshold for safe decomposition.",
-    "timestamp": "2026-03-26T04:23:44+00:00"
+    "timestamp": "2026-03-26T07:11:02+00:00"
   },
   "subagent_operating_preference": "Manage subagents dynamically in real time. Default effectively OFF. Escalate to LIGHT or FULL only when the task truly benefits from parallel work, then pause or retire transient workers as soon as their bounded job is done.",
   "subagent_plan": {

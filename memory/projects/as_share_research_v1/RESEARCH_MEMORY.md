@@ -31,3 +31,15 @@
 - 先对 `max_drawdown` 做更细的根因诊断，再决定是否进入下一轮 automation iteration。
 - 拆解回撤究竟来自时间窗口集中、个股集中，还是持有尾部过长。
 - Use STRATEGY_FAILURE_REPORT and the branch ledger to choose the first bounded drawdown-focused experiment now that baseline completeness passes.
+
+## 研究进度
+- Data inputs: 可进入验证，3/4。证据：默认项目数据状态：已就绪覆盖： 715/715 个标的具备已验证 bars (coverage_ratio=1.0000, raw_rows=1441021, cleaned_rows=1419045, validated_rows=1419045).；当前输入已可支撑本阶段验证。
+- Strategy integrity: 部分可用，2/4。证据：单一研究核心与契约护栏已存在；最近已验证能力：晋级门诊断已生成并写入 runtime artifacts。。
+- Validation stack: 可进入验证，3/4。证据：已记录通过命令 1 条；当前验证栈已可作用于本阶段真实输入。
+- Promotion readiness: 当前阶段可运行，4/4。证据：输入与验证均已到位，当前阶段已接近可直接用于晋级决策。
+- Subagent effectiveness: 部分可用，2/4。证据：治理与生命周期可用，但本轮保持有效 OFF；gate=AUTO，自动关停 0 个。
+- 总体轨迹: 已收敛
+- 本轮增量: 有改进
+- 当前 blocker: 最大回撤 50.44% 高于 30.00%。；基准或等权基线不完整.
+- 下一里程碑: 升级 blocker `max_drawdown`: 已停止自动重试，请收窄路径，并在下一次 run 前写回根因诊断。
+- 置信度: 中
