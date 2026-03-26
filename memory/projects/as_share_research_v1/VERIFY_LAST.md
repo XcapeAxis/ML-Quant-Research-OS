@@ -1,67 +1,23 @@
 # 最近验证快照
 
-- head: 053e4159ecdc1f2b86633b366f2a01f2cea7d9a2
-- branch: main
-- 通过命令:
-  - python -m quant_mvp data_validate --project as_share_research_v1
-- 失败命令:
-  - 未记录
-- 默认项目数据状态: 已就绪覆盖： 715/715 个标的具备已验证 bars (coverage_ratio=1.0000, raw_rows=1441021, cleaned_rows=1419045, validated_rows=1419045).
-- 工程边界结论: 已执行已验证数据恢复、覆盖缺口分析与 readiness 写回。
-- 研究边界结论: 当前已验证快照已满足 promotion-grade research 的前置条件。
-- 当前轮次类型: 策略推进轮
-- 当前主线策略: baseline_limit_up（涨停主线基线分支）
-- 当前 blocked 策略: baseline_limit_up（涨停主线基线分支）, risk_constrained_limit_up（涨停主线风控分支）, tighter_entry_limit_up（涨停主线收紧入场分支）
-- 策略推进判断: 本轮围绕 baseline_limit_up（涨停主线基线分支） 继续收敛研究 blocker；当前最硬的限制仍是 最大回撤 56.50% 高于 30.00%。。
-- subagent_gate_mode: AUTO
-- active_subagents: none
-- blocked_subagents: none
-- 最近 subagent 事件: 迭代相关性复核
+## 规范项目
+- project_id: `as_share_research_v1`
+- legacy_alias: `2026Q1_limit_up`
+- 当前主线策略: `baseline_limit_up`
+- 当前研究阶段: 晋级受阻
+- configured_gate: `AUTO`
+- effective_gate_this_run: `OFF`
 
-## 策略快照
-- 当前轮次类型: 策略推进轮
-- 当前主线策略: baseline_limit_up（涨停主线基线分支）
-- 当前支线策略: risk_constrained_limit_up（涨停主线风控分支）, tighter_entry_limit_up（涨停主线收紧入场分支）
-- 当前 blocked 策略: baseline_limit_up（涨停主线基线分支）, risk_constrained_limit_up（涨停主线风控分支）, tighter_entry_limit_up（涨停主线收紧入场分支）
-- 当前 rejected 策略: legacy_single_branch（旧单分支兼容路径）
-- 当前 promoted 策略: 当前为空
-- 系统推进判断: 本轮主要刷新研究边界、验证状态和长期记忆，而不是继续扩张治理层。
-- 策略推进判断: 本轮围绕 baseline_limit_up（涨停主线基线分支） 继续收敛研究 blocker；当前最硬的限制仍是 最大回撤 56.50% 高于 30.00%。。
+## 通过命令
+- `.venv\Scripts\python.exe -m pytest tests\test_strategy_spec_consistency.py tests\test_weekday_rebalance_contract.py tests\test_manifest_and_memory_writeback.py tests\test_leakage_guards.py tests\test_subagent_policy.py tests\test_subagent_lifecycle.py tests\test_response_contract.py tests\test_iterative_loop.py tests\test_mission_tick.py tests\test_strategy_visibility.py tests\test_memory_handoff_generation.py tests\test_verify_snapshot.py tests\test_canonical_project_identity.py -q`
+- `.venv\Scripts\python.exe -m quant_mvp data_validate --project as_share_research_v1`
+- `.venv\Scripts\python.exe -m quant_mvp research_audit --project as_share_research_v1`
+- `.venv\Scripts\python.exe -m quant_mvp agent_cycle --project as_share_research_v1 --dry-run`
+- `.venv\Scripts\python.exe -m quant_mvp promote_candidate --project as_share_research_v1`
 
-## 研究进度
-- Data inputs: 可进入验证，3/4。证据：默认项目数据状态：已就绪覆盖： 715/715 个标的具备已验证 bars (coverage_ratio=1.0000, raw_rows=1441021, cleaned_rows=1419045, validated_rows=1419045).；当前输入已可支撑本阶段验证。
-- Strategy integrity: 部分可用，2/4。证据：单一研究核心与契约护栏已存在；最近已验证能力：Tracked memory 已按计划刷新： as_share_research_v1: revalidate spec parity before any new alpha claim。
-- Validation stack: 可进入验证，3/4。证据：已记录通过命令 1 条；当前验证栈已可作用于本阶段真实输入。
-- Promotion readiness: 当前阶段可运行，4/4。证据：输入与验证均已到位，当前阶段已接近可直接用于晋级决策。
-- Subagent effectiveness: 部分可用，2/4。证据：治理与生命周期可用，但本轮保持有效 OFF；gate=AUTO，自动关停 0 个。
-- 总体轨迹: 阻塞
-- 本轮增量: 无实质变化
-- 当前 blocker: 最大回撤 56.50% 高于 30.00%。
-- 下一里程碑: 恢复 frozen default universe 可用的 validated bar 快照。
-- 置信度: 中
-
-## 高阶迭代摘要
-- workflow_mode: campaign
-- target_productive_minutes: 40
-- max_runtime_mode: bounded
-- iteration_count: 3
-- target_iterations: 4
-- max_iterations: 6
-- substantive_action_count: 2 / 3
-- effective_progress_count: 2
-- clarify_only_iterations: 0 / 1
-- controlled_refresh_count: 3 (run_start_read_count=7)
-- stop_reason: 同一 blocker 已升级且继续推进 ROI 很低，自动停止。
-- direction_change: 是
-- blocker_escalation: 是
-- blocker_key: max_drawdown (repeat_count=7, historical_count=5)
-- last_classification: 没有显著进展
-- max_active_subagents: 0
-- subagent_gate_mode: AUTO (blocked/retired/merged/archived=0/31/0/0)
-- subagents_used: none
-- subagent_reason: 任务广度尚未达到安全拆分的最低阈值。
-- auto_closed_subagents: none
-- alternative_subagents: none
-- 本轮完成: 推进执行队列：恢复默认项目可用日频 bars、刷新晋级边界诊断、跑一次 dry-run control plane
-- 本轮未完成: 刷新 repo truth 与审计基线
-- 下一步建议: 升级 blocker `max_drawdown`: 已停止自动重试，请收窄路径，并在下一次 run 前写回根因诊断。
+## 当前结论
+- 默认项目数据状态: `715/715` validated symbols，研究输入 ready
+- 工程边界: canonical identity、strategy action log、handoff、migration prompt、subagent registry、Chinese reporting 均已刷新
+- 研究边界: 当前不是缺 bars，而是 promotion-stage failure
+- 直接 promotion gate 结果: `max drawdown 50.44% > 30.00%`，并伴随 `benchmark_missing:000001`
+- 旧 dry-run evaluator 结果: 只保留为历史对照，不再代表当前 canonical truth

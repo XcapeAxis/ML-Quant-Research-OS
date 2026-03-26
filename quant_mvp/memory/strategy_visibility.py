@@ -451,11 +451,11 @@ def summarize_strategy_visibility(state: dict[str, Any]) -> dict[str, Any]:
     blocker = _clean_text(_blocker_text(state))
     if round_type == "基础设施恢复轮":
         strategy_line = f"本轮未进行实质策略研究，原因是 {blocker}；当前先恢复研究前提并保持策略对象可见。"
-        system_line = "本轮主要推进研究前提恢复、长期记忆写回和研究对象显式化。"
+        system_line = "本轮主要在修正研究前提、统一项目身份和补齐研究记录展示，没有新增策略验证。"
     else:
         focus = primary_names[0] if primary_names else "主线策略"
-        strategy_line = f"本轮围绕 {focus} 继续收敛研究 blocker；当前最硬的限制仍是 {blocker}。"
-        system_line = "本轮主要刷新研究边界、验证状态和长期记忆，而不是继续扩张治理层。"
+        strategy_line = f"本轮围绕 {focus} 继续收敛研究阻塞；当前最硬的限制仍是 {blocker}。"
+        system_line = "本轮主要把当前研究结论、阻塞原因和后续验证顺序写清楚，没有新增宽泛系统扩张。"
     return {
         "round_type": round_type,
         "system_line": system_line,
@@ -490,6 +490,9 @@ def render_strategy_board(state: dict[str, Any], *, paths) -> str:
     lines = [
         "# 策略研究看板",
         "",
+        "## 0. 候选准入规则",
+        "- 原始想法先进入 IDEA_BACKLOG.md；只有写清楚假设、经济含义、所需数据和下一步验证后，才允许升为候选策略卡片。",
+        "",
         "## 1. 主线策略（Primary track）",
     ]
     lines.extend([_candidate_line(item) for item in summary["primary"]] or ["- 当前为空"])
@@ -523,6 +526,9 @@ def render_strategy_board(state: dict[str, Any], *, paths) -> str:
             "## 相关 tracked memory",
             f"- strategy_board: {paths.strategy_board_path}",
             f"- strategy_candidates_dir: {paths.strategy_candidates_dir}",
+            f"- strategy_action_log: {paths.strategy_action_log_path}",
+            f"- research_activity: {paths.research_activity_path}",
+            f"- idea_backlog: {paths.idea_backlog_path}",
             f"- research_progress: {paths.research_progress_path}",
         ],
     )

@@ -110,6 +110,8 @@ class SubagentEvent:
     subagent_type: str | None = None
     strategy_id: str | None = None
     blocker_scope: str | None = None
+    research_focus: str | None = None
+    delivered_conclusion: str | None = None
     decision_impact: str | None = None
     related_ids: list[str] = field(default_factory=list)
     artifact_refs: list[str] = field(default_factory=list)

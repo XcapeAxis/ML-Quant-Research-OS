@@ -1,32 +1,44 @@
 # 策略研究看板
 
-## 1. 主线策略（Primary track）
-- `baseline_limit_up` | 涨停主线基线分支 | stage=validation | decision=blocked | 假设：过去一段时间反复出现涨停、随后回到突破起点附近的主板个股，后续更容易再次走强；先把这条主线稳定保存成基线，再评估其它改法。
+## 0. 候选准入规则
+- 原始想法先写入 [`IDEA_BACKLOG.md`](./IDEA_BACKLOG.md)
+- 只有同时写清楚具体假设、经济含义、所需数据、下一步验证，才允许进入 `STRATEGY_CANDIDATES/`
+- 被拒绝或暂缓的想法必须留痕，不允许为了“看板好看”而直接消失
 
-## 2. 次级策略（Secondary track）
-- `risk_constrained_limit_up` | 涨停主线风控分支 | stage=validation | decision=blocked | 假设：在不破坏涨停回踩再启动这个主线定义的前提下，更严格的止损、市场过滤或持仓约束可以显著降低回撤。
-- `tighter_entry_limit_up` | 涨停主线收紧入场分支 | stage=validation | decision=blocked | 假设：把入选阈值收紧，只保留更接近再次启动位置的个股，可以减少过早买入带来的假突破和大回撤。
+## 1. 主线策略（Primary track）
+- `baseline_limit_up`
+- 当前状态: blocked
+- 当前结论: 数据输入 ready，但 promotion-stage gate 失败
+- 当前 blocker: 最大回撤 `50.44%` 高于 `30.00%`，且 direct `promote_candidate` 仍报告 `benchmark_missing:000001`
+- 本轮变化: 无新增策略验证；只统一 canonical 项目身份、blocker 叙事、动作可见性
+
+## 2. 支线策略（Secondary track）
+- `risk_constrained_limit_up`
+- 当前状态: blocked
+- 当前原因: 先要拆清 `baseline_limit_up` 的回撤来源，再决定是否优先验证
+- `tighter_entry_limit_up`
+- 当前状态: blocked
+- 当前原因: 同上
 
 ## 3. Blocked 策略
-- `baseline_limit_up` | 涨停主线基线分支 | stage=validation | decision=blocked | 假设：过去一段时间反复出现涨停、随后回到突破起点附近的主板个股，后续更容易再次走强；先把这条主线稳定保存成基线，再评估其它改法。
-- `risk_constrained_limit_up` | 涨停主线风控分支 | stage=validation | decision=blocked | 假设：在不破坏涨停回踩再启动这个主线定义的前提下，更严格的止损、市场过滤或持仓约束可以显著降低回撤。
-- `tighter_entry_limit_up` | 涨停主线收紧入场分支 | stage=validation | decision=blocked | 假设：把入选阈值收紧，只保留更接近再次启动位置的个股，可以减少过早买入带来的假突破和大回撤。
+- `baseline_limit_up`
+- `risk_constrained_limit_up`
+- `tighter_entry_limit_up`
 
 ## 4. Rejected / Killed 策略
-- `legacy_single_branch` | 旧单分支兼容路径 | 原因：legacy_single_branch 目前只有候选池与实验记录，真正的 verifier 结论仍缺失。
+- `legacy_single_branch`
+- 当前状态: rejected / archived
+- 说明: 只保留历史记录，不再代表当前活跃研究路径
 
 ## 5. Promoted 策略
 - 当前为空
 
 ## 6. 当前研究总判断
-- 当前研究主线: baseline_limit_up（涨停主线基线分支）
-- 当前支线策略: risk_constrained_limit_up（涨停主线风控分支）, tighter_entry_limit_up（涨停主线收紧入场分支）
-- 当前最硬 blocker: 最大回撤 56.50% 高于 30.00%。
-- 当前轮次类型: 策略推进轮
-- 研究策略本身的工作: 本轮围绕 baseline_limit_up（涨停主线基线分支） 继续收敛研究 blocker；当前最硬的限制仍是 最大回撤 56.50% 高于 30.00%。。
-- 恢复基础设施的工作: 本轮主要刷新研究边界、验证状态和长期记忆，而不是继续扩张治理层。
-
-## 相关 tracked memory
-- strategy_board: C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\STRATEGY_BOARD.md
-- strategy_candidates_dir: C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\STRATEGY_CANDIDATES
-- research_progress: C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\RESEARCH_PROGRESS.md
+- 当前规范项目: `as_share_research_v1`
+- 历史别名: `2026Q1_limit_up`
+- 当前系统推进: 本轮只做 canonicalization、visibility、reporting cleanup
+- 当前策略推进: 本轮没有新增策略研究结论；当前真实 blocker 已统一为 promotion-stage failure，而不是缺 bars
+- 当前证据入口:
+- [`STRATEGY_ACTION_LOG.jsonl`](./STRATEGY_ACTION_LOG.jsonl)
+- [`RESEARCH_ACTIVITY.md`](./RESEARCH_ACTIVITY.md)
+- [`IDEA_BACKLOG.md`](./IDEA_BACKLOG.md)

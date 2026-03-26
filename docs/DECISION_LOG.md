@@ -19,3 +19,7 @@
 - Add a tracked Strategy Research Visibility Layer so the system always exposes which strategy candidates are being researched, which are primary / secondary / blocked / rejected / promoted, and why the current run did or did not advance real strategy research.
 - Split subagents into strategy-research and infrastructure types in tracked memory; research subagents must bind a `strategy_id`, while infrastructure subagents must say which blocker or prerequisite they are clearing for later research.
 - Keep automation CHECKPOINT replies research-centered: `Done / Evidence / Next action / Subagent status`, with explicit Chinese statements when a run is only doing infrastructure recovery rather than substantive strategy work.
+- Make `as_share_research_v1` the single canonical active project id; keep `2026Q1_limit_up` only as an explicit legacy alias or archived migration reference.
+- Unify the active blocker story around the current truth: default-project data inputs are ready, and the live blocker is promotion-stage max drawdown rather than missing daily bars.
+- Add tracked `STRATEGY_ACTION_LOG.jsonl` and `RESEARCH_ACTIVITY.md` so every run states whether real strategy research happened, who did it, what changed, and when the run was infrastructure-only.
+- Distinguish configured subagent gate from the effective gate used in the current run, and keep user-facing summaries in direct Chinese research language instead of abstract system-orchestration language.

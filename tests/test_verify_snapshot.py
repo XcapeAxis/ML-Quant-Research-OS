@@ -24,6 +24,7 @@ def test_verify_last_writes_latest_summary(limit_up_project) -> None:
     assert "python -m pytest tests -q" in text
     assert "synthetic fixture has validated bars" in text
     assert "engineering automation works in fixture tests" in text
-    assert "subagent_gate_mode: AUTO" in text
+    assert "configured_gate: AUTO" in text
+    assert "effective_gate_this_run: OFF" in text
     assert "当前主线策略" in text
     assert "当前轮次类型" in text

@@ -14,8 +14,21 @@ from ..agent.subagent_registry import (
     summarize_subagent_state,
 )
 from ..project import resolve_project_paths
+from ..project_identity import (
+    CANONICAL_PROJECT_ID,
+    alias_notice,
+    canonical_project_id,
+    is_active_canonical_project,
+    legacy_project_ids,
+    rewrite_identity_payload,
+)
 from .ledger import append_jsonl, to_jsonable
 from .localization import humanize_text, zh_bool, zh_status, zh_stop_reason
+from .research_activity import (
+    append_strategy_action_log,
+    read_strategy_action_log,
+    write_research_activity_markdown,
+)
 from .strategy_visibility import (
     ensure_strategy_visibility_state,
     render_strategy_board,
@@ -81,6 +94,161 @@ def _write_json(path: Path, payload: dict[str, Any]) -> Path:
         return path
     path.write_text(text, encoding="utf-8")
     return path
+
+
+def _looks_ready_data_status(text: str) -> bool:
+    lowered = str(text or "").strip().lower()
+    return any(
+        token in lowered
+        for token in [
+            "ready coverage",
+            "validated snapshot",
+            "promotion-grade",
+            "validation-ready",
+            "research-readiness",
+            "已就绪覆盖",
+            "可进入 promotion-grade",
+        ]
+    )
+
+
+def _looks_data_blocked_text(text: str) -> bool:
+    lowered = str(text or "").strip().lower()
+    return any(
+        token in lowered
+        for token in [
+            "usable validated bars",
+            "validated bars",
+            "missing",
+            "coverage",
+            "readiness",
+            "bars",
+            "可用日频",
+            "缺",
+            "数据",
+        ]
+    )
+
+
+def _infer_blocker_key_from_state(state: dict[str, Any]) -> str:
+    blocker = str(state.get("current_blocker", "")).strip()
+    blocker_lower = blocker.lower()
+    verify = dict(state.get("verify_last", {}) or {})
+    data_status = str(verify.get("default_project_data_status", "")).strip()
+    last_failed = str(state.get("last_failed_capability", "")).strip().lower()
+    if "drawdown" in blocker_lower or "回撤" in blocker:
+        return "max_drawdown"
+    if _looks_data_blocked_text(blocker):
+        return "data_inputs"
+    if _looks_ready_data_status(data_status) and "drawdown" in last_failed:
+        return "max_drawdown"
+    if _looks_data_blocked_text(data_status):
+        return "data_inputs"
+    if "leakage" in blocker_lower:
+        return "leakage"
+    if "walk" in blocker_lower:
+        return "walk_forward"
+    if "baseline" in blocker_lower or "benchmark" in blocker_lower:
+        return "baseline_integrity"
+    return "none" if not blocker or blocker_lower in {"none", "unknown"} else blocker_lower.replace(" ", "_")[:80]
+
+
+def _current_research_stage(state: dict[str, Any]) -> str:
+    blocker_key = _infer_blocker_key_from_state(state)
+    if blocker_key == "data_inputs":
+        return "基础设施恢复"
+    if blocker_key in {"max_drawdown", "leakage", "walk_forward", "baseline_integrity"}:
+        return "晋级受阻"
+    strategy = summarize_strategy_visibility(state)
+    if strategy.get("blocked"):
+        return "稳健性工作"
+    return "策略验证"
+
+
+def _canonical_truth_summary(state: dict[str, Any]) -> str:
+    blocker = humanize_text(state.get("current_blocker", "unknown"))
+    stage = _current_research_stage(state)
+    if _infer_blocker_key_from_state(state) == "data_inputs":
+        return f"规范项目当前仍在补研究输入，主阻塞是 {blocker}。"
+    return f"规范项目当前处于{stage}阶段，真实主阻塞是 {blocker}；旧的“缺 bars”叙事已转为历史路径。"
+
+
+def _drawdown_next_action(state: dict[str, Any]) -> str:
+    strategy = summarize_strategy_visibility(state)
+    primary = strategy.get("primary_names", []) or ["baseline_limit_up"]
+    secondary = strategy.get("secondary_names", []) or ["risk_constrained_limit_up", "tighter_entry_limit_up"]
+    return f"先拆解 {primary[0]} 的回撤根因，再决定优先验证 {secondary[0]} 还是 {secondary[-1]}。"
+
+
+def _canonicalize_active_project_state(paths, state: dict[str, Any]) -> dict[str, Any]:
+    canonical = canonical_project_id(paths.project)
+    updated = rewrite_identity_payload(dict(state), project=canonical) if is_active_canonical_project(paths.project) else dict(state)
+    updated["project"] = paths.project
+    updated["canonical_project_id"] = canonical
+    updated["legacy_project_aliases"] = legacy_project_ids(canonical)
+    updated["project_identity_notice"] = alias_notice(canonical)
+    updated["current_research_stage"] = _current_research_stage(updated)
+    updated["canonical_truth_summary"] = _canonical_truth_summary(updated)
+    updated["configured_subagent_gate_mode"] = str(updated.get("subagent_gate_mode", "AUTO"))
+    updated["effective_subagent_gate_mode"] = str(
+        ((updated.get("subagent_plan", {}) or {}).get("recommended_gate"))
+        or ((updated.get("iterative_loop", {}) or {}).get("subagent_effective_gate_mode"))
+        or ("OFF" if updated["configured_subagent_gate_mode"] == "OFF" else "OFF")
+    )
+    updated["effective_subagent_gate_reason"] = str(
+        updated.get("subagent_continue_reason")
+        or ((updated.get("subagent_plan", {}) or {}).get("no_split_reason"))
+        or "当前没有值得安全并行拆分的工作包。"
+    )
+    durable_facts = _normalize_list(updated.get("durable_facts"))
+    if is_active_canonical_project(paths.project):
+        durable_facts = [
+            item
+            for item in durable_facts
+            if "legacy project label `2026Q1_limit_up`" not in item
+        ]
+        if updated["project_identity_notice"] not in durable_facts:
+            durable_facts.append(updated["project_identity_notice"])
+        updated["durable_facts"] = durable_facts
+
+    blocker_key = _infer_blocker_key_from_state(updated)
+    if blocker_key == "data_inputs":
+        updated["current_capability_boundary"] = "当前只能确认研究前提与数据恢复；还不能把任何候选当成已验证策略结论。"
+        if "回撤" in str(updated.get("next_priority_action", "")):
+            updated["next_priority_action"] = "先恢复规范项目可直接复用的 validated bars 与数据快照。"
+    elif blocker_key == "max_drawdown":
+        updated["current_capability_boundary"] = "研究输入与验证入口已就绪，当前已进入策略验证 / 晋级受阻阶段；真正卡住的是最大回撤仍高于 30%。"
+        next_action = str(updated.get("next_priority_action", "")).strip()
+        if not next_action or _looks_data_blocked_text(next_action):
+            updated["next_priority_action"] = _drawdown_next_action(updated)
+        next_steps = [item for item in _normalize_list(updated.get("next_step_memory")) if not _looks_data_blocked_text(item)]
+        updated["next_step_memory"] = [updated["next_priority_action"], *[item for item in next_steps if item != updated["next_priority_action"]]][:5]
+    else:
+        updated["current_capability_boundary"] = str(updated.get("current_capability_boundary", "")).strip() or "当前可继续推进策略验证，但仍需保持验证口径保守。"
+    return updated
+
+
+def _refresh_research_activity_markdown(paths, *, run_id: str | None = None) -> None:
+    entries = read_strategy_action_log(paths.strategy_action_log_path, run_id=run_id, limit=30)
+    if not entries and run_id is not None:
+        entries = read_strategy_action_log(paths.strategy_action_log_path, limit=30)
+    write_research_activity_markdown(paths.research_activity_path, entries)
+
+
+def _sync_mission_state_identity(paths) -> None:
+    if not paths.mission_state_path.exists():
+        return
+    payload = _read_json(paths.mission_state_path, default={})
+    if not payload:
+        return
+    if is_active_canonical_project(paths.project):
+        payload = rewrite_identity_payload(payload, project=paths.project)
+        payload["project"] = paths.project
+        payload["mission_id"] = str(payload.get("mission_id", f"mission-{paths.project}")).replace(
+            f"mission-{legacy_project_ids(paths.project)[0]}",
+            f"mission-{paths.project}",
+        ) if legacy_project_ids(paths.project) else str(payload.get("mission_id", f"mission-{paths.project}"))
+    _write_json(paths.mission_state_path, payload)
 
 
 def _git_value(root: Path, *args: str) -> str:
@@ -235,6 +403,9 @@ def _render_strategy_snapshot_lines(state: dict[str, Any], *, heading: str = "##
     strategy = summarize_strategy_visibility(state)
     return [
         heading,
+        f"- 当前规范项目ID: {state.get('canonical_project_id', state.get('project', 'unknown'))}",
+        f"- 历史别名: {', '.join(state.get('legacy_project_aliases', [])) or '无'}",
+        f"- 当前研究阶段: {state.get('current_research_stage', '未记录')}",
         f"- 当前轮次类型: {strategy['round_type']}",
         f"- 当前主线策略: {', '.join(strategy['primary_names']) or '尚未记录'}",
         f"- 当前支线策略: {', '.join(strategy['secondary_names']) or '当前为空'}",
@@ -243,6 +414,36 @@ def _render_strategy_snapshot_lines(state: dict[str, Any], *, heading: str = "##
         f"- 当前 promoted 策略: {', '.join(strategy['promoted_names']) or '当前为空'}",
         f"- 系统推进判断: {strategy['system_line']}",
         f"- 策略推进判断: {strategy['strategy_line']}",
+        f"- 规范叙事结论: {humanize_text(state.get('canonical_truth_summary', 'unknown'))}",
+    ]
+
+
+def _recent_strategy_action_lines(paths, *, run_id: str | None = None, limit: int = 5) -> list[str]:
+    entries = read_strategy_action_log(paths.strategy_action_log_path, run_id=run_id, limit=limit)
+    if not entries and run_id is not None:
+        entries = read_strategy_action_log(paths.strategy_action_log_path, limit=limit)
+    lines = ["## 最近策略动作"]
+    if not entries:
+        lines.append("- 本轮未推进实质策略研究，当前没有新的策略动作记录。")
+        return lines
+    for item in entries:
+        strategy = "本轮无实质策略研究" if item["strategy_id"] == "__none__" else item["strategy_id"]
+        actor = f"{item['actor_type']}:{item['actor_id']}"
+        lines.append(
+            f"- {strategy} | {actor} | {humanize_text(item['action_summary'])} | 结果：{humanize_text(item['result'])} | 决策变化：{humanize_text(item['decision_delta'])}"
+        )
+    return lines
+
+
+def _subagent_gate_lines(state: dict[str, Any]) -> list[str]:
+    subagents = summarize_subagent_state(state)
+    configured = str(state.get("configured_subagent_gate_mode", subagents.get("gate_mode", "AUTO")))
+    effective = str(state.get("effective_subagent_gate_mode", subagents.get("recommended_gate", "OFF")))
+    reason = humanize_text(state.get("effective_subagent_gate_reason", subagents.get("continue_reason", "未记录")))
+    return [
+        f"- configured_gate: {configured}",
+        f"- effective_gate_this_run: {effective}",
+        f"- gate_reason: {reason}",
     ]
 
 
@@ -394,6 +595,8 @@ def _iterative_loop_state(state: dict[str, Any]) -> dict[str, Any]:
 
 def _render_loop_summary_lines(state: dict[str, Any]) -> list[str]:
     loop = _iterative_loop_state(state)
+    configured_gate = str(state.get("configured_subagent_gate_mode", loop.get("subagent_gate_mode", "AUTO")))
+    effective_gate = str(state.get("effective_subagent_gate_mode", ((state.get("subagent_plan", {}) or {}).get("recommended_gate") or "OFF")))
     return [
         f"- workflow_mode: {loop.get('workflow_mode', 'campaign')}",
         f"- target_productive_minutes: {loop.get('target_productive_minutes', 40)}",
@@ -411,8 +614,9 @@ def _render_loop_summary_lines(state: dict[str, Any]) -> list[str]:
         f"- blocker_key: {loop.get('blocker_key', 'unknown')} (repeat_count={loop.get('blocker_repeat_count', 0)}, historical_count={loop.get('historical_blocker_count', 0)})",
         f"- last_classification: {humanize_text(loop.get('last_classification', 'unknown'))}",
         f"- max_active_subagents: {loop.get('max_active_subagents', 0)}",
+        f"- configured_subagent_gate: {configured_gate}",
         (
-            f"- subagent_gate_mode: {loop.get('subagent_gate_mode', 'AUTO')} "
+            f"- effective_subagent_gate: {effective_gate} "
             f"(blocked/retired/merged/archived={loop.get('blocked_subagent_count', 0)}/"
             f"{loop.get('retired_subagent_count', 0)}/{loop.get('merged_subagent_count', 0)}/{loop.get('archived_subagent_count', 0)})"
         ),
@@ -575,6 +779,21 @@ _RESEARCH_PROGRESS_DIMENSIONS = (
     ("Subagent effectiveness", "subagent_effectiveness"),
 )
 
+
+IDEA_BACKLOG_TEMPLATE = """# 想法积压池
+
+## 准入规则
+- 原始想法先写在这里，不直接升为候选策略卡片。
+- 只有同时写清楚具体假设、经济含义、所需数据和下一步验证，才允许进入 `STRATEGY_CANDIDATES/`。
+- 被拒绝或暂缓的想法要保留在这里，不允许直接消失。
+
+## Raw Ideas
+- 当前为空
+
+## Rejected / Deferred
+- 当前为空
+"""
+
 _PROGRESS_STATUS_ZH = {
     "blocked": "阻塞",
     "bootstrap": "起步",
@@ -719,7 +938,7 @@ def _score_promotion_readiness(
     data_inputs: dict[str, Any],
     validation_stack: dict[str, Any],
 ) -> dict[str, Any]:
-    blocker_key = str(payload.get("blocker_key") or "").strip().lower()
+    blocker_key = str(payload.get("blocker_key") or _infer_blocker_key_from_state(state)).strip().lower()
     blocker = humanize_text(state.get("current_blocker", "unknown"))
     if data_inputs.get("score", 0) <= 1 or blocker_key == "data_inputs":
         evidence = f"当前 blocker：{blocker}；研究输入仍不足以支撑晋级评估。"
@@ -735,7 +954,8 @@ def _score_promotion_readiness(
 
 
 def _score_subagent_effectiveness(state: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
-    gate_mode = str(payload.get("subagent_gate_mode") or state.get("subagent_gate_mode", "AUTO")).strip()
+    configured = str(payload.get("configured_subagent_gate_mode") or state.get("configured_subagent_gate_mode") or state.get("subagent_gate_mode", "AUTO")).strip()
+    effective = str(payload.get("effective_subagent_gate_mode") or state.get("effective_subagent_gate_mode") or ((state.get("subagent_plan", {}) or {}).get("recommended_gate") or "OFF")).strip()
     max_active = int(payload.get("max_active_subagents", 0) or 0)
     used = _normalize_list(payload.get("subagents_used"))
     verified_progress = bool(payload.get("verified_progress", False))
@@ -747,12 +967,22 @@ def _score_subagent_effectiveness(state: dict[str, Any], payload: dict[str, Any]
     if max_active > 0 or used:
         evidence = f"本轮实际使用 subagents：{', '.join(used) or '已记录但未命名'}；存在真实任务执行证据。"
         return _dimension_payload("Subagent effectiveness", status="validation-ready", score=3, evidence=evidence)
-    evidence = f"治理与生命周期可用，但本轮保持有效 OFF；gate={gate_mode}，自动关停 {len(auto_closed)} 个。"
+    evidence = f"subagent 开关与收尾规则已可用，但本轮配置 gate={configured}、实际执行 gate={effective}；自动收尾 {len(auto_closed)} 个。"
     return _dimension_payload("Subagent effectiveness", status="partial", score=2, evidence=evidence)
 
 
 def _classify_progress_delta(previous: dict[str, Any] | None, current: dict[str, Any], payload: dict[str, Any]) -> str:
+    stop_reason = str(payload.get("stop_reason", "")).strip()
+    classification = str(payload.get("classification", "")).strip().lower()
+    if stop_reason == "verification_failed_scope_expanded":
+        return "regressed"
     if not previous or not previous.get("dimensions"):
+        if bool(payload.get("verified_progress", False)) or classification in {
+            "blocker_clarified",
+            "direction_corrected",
+            "verified_progress",
+        }:
+            return "improved"
         return "unchanged"
     previous_scores = {
         str(item.get("dimension", "")): _bounded_score(item.get("score", 0))
@@ -768,11 +998,8 @@ def _classify_progress_delta(previous: dict[str, Any] | None, current: dict[str,
         return "regressed"
     if any(current_scores.get(name, 0) > previous_scores.get(name, 0) for name, _ in _RESEARCH_PROGRESS_DIMENSIONS):
         return "improved"
-    if str(payload.get("stop_reason", "")).strip() == "verification_failed_scope_expanded":
-        return "regressed"
     previous_blocker = str(previous.get("current_blocker", "")).strip()
     current_blocker = str(current.get("current_blocker", "")).strip()
-    classification = str(payload.get("classification", "")).strip().lower()
     if previous_blocker and current_blocker and previous_blocker != current_blocker and classification in {"blocker_clarified", "direction_corrected", "verified_progress"}:
         return "improved"
     return "unchanged"
@@ -811,6 +1038,12 @@ def _build_research_progress(
     previous: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     payload = dict(payload or {})
+    payload.setdefault("blocker_key", _infer_blocker_key_from_state(state))
+    payload.setdefault("configured_subagent_gate_mode", state.get("configured_subagent_gate_mode") or state.get("subagent_gate_mode", "AUTO"))
+    payload.setdefault(
+        "effective_subagent_gate_mode",
+        state.get("effective_subagent_gate_mode") or ((state.get("subagent_plan", {}) or {}).get("recommended_gate") or "OFF"),
+    )
     data_inputs = _score_data_inputs(state, payload)
     strategy_integrity = _score_strategy_integrity(state, payload, data_inputs)
     validation_stack = _score_validation_stack(state, payload, data_inputs)
@@ -860,6 +1093,9 @@ def _render_research_progress_lines(state: dict[str, Any], *, heading: str = "##
 def _default_session_state(project: str, *, root: Path, paths) -> dict[str, Any]:
     base = {
         "project": project,
+        "canonical_project_id": canonical_project_id(project),
+        "legacy_project_aliases": legacy_project_ids(project),
+        "project_identity_notice": alias_notice(project),
         "current_task": "Keep the Phase 1 Research OS reproducible with tracked long-term memory and honest runtime artifacts.",
         "current_phase": "Phase 1 Research OS",
         "current_blocker": "Default project still lacks usable validated bars for the frozen universe.",
@@ -898,6 +1134,11 @@ def _default_session_state(project: str, *, root: Path, paths) -> dict[str, Any]
         "iterative_loop": _default_iterative_loop_state(),
     }
     base.update(default_subagent_state(paths))
+    base["configured_subagent_gate_mode"] = str(base.get("subagent_gate_mode", "AUTO"))
+    base["effective_subagent_gate_mode"] = str((base.get("subagent_plan", {}) or {}).get("recommended_gate", "OFF"))
+    base["effective_subagent_gate_reason"] = str(base.get("subagent_continue_reason", "unknown"))
+    base["current_research_stage"] = _current_research_stage(base)
+    base["canonical_truth_summary"] = _canonical_truth_summary(base)
     base["research_progress"] = _build_research_progress(state=base)
     return base
 
@@ -918,19 +1159,23 @@ def _render_project_state(state: dict[str, Any]) -> str:
     lines = [
         "# 项目状态",
         "",
+        f"- 当前规范项目ID: {state.get('canonical_project_id', state.get('project', 'unknown'))}",
+        f"- 历史别名: {', '.join(state.get('legacy_project_aliases', [])) or '无'}",
         f"- 当前总任务: {humanize_text(state.get('current_task', 'unknown'))}",
         f"- 当前阶段: {humanize_text(state.get('current_phase', 'unknown'))}",
+        f"- 当前研究阶段: {state.get('current_research_stage', '未记录')}",
         f"- 当前轮次类型: {strategy['round_type']}",
         f"- 当前主线策略: {', '.join(strategy['primary_names']) or '尚未记录'}",
         f"- 当前支线策略: {', '.join(strategy['secondary_names']) or '当前为空'}",
         f"- 当前 blocker: {humanize_text(state.get('current_blocker', 'unknown'))}",
         f"- 当前真实能力边界: {humanize_text(state.get('current_capability_boundary', 'unknown'))}",
+        f"- 当前规范叙事: {humanize_text(state.get('canonical_truth_summary', 'unknown'))}",
         f"- 当前研究对象判断: {strategy['strategy_line']}",
         f"- 当前基础设施判断: {strategy['system_line']}",
         f"- 下一优先动作: {humanize_text(state.get('next_priority_action', 'unknown'))}",
         f"- 最近已验证能力: {humanize_text(state.get('last_verified_capability', 'unknown'))}",
         f"- 最近失败能力: {humanize_text(state.get('last_failed_capability', 'unknown'))}",
-        f"- subagent_gate_mode: {subagents['gate_mode']}",
+        *_subagent_gate_lines(state),
         f"- active subagents: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
         f"- blocked subagents: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
         f"- 最近 subagent 事件: {humanize_text(subagents['last_event'].get('action', 'none recorded'))}",
@@ -982,14 +1227,17 @@ def _render_verify_last(state: dict[str, Any]) -> str:
     lines.extend([f"  - {item}" for item in failed] or ["  - 未记录"])
     lines.extend(
         [
+            f"- 当前规范项目ID: {state.get('canonical_project_id', state.get('project', 'unknown'))}",
+            f"- 历史别名: {', '.join(state.get('legacy_project_aliases', [])) or '无'}",
             f"- 默认项目数据状态: {humanize_text(verify.get('default_project_data_status', 'unknown'))}",
             f"- 工程边界结论: {humanize_text(verify.get('conclusion_boundary_engineering', 'unknown'))}",
             f"- 研究边界结论: {humanize_text(verify.get('conclusion_boundary_research', 'unknown'))}",
+            f"- 当前研究阶段: {state.get('current_research_stage', '未记录')}",
             f"- 当前轮次类型: {strategy['round_type']}",
             f"- 当前主线策略: {', '.join(strategy['primary_names']) or '尚未记录'}",
             f"- 当前 blocked 策略: {', '.join(strategy['blocked_names']) or '当前为空'}",
             f"- 策略推进判断: {strategy['strategy_line']}",
-            f"- subagent_gate_mode: {subagents['gate_mode']}",
+            *_subagent_gate_lines(state),
             f"- active_subagents: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
             f"- blocked_subagents: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
             f"- 最近 subagent 事件: {humanize_text(subagents['last_event'].get('action', 'none recorded'))}",
@@ -1018,13 +1266,20 @@ def _render_handoff(state: dict[str, Any], paths) -> str:
         "## 当前阶段",
         humanize_text(state.get("current_phase", "unknown")),
         "",
+        "## 项目身份",
+        f"- 当前规范项目ID: {state.get('canonical_project_id', state.get('project', 'unknown'))}",
+        f"- 历史别名: {', '.join(state.get('legacy_project_aliases', [])) or '无'}",
+        f"- 身份说明: {humanize_text(state.get('project_identity_notice', 'unknown'))}",
+        "",
         "## 当前研究对象",
+        f"- 当前研究阶段: {state.get('current_research_stage', '未记录')}",
         f"- 当前轮次类型: {strategy['round_type']}",
         f"- 当前主线策略: {', '.join(strategy['primary_names']) or '尚未记录'}",
         f"- 当前支线策略: {', '.join(strategy['secondary_names']) or '当前为空'}",
         f"- 当前 blocked 策略: {', '.join(strategy['blocked_names']) or '当前为空'}",
         f"- 当前 rejected 策略: {', '.join(strategy['rejected_names']) or '当前为空'}",
         f"- 当前策略推进判断: {strategy['strategy_line']}",
+        f"- 规范叙事结论: {humanize_text(state.get('canonical_truth_summary', 'unknown'))}",
         "",
         "## 已确认路径",
         f"- tracked memory 目录: {paths.memory_dir}",
@@ -1041,7 +1296,7 @@ def _render_handoff(state: dict[str, Any], paths) -> str:
         humanize_text(state.get("current_capability_boundary", "unknown")),
         "",
         "## Subagent 状态",
-        f"- gate_mode: {subagents['gate_mode']}",
+        *_subagent_gate_lines(state),
         f"- active: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
         f"- blocked: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
         f"- active_research: {', '.join(subagents['active_research_ids']) if subagents['active_research_ids'] else 'none'}",
@@ -1051,6 +1306,8 @@ def _render_handoff(state: dict[str, Any], paths) -> str:
         "",
         "## 当前 active 研究型 subagents",
         *( [f"- {item}" for item in subagents["active_research_ids"]] if subagents["active_research_ids"] else ["- 当前为空"] ),
+        "",
+        *_recent_strategy_action_lines(paths, run_id=str((state.get("iterative_loop", {}) or {}).get("last_run_id", "")).strip() or None),
         "",
         *_render_research_progress_lines(state),
         "",
@@ -1089,6 +1346,11 @@ def _render_migration_prompt(state: dict[str, Any], paths) -> str:
         "## 当前阶段",
         humanize_text(state.get("current_phase", "unknown")),
         "",
+        "## 项目身份",
+        f"- canonical_project_id: {state.get('canonical_project_id', state.get('project', 'unknown'))}",
+        f"- legacy_project_aliases: {', '.join(state.get('legacy_project_aliases', [])) or 'none'}",
+        f"- identity_notice: {humanize_text(state.get('project_identity_notice', 'unknown'))}",
+        "",
         "## 当前 Repo / Branch / HEAD",
         f"- repo_root: {paths.root}",
         f"- branch: {state.get('branch', 'unknown')}",
@@ -1099,8 +1361,10 @@ def _render_migration_prompt(state: dict[str, Any], paths) -> str:
         f"- runtime_meta_dir: {paths.meta_dir}",
         f"- runtime_artifacts_dir: {paths.artifacts_dir}",
         f"- current_blocker: {humanize_text(state.get('current_blocker', 'unknown'))}",
+        f"- canonical_truth_summary: {humanize_text(state.get('canonical_truth_summary', 'unknown'))}",
         "",
         "## 当前研究对象",
+        f"- current_research_stage: {state.get('current_research_stage', '未记录')}",
         f"- current_round_type: {strategy['round_type']}",
         f"- primary_strategies: {', '.join(strategy['primary_names']) or '尚未记录'}",
         f"- secondary_strategies: {', '.join(strategy['secondary_names']) or '当前为空'}",
@@ -1118,13 +1382,15 @@ def _render_migration_prompt(state: dict[str, Any], paths) -> str:
         humanize_text(state.get("current_blocker", "unknown")),
         "",
         "## Subagent 状态",
-        f"- gate_mode: {subagents['gate_mode']}",
+        *_subagent_gate_lines(state),
         f"- active: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
         f"- blocked: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
         f"- active_research: {', '.join(subagents['active_research_ids']) if subagents['active_research_ids'] else 'none'}",
         f"- active_infrastructure: {', '.join(subagents['active_infrastructure_ids']) if subagents['active_infrastructure_ids'] else 'none'}",
         f"- recent_transition: {humanize_text(subagents['last_event'].get('action', 'none recorded'))}",
         f"- continue_using_subagents: {zh_bool(subagents['should_expand'])}",
+        "",
+        *_recent_strategy_action_lines(paths, run_id=str((state.get("iterative_loop", {}) or {}).get("last_run_id", "")).strip() or None),
         "",
         *_render_strategy_snapshot_lines(state),
         "",
@@ -1290,8 +1556,8 @@ def _migrate_legacy_memory(paths, state: dict[str, Any], *, prefer_tracked_files
     return state
 
 
-def _refresh_derived_memory(paths, state: dict[str, Any]) -> None:
-    state = dict(state)
+def _refresh_derived_memory(paths, state: dict[str, Any], *, preserve_progress: bool = False) -> None:
+    state = _canonicalize_active_project_state(paths, dict(state))
     state.update({key: state.get(key) for key in default_subagent_state(paths).keys() if key in state})
     for key, value in default_subagent_state(paths).items():
         state.setdefault(key, value)
@@ -1299,14 +1565,17 @@ def _refresh_derived_memory(paths, state: dict[str, Any]) -> None:
     state.setdefault("iterative_loop", _default_iterative_loop_state())
     state["execution_queue"] = _normalize_execution_queue(state.get("execution_queue"))
     state = ensure_strategy_visibility_state(state, paths=paths)
-    if not state.get("research_progress"):
-        state["research_progress"] = _build_research_progress(state=state)
+    if preserve_progress and isinstance(state.get("research_progress"), dict) and state["research_progress"].get("dimensions"):
+        state["research_progress"] = dict(state["research_progress"])
+    else:
+        state["research_progress"] = _build_research_progress(state=state, previous=state.get("research_progress"))
     state["head"] = _git_value(paths.root, "rev-parse", "HEAD")
     state["branch"] = _git_value(paths.root, "rev-parse", "--abbrev-ref", "HEAD")
     state["tracked_memory_dir"] = str(paths.memory_dir)
     state["runtime_meta_dir"] = str(paths.meta_dir)
     state["runtime_artifacts_dir"] = str(paths.artifacts_dir)
     state["last_updated"] = _utc_now()
+    _sync_mission_state_identity(paths)
     _write_text(paths.project_state_path, _render_project_state(state))
     _write_text(paths.research_memory_path, _render_research_memory(state))
     _write_text(paths.strategy_board_path, render_strategy_board(state, paths=paths))
@@ -1352,6 +1621,7 @@ def _refresh_derived_memory(paths, state: dict[str, Any]) -> None:
         paths.subagent_registry_path,
         render_subagent_registry(state, role_templates=load_subagent_roles(_subagent_roles_path(paths.root))),
     )
+    _refresh_research_activity_markdown(paths)
     if paths.postmortems_path.exists():
         _write_text(paths.postmortems_path, _localize_postmortems_text(paths.postmortems_path.read_text(encoding="utf-8")))
     _write_json(paths.session_state_path, state)
@@ -1367,6 +1637,9 @@ def bootstrap_memory_files(project: str, *, repo_root: Path | None = None) -> di
         "research_memory": paths.research_memory_path,
         "strategy_board": paths.strategy_board_path,
         "strategy_candidates_dir": paths.strategy_candidates_dir,
+        "strategy_action_log": paths.strategy_action_log_path,
+        "research_activity": paths.research_activity_path,
+        "idea_backlog": paths.idea_backlog_path,
         "research_progress": paths.research_progress_path,
         "postmortems": paths.postmortems_path,
         "hypothesis_queue": paths.hypothesis_queue_path,
@@ -1391,7 +1664,7 @@ def bootstrap_memory_files(project: str, *, repo_root: Path | None = None) -> di
     }
 
     session_preexisted = paths.session_state_path.exists() and bool(paths.session_state_path.read_text(encoding="utf-8").strip())
-    state = _read_json(paths.session_state_path, default=_default_session_state(project, root=paths.root, paths=paths))
+    state = _read_json(paths.session_state_path, default=_default_session_state(paths.project, root=paths.root, paths=paths))
     state = _migrate_legacy_memory(paths, state, prefer_tracked_files=not session_preexisted)
     _write_if_missing(paths.project_state_path, PROJECT_STATE_TEMPLATE)
     _write_if_missing(paths.postmortems_path, POSTMORTEMS_TEMPLATE)
@@ -1400,6 +1673,8 @@ def bootstrap_memory_files(project: str, *, repo_root: Path | None = None) -> di
     _write_if_missing(paths.verify_last_path, VERIFY_LAST_TEMPLATE)
     if not paths.experiment_ledger_path.exists():
         paths.experiment_ledger_path.write_text("", encoding="utf-8")
+    if not paths.strategy_action_log_path.exists():
+        paths.strategy_action_log_path.write_text("", encoding="utf-8")
     if not paths.subagent_ledger_path.exists():
         paths.subagent_ledger_path.write_text("", encoding="utf-8")
     if not paths.branch_ledger_path.exists():
@@ -1408,15 +1683,17 @@ def bootstrap_memory_files(project: str, *, repo_root: Path | None = None) -> di
         paths.evidence_ledger_path.write_text("", encoding="utf-8")
     _write_if_missing(paths.next_round_plan_path, "# Next Round Research Plan\n\n- none recorded\n")
     _write_if_missing(paths.portfolio_status_path, "# Portfolio Status\n\n- none recorded\n")
+    _write_if_missing(paths.idea_backlog_path, IDEA_BACKLOG_TEMPLATE)
+    _write_if_missing(paths.research_activity_path, "# 研究活动记录\n\n| 时间 | 策略 | 执行者 | 动作 | 结果 | 决策变化 |\n|---|---|---|---|---|---|\n| 未记录 | 本轮无实质策略研究 | main | 未记录 | 未记录 | 未记录 |\n")
     _write_if_missing(paths.mission_state_path, json.dumps({}, ensure_ascii=False, indent=2) + "\n")
-    _refresh_derived_memory(paths, state)
+    _refresh_derived_memory(paths, state, preserve_progress=True)
     return tracked_files
 
 
 def _load_state(project: str, *, repo_root: Path | None = None) -> tuple[Any, dict[str, Any]]:
     bootstrap_memory_files(project, repo_root=repo_root)
     paths = resolve_project_paths(project, root=repo_root)
-    state = _read_json(paths.session_state_path, default=_default_session_state(project, root=paths.root, paths=paths))
+    state = _read_json(paths.session_state_path, default=_default_session_state(paths.project, root=paths.root, paths=paths))
     return paths, state
 
 
@@ -1435,7 +1712,7 @@ def save_machine_state(
     state = dict(state)
     if rebuild_progress:
         state["research_progress"] = _build_research_progress(state=state, previous=state.get("research_progress"))
-    _refresh_derived_memory(paths, state)
+    _refresh_derived_memory(paths, state, preserve_progress=True)
     return paths.session_state_path
 
 
@@ -1509,7 +1786,7 @@ def record_experiment_result(project: str, entry: dict[str, Any], *, repo_root: 
     paths, state = _load_state(project, repo_root=repo_root)
     compact = {
         "timestamp": entry.get("timestamp", _utc_now()),
-        "project": project,
+        "project": paths.project,
         "experiment_id": entry.get("experiment_id", "unknown"),
         "hypothesis": entry.get("hypothesis", ""),
         "commit": entry.get("commit") or state.get("head", "unknown"),
@@ -1522,6 +1799,73 @@ def record_experiment_result(project: str, entry: dict[str, Any], *, repo_root: 
     return paths.experiment_ledger_path
 
 
+def record_strategy_action(project: str, entry: dict[str, Any], *, repo_root: Path | None = None) -> Path:
+    paths, _ = _load_state(project, repo_root=repo_root)
+    payload = dict(entry)
+    payload.setdefault("project_id", project)
+    append_strategy_action_log(paths.strategy_action_log_path, payload)
+    _refresh_research_activity_markdown(paths, run_id=str(payload.get("run_id", "")).strip() or None)
+    return paths.strategy_action_log_path
+
+
+def _strategy_actions_from_iterative_payload(state: dict[str, Any], payload: dict[str, Any], *, run_path: Path) -> list[dict[str, Any]]:
+    strategy = summarize_strategy_visibility(state)
+    primary_strategy_id = strategy.get("primary_ids", ["__none__"])[0] if strategy.get("primary_ids") else "__none__"
+    run_id = str(payload.get("run_id", "unknown-run"))
+    timestamp = str(payload.get("timestamp", _utc_now()))
+    iterations = [item for item in payload.get("iterations", []) if isinstance(item, dict)]
+    if not iterations:
+        return [
+            {
+                "run_id": run_id,
+                "project_id": str(state.get("project", "")),
+                "strategy_id": "__none__",
+                "actor_type": "main",
+                "actor_id": "iterative_loop",
+                "action_type": "infrastructure_only",
+                "action_summary": "本轮未推进实质策略研究，主要在统一项目身份、阻塞叙事和报告展示。",
+                "result": humanize_text(payload.get("completed", "未记录")),
+                "decision_delta": "无策略结论变化；仅补齐可见性与记忆写回。",
+                "artifact_refs": [str(run_path)],
+                "timestamp": timestamp,
+            }
+        ]
+    last_iteration = iterations[-1]
+    action = dict(last_iteration.get("action", {}) or {})
+    action_name = str(action.get("name", "")).strip()
+    if action_name == "promote_candidate":
+        return [
+            {
+                "run_id": run_id,
+                "project_id": str(state.get("project", "")),
+                "strategy_id": primary_strategy_id,
+                "actor_type": "main",
+                "actor_id": "iterative_loop",
+                "action_type": "promotion_diagnostics",
+                "action_summary": f"围绕 {primary_strategy_id} 刷新晋级边界诊断。",
+                "result": humanize_text(payload.get("current_blocker", "未记录")),
+                "decision_delta": "主线继续保留，但仍处于 blocked。",
+                "artifact_refs": [str(run_path)],
+                "timestamp": timestamp,
+            }
+        ]
+    return [
+        {
+            "run_id": run_id,
+            "project_id": str(state.get("project", "")),
+            "strategy_id": "__none__",
+            "actor_type": "main",
+            "actor_id": "iterative_loop",
+            "action_type": "infrastructure_only",
+            "action_summary": "本轮没有新增策略验证，主要刷新输入、控制面或记忆结论。",
+            "result": humanize_text(payload.get("completed", "未记录")),
+            "decision_delta": "无新的策略结论变化。",
+            "artifact_refs": [str(run_path)],
+            "timestamp": timestamp,
+        }
+    ]
+
+
 def record_failure(
     project: str,
     entry: dict[str, Any],
@@ -1529,6 +1873,7 @@ def record_failure(
     repo_root: Path | None = None,
     append_ledger: bool = False,
     ledger_entry: dict[str, Any] | None = None,
+    preserve_progress: bool = False,
 ) -> Path:
     paths, state = _load_state(project, repo_root=repo_root)
     payload = {
@@ -1553,8 +1898,12 @@ def record_failure(
     state["last_failed_capability"] = payload["summary"] or state.get("last_failed_capability")
     if payload["root_cause"]:
         state["current_blocker"] = payload["root_cause"]
-    state["research_progress"] = _build_research_progress(state=state, previous=state.get("research_progress"))
-    _refresh_derived_memory(paths, state)
+    if preserve_progress and isinstance(state.get("research_progress"), dict) and state["research_progress"].get("dimensions"):
+        state["research_progress"] = dict(state["research_progress"])
+        _refresh_derived_memory(paths, state, preserve_progress=True)
+    else:
+        state["research_progress"] = _build_research_progress(state=state, previous=state.get("research_progress"))
+        _refresh_derived_memory(paths, state)
     if append_ledger:
         record_experiment_result(
             project,
@@ -1612,7 +1961,7 @@ def record_iterative_run(
 ) -> dict[str, Path]:
     paths, persisted_state = _load_state(project, repo_root=repo_root)
     previous_progress = dict(persisted_state.get("research_progress", {}) or {})
-    state = dict(persisted_state)
+    state = _canonicalize_active_project_state(paths, dict(persisted_state))
     if state_override:
         state.update(dict(state_override))
     timestamp = str(payload.get("timestamp") or _utc_now())
@@ -1698,6 +2047,9 @@ def record_iterative_run(
         state["last_failed_capability"] = str(payload["last_failed_capability"])
     if payload.get("current_capability_boundary"):
         state["current_capability_boundary"] = str(payload["current_capability_boundary"])
+    state["configured_subagent_gate_mode"] = str((payload.get("subagent_status", {}) or {}).get("configured_gate_mode", state.get("subagent_gate_mode", "AUTO")))
+    state["effective_subagent_gate_mode"] = str((payload.get("subagent_status", {}) or {}).get("effective_gate_mode", "OFF"))
+    state["effective_subagent_gate_reason"] = str(payload.get("subagent_reason", state.get("subagent_continue_reason", "未记录")))
 
     next_step_memory = _normalize_list(state.get("next_step_memory"))
     recommendation = str(payload.get("next_recommendation", "")).strip()
@@ -1708,7 +2060,10 @@ def record_iterative_run(
     if "execution_queue" in payload:
         state["execution_queue"] = _normalize_execution_queue(payload.get("execution_queue"))
     state["research_progress"] = _build_research_progress(state=state, payload=payload, previous=previous_progress)
-    _refresh_derived_memory(paths, state)
+    _refresh_derived_memory(paths, state, preserve_progress=True)
+    for action_entry in _strategy_actions_from_iterative_payload(state, payload, run_path=run_path):
+        append_strategy_action_log(paths.strategy_action_log_path, action_entry)
+    _refresh_research_activity_markdown(paths, run_id=run_id)
     record_experiment_result(
         project,
         {
@@ -1733,6 +2088,7 @@ def record_iterative_run(
                 "resolution_status": "not_fixed",
             },
             repo_root=repo_root,
+            preserve_progress=True,
         )
     return {
         "run_path": run_path,

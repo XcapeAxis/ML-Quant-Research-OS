@@ -153,11 +153,11 @@ def render_subagent_registry(
     lines = [
         "# Subagent 注册表",
         "",
-        "## 治理概况",
-        f"- gate 模式: {summary['gate_mode']}",
-        f"- 建议模式: {summary['recommended_gate']}",
+        "## 当前开关",
+        f"- configured gate: {summary['gate_mode']}",
+        f"- effective gate this run: {summary['recommended_gate']}",
         f"- 是否继续使用 subagents: {zh_bool(summary['should_expand'])}",
-        f"- 继续原因: {humanize_text(summary['continue_reason'])}",
+        f"- 当前判断原因: {humanize_text(summary['continue_reason'])}",
         f"- 最近事件: {humanize_text(summary['last_event'].get('action', 'none recorded'))}",
         "",
         "## 当前集合",
@@ -173,7 +173,7 @@ def render_subagent_registry(
         f"- 当前 active 研究型: {', '.join(summary['active_research_ids']) if summary['active_research_ids'] else 'none'}",
         f"- 当前 active 基础设施型: {', '.join(summary['active_infrastructure_ids']) if summary['active_infrastructure_ids'] else 'none'}",
         "",
-        "## 最新计划",
+        "## 本轮判断",
         f"- 建议数量: {plan.get('recommended_count', 0)}",
         f"- 建议角色: {', '.join(plan.get('recommended_roles', [])) or 'none'}",
         f"- 不拆分原因: {humanize_text(plan.get('no_split_reason', '') or 'n/a')}",
@@ -201,12 +201,16 @@ def render_subagent_registry(
                     else f"- 服务 blocker / 前提: {humanize_text(record.get('blocker_scope', '未记录'))}"
                 ),
                 (
-                    f"- 本轮研究内容: {humanize_text(record.get('research_focus', record.get('summary', '未记录')))}"
+                    f"- 研究内容: {humanize_text(record.get('research_focus', record.get('summary', '未记录')))}"
                     if record.get("subagent_type") == "research"
                     else f"- 基础设施任务: {humanize_text(record.get('research_focus', record.get('summary', '未记录')))}"
                 ),
                 f"- 交付结论: {humanize_text(record.get('delivered_conclusion', '未记录'))}",
-                f"- 对策略决策的影响: {humanize_text(record.get('decision_impact', '未记录'))}",
+                (
+                    f"- 对策略决策的影响: {humanize_text(record.get('decision_impact', '未记录'))}"
+                    if record.get("subagent_type") == "research"
+                    else f"- 这不是直接研究策略: {humanize_text(record.get('decision_impact', '未记录'))}"
+                ),
                 f"- 可写路径: {', '.join(record.get('allowed_paths', [])) or 'none'}",
                 f"- 预期产物: {', '.join(record.get('expected_artifacts', [])) or 'none'}",
                 f"- 产物目录: {record.get('artifact_dir') or 'n/a'}",

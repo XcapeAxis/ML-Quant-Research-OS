@@ -1,5 +1,5 @@
 # 组合状态
 
-- 当前 blocker: 最大回撤 56.50% 高于 30.00%。
-- 最近已验证能力: Tracked memory 已按计划刷新： as_share_research_v1: revalidate spec parity before any new alpha claim
-- 下一步建议: 升级 blocker `max_drawdown`: 已停止自动重试，请收窄路径，并在下一次 run 前写回根因诊断。
+- 当前 blocker: Promotion is currently blocked: max drawdown 50.44% 高于 30.00%, and direct promote_candidate also reports benchmark_missing:000001.
+- 最近已验证能力: Focused hardening checks, data validation, research audit, dry-run control plane, and direct promotion gate were all rerun on as_share_research_v1.
+- 下一步建议: Decompose the baseline_limit_up drawdown and reconcile why direct promote_candidate still reports benchmark_missing:000001 before choosing the next branch validation.

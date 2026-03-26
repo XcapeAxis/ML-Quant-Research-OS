@@ -1,7 +1,7 @@
 {
   "project": "as_share_research_v1",
-  "generated_at": "2026-03-26T15:42:04.822015",
-  "git_commit": "885abfe1081ea620e502c422a8603f37c4a4f183",
+  "generated_at": "2026-03-26T18:07:12.105114",
+  "git_commit": "0721bb172cd1bdc0ebfdd1d1477688d6c18c691a",
   "paths": {
     "signals_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\signals",
     "features_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\features",

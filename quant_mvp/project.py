@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from pathlib import Path
 import re
 
+from .project_identity import canonical_project_id
+
 
 PROJECT_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
 
@@ -49,6 +51,9 @@ class ProjectPaths:
     research_memory_path: Path
     strategy_board_path: Path
     strategy_candidates_dir: Path
+    strategy_action_log_path: Path
+    research_activity_path: Path
+    idea_backlog_path: Path
     research_progress_path: Path
     postmortems_path: Path
     hypothesis_queue_path: Path
@@ -89,7 +94,7 @@ class ProjectPaths:
 
 def resolve_project_paths(project: str, root: Path | None = None) -> ProjectPaths:
     repo_root = find_repo_root(root)
-    name = validate_project_name(project)
+    name = canonical_project_id(validate_project_name(project))
     memory_dir = repo_root / "memory" / "projects" / name
     project_data_dir = repo_root / "data" / "projects" / name
     meta_dir = project_data_dir / "meta"
@@ -115,6 +120,9 @@ def resolve_project_paths(project: str, root: Path | None = None) -> ProjectPath
         research_memory_path=memory_dir / "RESEARCH_MEMORY.md",
         strategy_board_path=memory_dir / "STRATEGY_BOARD.md",
         strategy_candidates_dir=memory_dir / "STRATEGY_CANDIDATES",
+        strategy_action_log_path=memory_dir / "STRATEGY_ACTION_LOG.jsonl",
+        research_activity_path=memory_dir / "RESEARCH_ACTIVITY.md",
+        idea_backlog_path=memory_dir / "IDEA_BACKLOG.md",
         research_progress_path=memory_dir / "RESEARCH_PROGRESS.md",
         postmortems_path=memory_dir / "POSTMORTEMS.md",
         hypothesis_queue_path=memory_dir / "HYPOTHESIS_QUEUE.md",

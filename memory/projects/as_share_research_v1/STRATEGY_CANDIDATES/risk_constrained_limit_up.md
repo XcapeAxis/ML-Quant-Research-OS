@@ -6,19 +6,19 @@
 - core_hypothesis: 在不破坏涨停回踩再启动这个主线定义的前提下，更严格的止损、市场过滤或持仓约束可以显著降低回撤。
 - economic_rationale: 如果主线 alpha 来自强势股二次启动，而不是单纯硬扛波动，那么更强的风险约束应该先砍掉最差交易，同时保住大部分有效信号。
 - required_data: 主板 A 股日频 OHLCV、上市天数、ST/板块过滤、涨停代理、下个交易日收益、基准与等权基线。
-- current_stage: validation
-- latest_action: 最近一次记录里，risk_constrained_limit_up 已完成 scout/implementer 资料整理；verifier 仍未真正开始有界验证。
-- latest_result: risk_constrained_limit_up 目前只有候选池与实验记录，真正的 verifier 结论仍缺失。
+- current_stage: secondary-validation
+- latest_action: ??????????????? baseline_limit_up ??????
+- latest_result: ???????????????????
 - decision: blocked
-- next_validation: 拿主线失败样本做回撤分解，确认是否值得优先把风控分支推到第一轮真实验证。
+- next_validation: ????????????????????????
 - owner: main
 - subagents_assigned:
   - none
 - artifact_refs:
   - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\EVIDENCE_LEDGER.jsonl
-  - C:\Users\asus\Documents\Projects\BackTest\data\projects\2026Q1_limit_up\meta\experiments\2026Q1_limit_up__risk_constrained_limit_up__20260325T152141Z.json
+  - C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments\as_share_research_v1__risk_constrained_limit_up__20260325T152141Z.json
   - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\BRANCH_LEDGER.jsonl
   - risk_constrained_limit_up-fb46198eddd7
 - blocked_by:
-  - 最大回撤 56.50% 高于 30.00%。
+  - baseline_limit_up ???? max drawdown ? 56.50%??? 30.00% ?????
 - kill_criteria: 如果回撤改善很弱、但收益和通过率明显恶化，就停止继续扩大这条风控分支。

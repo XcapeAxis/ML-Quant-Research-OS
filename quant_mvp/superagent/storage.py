@@ -7,6 +7,7 @@ from typing import Any
 
 from ..memory.ledger import append_jsonl, to_jsonable
 from ..project import resolve_project_paths
+from ..project_identity import canonical_project_id, rewrite_identity_payload
 from .models import ResearchBranch, WorkerTask
 
 
@@ -30,6 +31,7 @@ def _write_json(path: Path, payload: dict[str, Any]) -> Path:
 
 
 def default_mission_state(project: str, *, max_branches: int) -> dict[str, Any]:
+    project = canonical_project_id(project)
     return {
         "mission_id": f"mission-{project}",
         "project": project,
@@ -51,10 +53,11 @@ def default_mission_state(project: str, *, max_branches: int) -> dict[str, Any]:
 
 
 def load_or_create_mission_state(project: str, *, max_branches: int, repo_root: Path | None = None) -> tuple[Any, dict[str, Any]]:
+    project = canonical_project_id(project)
     paths = resolve_project_paths(project, root=repo_root)
     paths.ensure_dirs()
     default = default_mission_state(project, max_branches=max_branches)
-    state = _read_json(paths.mission_state_path, default=default)
+    state = rewrite_identity_payload(_read_json(paths.mission_state_path, default=default), project=project)
     mission_id = str(state.get("mission_id", "")).strip()
     if mission_id in {"", "unknown"}:
         state = {**default, **{key: value for key, value in state.items() if key != "mission_id"}}
@@ -65,9 +68,11 @@ def load_or_create_mission_state(project: str, *, max_branches: int, repo_root: 
 
 
 def save_mission_state(project: str, state: dict[str, Any], *, repo_root: Path | None = None) -> Path:
+    project = canonical_project_id(project)
     paths = resolve_project_paths(project, root=repo_root)
-    payload = dict(state)
+    payload = rewrite_identity_payload(dict(state), project=project)
     payload["updated_at"] = _utc_now()
+    payload["project"] = project
     return _write_json(paths.mission_state_path, payload)
 
 

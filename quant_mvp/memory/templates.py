@@ -11,7 +11,7 @@ ROOT_AGENTS_TEMPLATE = """# Research OS Instructions
 ## Response Contract
 - Follow `docs/RESPONSE_CONTRACT.md`.
 - Default to `CHECKPOINT` replies unless the user explicitly asks for targeted evidence or full forensics.
-- `CHECKPOINT` replies must stay strategy-centered and use `Done`, `Evidence`, `Next action`, and `Subagent status`.
+- `CHECKPOINT` replies must stay strategy-centered and use `Done`, `Evidence`, `Research progress`, `Strategy actions this run`, `Next recommendation`, and `Subagent status`.
 
 ## Memory Layers
 - Git-tracked long-term memory lives under `memory/projects/<project>/`.

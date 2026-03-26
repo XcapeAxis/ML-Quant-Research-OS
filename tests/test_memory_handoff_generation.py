@@ -6,6 +6,7 @@ from quant_mvp.memory.writeback import bootstrap_memory_files, generate_handoff
 REQUIRED_SECTIONS = [
     "## 当前总任务",
     "## 当前阶段",
+    "## 项目身份",
     "## 当前研究对象",
     "## 当前 Repo / Branch / HEAD",
     "## 已确认事实",
@@ -13,6 +14,7 @@ REQUIRED_SECTIONS = [
     "## 最近关键失败",
     "## 当前 blocker",
     "## Subagent 状态",
+    "## 最近策略动作",
     "## 下一步唯一建议",
     "## 避免重复犯错",
     "## 必要验证优先",
@@ -38,6 +40,8 @@ def test_generate_handoff_and_migration_prompt(limit_up_project) -> None:
 
     handoff = paths.handoff_path.read_text(encoding="utf-8")
     assert "# 下一轮交接" in handoff
+    assert "## 项目身份" in handoff
     assert "## 当前研究对象" in handoff
     assert "## 当前 active 研究型 subagents" in handoff
+    assert "## 最近策略动作" in handoff
     assert "## 最近一次高阶迭代" in handoff

@@ -7,6 +7,7 @@ import pytest
 import quant_mvp.agent.iterative_loop as loop_module
 from quant_mvp.agent.iterative_loop import LoopAction, LoopConfig, RepoTruth, VerificationResult, render_iterative_checkpoint, run_iterative_loop
 from quant_mvp.agent.subagent_controller import register_worker_subagent
+from quant_mvp.memory.research_activity import REQUIRED_STRATEGY_ACTION_FIELDS, read_strategy_action_log
 from quant_mvp.memory.writeback import load_machine_state, save_machine_state
 
 
@@ -493,6 +494,8 @@ def test_iterative_checkpoint_stays_lightweight() -> None:
                 "merged_count": 0,
                 "archived_count": 0,
                 "gate_mode": "AUTO",
+                "configured_gate_mode": "AUTO",
+                "effective_gate_mode": "OFF",
             },
             "strategy_visibility": {
                 "system_line": "本轮主要推进研究前提恢复和状态可见化。",
@@ -508,13 +511,17 @@ def test_iterative_checkpoint_stays_lightweight() -> None:
 
     assert checkpoint.splitlines()[0] == "Done"
     assert "Evidence" in checkpoint
-    assert "Next action" in checkpoint
+    assert "Research progress" in checkpoint
+    assert "Strategy actions this run" in checkpoint
+    assert "Next recommendation" in checkpoint
     assert "Subagent status" in checkpoint
     assert "系统推进" in checkpoint
     assert "策略推进" in checkpoint
     assert "本轮未进行实质策略研究" in checkpoint
     assert "baseline_limit_up" in checkpoint
-    assert len(checkpoint.splitlines()) <= 20
+    assert "| 维度 | 状态 | 分数 | 证据 |" in checkpoint
+    assert "| 策略 | 执行者 | 动作 | 结果 | 决策变化 |" in checkpoint
+    assert len(checkpoint.splitlines()) <= 35
 
 
 def test_iterative_run_records_research_progress_and_delta(limit_up_project) -> None:
@@ -551,7 +558,9 @@ def test_iterative_run_records_research_progress_and_delta(limit_up_project) -> 
 
     assert improved_state["research_progress"]["this_run_delta"] == "improved"
     assert "Evidence" in improved_result["checkpoint"]
-    assert "Next action" in improved_result["checkpoint"]
+    assert "Next recommendation" in improved_result["checkpoint"]
+    assert "Research progress" in improved_result["checkpoint"]
+    assert "Strategy actions this run" in improved_result["checkpoint"]
     for item in improved_state["research_progress"]["dimensions"]:
         assert 0 <= int(item["score"]) <= 4
 
@@ -581,6 +590,36 @@ def test_iterative_run_records_research_progress_and_delta(limit_up_project) -> 
     run_iterative_loop(project=project, target_iterations=1, max_iterations=1, driver=regressed_driver)
     _, regressed_state = load_machine_state(project)
     assert regressed_state["research_progress"]["this_run_delta"] == "unchanged"
+
+
+def test_iterative_run_records_explicit_infrastructure_only_strategy_action(limit_up_project) -> None:
+    project = limit_up_project["project"]
+    driver = _SequenceDriver(
+        truths=[
+            (
+                _truth(blocker="drawdown", blocker_key="max_drawdown", direction="strategy_diagnostics", data_ready=True),
+                _truth(blocker="drawdown still unclear", blocker_key="max_drawdown", direction="strategy_diagnostics", data_ready=True),
+            ),
+        ],
+        verifications=[
+            VerificationResult(classification="blocker_clarified", summary="clarified only", verified_progress=False, new_information=True, next_recommendation="run diagnostics"),
+        ],
+        action_name="research_audit",
+    )
+
+    result = run_iterative_loop(project=project, target_iterations=1, max_iterations=1, driver=driver)
+    actions = read_strategy_action_log(limit_up_project["paths"].strategy_action_log_path, run_id=result["run_id"], limit=5)
+
+    assert actions
+    entry = actions[-1]
+    for field in REQUIRED_STRATEGY_ACTION_FIELDS:
+        assert field in entry
+    assert entry["project_id"] == project
+    assert entry["strategy_id"] == "__none__"
+    assert entry["actor_type"] == "main"
+    assert entry["actor_id"] == "iterative_loop"
+    assert entry["action_type"] == "infrastructure_only"
+    assert entry["artifact_refs"]
 
 
 def test_iterative_run_persists_execution_queue_across_runs(limit_up_project) -> None:

@@ -13,9 +13,10 @@ from ..experiment_graph import (
     new_experiment,
     write_experiment_record,
 )
-from ..memory.writeback import bootstrap_memory_files, load_machine_state, save_machine_state, update_hypothesis_queue
+from ..memory.writeback import bootstrap_memory_files, load_machine_state, record_strategy_action, save_machine_state, update_hypothesis_queue
 from ..pools import build_branch_pool_snapshot, build_core_universe_snapshot, load_latest_core_pool_snapshot
 from ..project import resolve_project_paths
+from ..project_identity import canonical_project_id
 from .models import BranchBudget, BranchPriority, ResearchBranch, StrategyCandidate, WorkerTask
 from .storage import (
     append_branch_states,
@@ -144,6 +145,7 @@ def mission_tick(
     legacy_single_branch: bool = False,
     seed_hypothesis: str | None = None,
 ) -> dict[str, Any]:
+    project = canonical_project_id(project)
     bootstrap_memory_files(project, repo_root=repo_root)
     cfg, paths = load_config(project, config_path=config_path)
     paths.ensure_dirs()
@@ -291,6 +293,26 @@ def mission_tick(
                 "queued_roles": list(worker_result["queued_roles"]),
             },
         )
+        for task in worker_tasks:
+            if task.state != "verified":
+                continue
+            record_strategy_action(
+                project,
+                {
+                    "run_id": experiment_id,
+                    "project_id": project,
+                    "strategy_id": branch.branch_id,
+                    "actor_type": "subagent",
+                    "actor_id": task.subagent_id or task.role,
+                    "action_type": task.role,
+                    "action_summary": task.summary,
+                    "result": task.result_summary or "未记录",
+                    "decision_delta": "更新该策略分支的候选证据，但尚未形成 verifier 级结论。",
+                    "artifact_refs": list(task.artifact_refs),
+                    "timestamp": task.finished_at or task.started_at or _utc_now(),
+                },
+                repo_root=repo_root,
+            )
 
     mission_payload = {
         "mission_id": mission_id,
