@@ -113,8 +113,8 @@ def test_iterative_run_stops_at_target_iterations_and_writes_summary(limit_up_pr
     assert session["iterative_loop"]["iteration_count"] == 3
     assert session["iterative_loop"]["stop_reason"] == "target_iterations_reached"
     assert session["iterative_loop"]["direction_change"] is True
-    assert "## Last Iterative Run" in handoff
-    assert "## Last Iterative Run" in migration
+    assert "## 最近一次高阶迭代" in handoff
+    assert "## 最近一次高阶迭代" in migration
 
 
 def test_iterative_run_stops_when_no_verified_progress(limit_up_project) -> None:
@@ -278,6 +278,7 @@ def test_iterative_checkpoint_stays_lightweight() -> None:
     checkpoint = render_iterative_checkpoint(
         {
             "completed": "refreshed readiness",
+            "not_done": "drawdown remains unclear",
             "direction_change": False,
             "stop_reason": "target_iterations_reached",
             "iteration_count": 2,
@@ -294,16 +295,95 @@ def test_iterative_checkpoint_stays_lightweight() -> None:
                 "blocked_count": 0,
                 "retired_count": 0,
                 "merged_count": 0,
+                "archived_count": 0,
                 "gate_mode": "AUTO",
             },
         },
     )
 
     assert checkpoint.splitlines()[0] == "Done"
-    assert "Evidence" in checkpoint
-    assert "Next action" in checkpoint
+    assert "Not done" in checkpoint
+    assert "Next recommendation" in checkpoint
     assert "Subagent status" in checkpoint
-    assert len(checkpoint.splitlines()) <= 12
+    assert "本轮真正完成" in checkpoint
+    assert len(checkpoint.splitlines()) <= 16
+
+
+def test_iterative_run_auto_closes_finished_subagents(limit_up_project) -> None:
+    project = limit_up_project["project"]
+    created = register_worker_subagent(
+        project=project,
+        role="validation_guard",
+        summary="temporary validation branch",
+        mission_id="mission-test",
+        branch_id="branch-test",
+        candidate_id="candidate-test",
+        worker_task_id="worker-closeout",
+        expected_artifacts=["artifact"],
+        allowed_paths=["tests"],
+    )
+
+    driver = _SequenceDriver(
+        truths=[
+            (
+                _truth(blocker="drawdown", blocker_key="max_drawdown", direction="strategy_diagnostics", data_ready=True),
+                _truth(blocker="drawdown", blocker_key="max_drawdown", direction="strategy_diagnostics", data_ready=True),
+            ),
+        ],
+        verifications=[
+            VerificationResult(classification="no_meaningful_progress", summary="stalled", verified_progress=False, new_information=False, next_recommendation="stop"),
+        ],
+    )
+
+    run_iterative_loop(project=project, driver=driver)
+    _, state = load_machine_state(project)
+    records = {item["subagent_id"]: item for item in state["subagents"]}
+
+    assert records[created["subagent_id"]]["status"] == "retired"
+    assert created["subagent_id"] in state["iterative_loop"]["auto_closed_subagents"]
+    assert state["iterative_loop"]["retired_subagent_count"] >= 1
+
+
+def test_iterative_run_can_replace_old_subagents_when_new_branch_is_justified(limit_up_project) -> None:
+    project = limit_up_project["project"]
+    created = register_worker_subagent(
+        project=project,
+        role="data_steward",
+        summary="old data branch",
+        mission_id="mission-test",
+        branch_id="branch-test",
+        candidate_id="candidate-test",
+        worker_task_id="worker-replace",
+        expected_artifacts=["artifact"],
+        allowed_paths=["tests"],
+    )
+    _, state = load_machine_state(project)
+    state["subagent_gate_mode"] = "FORCE"
+    save_machine_state(project, state)
+
+    driver = _SequenceDriver(
+        truths=[
+            (
+                _truth(blocker="validation memory drift", blocker_key="validation_memory", direction="control_plane_verification", data_ready=True),
+                _truth(blocker="validation memory drift", blocker_key="validation_memory", direction="control_plane_verification", data_ready=True),
+            ),
+        ],
+        verifications=[
+            VerificationResult(classification="no_meaningful_progress", summary="stalled", verified_progress=False, new_information=False, next_recommendation="stop"),
+        ],
+        action_name="research_audit",
+    )
+
+    result = run_iterative_loop(project=project, driver=driver)
+    _, refreshed = load_machine_state(project)
+    records = {item["subagent_id"]: item for item in refreshed["subagents"]}
+
+    assert records[created["subagent_id"]]["status"] == "canceled"
+    assert result["alternative_subagents"]
+    for item in result["alternative_subagents"]:
+        assert created["subagent_id"] in records[item["subagent_id"]]["parent_ids"]
+    assert refreshed["iterative_loop"]["alternative_subagents"]
+    assert refreshed["iterative_loop"]["canceled_subagent_count"] >= 1
 
 
 def test_register_worker_subagent_rejects_recursive_spawn(limit_up_project) -> None:

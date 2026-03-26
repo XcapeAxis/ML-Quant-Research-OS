@@ -1,32 +1,34 @@
-# Verify Last
+# 最近验证快照
 
-- head: 0ae42b6a8ca3908105491e81f7d7c0a3f0fdc324
+- head: 9efa25a06e8f7003fd30c868a09a45232883135e
 - branch: main
-- passed_commands:
+- 通过命令:
   - python -m quant_mvp data_validate --project as_share_research_v1
-- failed_commands:
-  - none recorded
-- default_project_data_status: ready coverage: 715/715 symbols with validated bars (coverage_ratio=1.0000, raw_rows=1441021, cleaned_rows=1419045, validated_rows=1419045).
-- conclusion_boundary_engineering: Validated data recovery, coverage-gap analysis, and readiness writeback all executed.
-- conclusion_boundary_research: Promotion-grade research can proceed on the current validated snapshot.
+- 失败命令:
+  - 未记录
+- 默认项目数据状态: 已就绪覆盖： 715/715 个标的具备已验证 bars (coverage_ratio=1.0000, raw_rows=1441021, cleaned_rows=1419045, validated_rows=1419045).
+- 工程边界结论: 已执行已验证数据恢复、覆盖缺口分析与 readiness 写回。
+- 研究边界结论: 当前已验证快照已满足 promotion-grade research 的前置条件。
 - subagent_gate_mode: AUTO
 - active_subagents: none
 - blocked_subagents: none
-- recent_subagent_event: iterative_assess
+- 最近 subagent 事件: iterative_relevance_review
 
-## Iterative Loop
+## 高阶迭代摘要
 - iteration_count: 1
 - target_iterations: 3
 - max_iterations: 5
-- stop_reason: no_verified_progress
-- direction_change: False
-- blocker_escalation: False
-- blocker_key: max_drawdown (repeat_count=2, historical_count=1)
-- last_classification: no_meaningful_progress
+- stop_reason: 同一 blocker 已升级且继续推进 ROI 很低，自动停止。
+- direction_change: 否
+- blocker_escalation: 是
+- blocker_key: max_drawdown (repeat_count=4, historical_count=3)
+- last_classification: blocker 已被澄清
 - max_active_subagents: 0
-- subagent_gate_mode: AUTO (blocked/retired/merged=0/31/0)
+- subagent_gate_mode: AUTO (blocked/retired/merged/archived=0/31/0/0)
 - subagents_used: none
-- subagent_reason: Task breadth is below the minimum threshold for safe decomposition.
-- completed: `promote_candidate` did not produce a new verified state change.
-- not_done: Max drawdown 50.44% exceeds 30.00%.; Benchmark or equal-weight baselines are incomplete.
-- next_recommendation: Run a finer root-cause diagnosis for `max_drawdown` before another automation iteration.
+- subagent_reason: 任务广度尚未达到安全拆分的最低阈值。
+- auto_closed_subagents: none
+- alternative_subagents: none
+- 本轮完成: 重复 blocker `max_drawdown` 并已停止自动重试。
+- 本轮未完成: 最大回撤 50.44% 高于 30.00%。；基准或等权基线不完整.
+- 下一步建议: 升级 blocker `max_drawdown`: 已停止自动重试，请收窄路径，并在下一次 run 前写回根因诊断。

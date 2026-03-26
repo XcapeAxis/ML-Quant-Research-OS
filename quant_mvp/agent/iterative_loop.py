@@ -8,11 +8,13 @@ from typing import Any, Protocol
 
 from ..config import load_config
 from ..data.validate_flow import run_data_validate_flow
+from ..memory.localization import humanize_text, zh_bool, zh_stop_reason
 from ..memory.writeback import load_machine_state, record_iterative_run, save_machine_state
 from ..project import resolve_project_paths
 from ..promotion import promote_candidate
 from ..research_audit import run_research_audit
 from .runner import run_agent_cycle
+from .subagent_controller import reconcile_loop_subagents
 from .subagent_policy import evaluate_subagent_plan, load_subagent_policy, load_subagent_roles
 from .subagent_registry import summarize_subagent_state
 from .subagent_models import SubagentTaskProfile
@@ -97,8 +99,11 @@ def _subagent_status_snapshot(*, state: dict[str, Any], plan: dict[str, Any]) ->
     records = list(state.get("subagents", []))
     active_count = sum(1 for item in records if item.get("status") == "active")
     blocked_count = sum(1 for item in records if item.get("status") == "blocked")
-    retired_count = sum(1 for item in records if item.get("status") in {"retired", "archived", "canceled", "refactored"})
+    retired_count = sum(1 for item in records if item.get("status") == "retired")
     merged_count = sum(1 for item in records if item.get("status") == "merged")
+    archived_count = sum(1 for item in records if item.get("status") == "archived")
+    canceled_count = sum(1 for item in records if item.get("status") == "canceled")
+    refactored_count = sum(1 for item in records if item.get("status") == "refactored")
     return {
         "gate_mode": str(state.get("subagent_gate_mode", "AUTO")),
         "recommended_count": int(plan.get("recommended_count", 0) or 0),
@@ -107,6 +112,9 @@ def _subagent_status_snapshot(*, state: dict[str, Any], plan: dict[str, Any]) ->
         "blocked_count": blocked_count,
         "retired_count": retired_count,
         "merged_count": merged_count,
+        "archived_count": archived_count,
+        "canceled_count": canceled_count,
+        "refactored_count": refactored_count,
         "reason": str(plan.get("reason") or state.get("subagent_continue_reason") or "n/a"),
     }
 
@@ -466,9 +474,14 @@ def run_iterative_loop(
         "blocked_count": 0,
         "retired_count": 0,
         "merged_count": 0,
+        "archived_count": 0,
+        "canceled_count": 0,
+        "refactored_count": 0,
         "reason": subagent_reason,
     }
     effective_next_recommendation = ""
+    auto_closed_subagents: list[dict[str, str]] = []
+    alternative_subagents: list[dict[str, str]] = []
 
     for iteration in range(1, config.max_iterations + 1):
         before = driver.rescan(project=project, repo_root=repo_root, config_path=config_path)
@@ -488,11 +501,28 @@ def run_iterative_loop(
 
         subagent_plan = _assess_subagents(project=project, truth=before, action=action, repo_root=repo_root)
         subagent_reason = str(subagent_plan.get("reason", subagent_reason))
-        subagents_used = list(subagent_plan.get("recommended_roles", [])) if subagent_plan.get("should_expand") else []
+        reconcile = reconcile_loop_subagents(
+            project=project,
+            desired_roles=list(subagent_plan.get("recommended_roles", [])),
+            should_expand=bool(subagent_plan.get("should_expand")),
+            summary=subagent_reason,
+            repo_root=repo_root,
+        )
+        auto_closed_subagents.extend(reconcile.get("auto_closed", []))
+        alternative_subagents.extend(
+            [
+                {
+                    "subagent_id": subagent_id,
+                    "role": role,
+                }
+                for subagent_id, role in zip(reconcile.get("replacement_ids", []), reconcile.get("created_roles", []))
+            ],
+        )
         _, state = load_machine_state(project, repo_root=repo_root)
         summarized = summarize_subagent_state(state)
         max_active_subagents = max(max_active_subagents, len(summarized.get("active_ids", [])))
         subagent_status = _subagent_status_snapshot(state=state, plan=subagent_plan)
+        subagents_used = [record.get("role", "") for record in state.get("subagents", []) if record.get("status") == "active"]
 
         execution = driver.execute(project=project, action=action, repo_root=repo_root, config_path=config_path)
         after = driver.rescan(project=project, repo_root=repo_root, config_path=config_path)
@@ -534,6 +564,7 @@ def run_iterative_loop(
                 "after": after.to_dict(),
                 "verification": verification.to_dict(),
                 "subagent_plan": subagent_plan,
+                "subagent_reconcile": reconcile,
                 "blocker_count": blocker_count,
                 "historical_blocker_count": historical_blocker_count,
                 "blocker_repeat_count": blocker_repeat_count,
@@ -554,6 +585,25 @@ def run_iterative_loop(
         )
         if stop:
             stop_reason = stop
+            close_status = "archived" if stop in {"low_roi_repeated_blocker", "verification_failed_scope_expanded", "insufficient_context", "worktree_not_suitable"} else "retired"
+            final_reconcile = reconcile_loop_subagents(
+                project=project,
+                desired_roles=[],
+                should_expand=False,
+                summary=subagent_reason,
+                repo_root=repo_root,
+                close_status_if_unused=close_status,
+            )
+            auto_closed_subagents.extend(final_reconcile.get("auto_closed", []))
+            _, state = load_machine_state(project, repo_root=repo_root)
+            subagent_status = _subagent_status_snapshot(
+                state=state,
+                plan={
+                    "recommended_count": state.get("subagent_plan", {}).get("recommended_count", 0),
+                    "should_expand": state.get("subagent_continue_recommended", False),
+                    "reason": state.get("subagent_continue_reason", subagent_reason),
+                },
+            )
             break
 
     final_truth = final_truth or driver.rescan(project=project, repo_root=repo_root, config_path=config_path)
@@ -608,6 +658,8 @@ def run_iterative_loop(
         "subagent_reason": subagent_reason,
         "subagent_gate_mode": subagent_status.get("gate_mode", "AUTO"),
         "subagent_status": subagent_status,
+        "auto_closed_subagents": auto_closed_subagents,
+        "alternative_subagents": alternative_subagents,
         "iterations": history,
         "postmortem_required": stop_reason in {"no_verified_progress", "no_new_information_twice", "low_roi_repeated_blocker", "verification_failed_scope_expanded"},
         "postmortem_summary": not_done,
@@ -620,17 +672,30 @@ def run_iterative_loop(
 
 def render_iterative_checkpoint(result: dict[str, Any]) -> str:
     status = dict(result.get("subagent_status", {}) or {})
+    auto_closed = list(result.get("auto_closed_subagents", []) or [])
+    alternatives = list(result.get("alternative_subagents", []) or [])
     lines = [
         "Done",
-        f"- {result.get('completed', 'none recorded')}",
-        f"- direction_change: {result.get('direction_change', False)}",
-        "Evidence",
-        f"- stop_reason={result.get('stop_reason', 'unknown')}; blocker_key={result.get('blocker_key', 'unknown')}; repeats={result.get('blocker_repeat_count', 0)}",
-        f"- iterations={result.get('iteration_count', 0)}/{result.get('target_iterations', 0)} target, max={result.get('max_iterations', 0)}",
-        "Next action",
-        f"- {result.get('next_recommendation', 'none recorded')}",
+        f"- 本轮真正完成：{humanize_text(result.get('completed', 'none recorded'))}",
+        f"- 本轮是否发生方向修正：{zh_bool(result.get('direction_change', False))}",
+        "Not done",
+        f"- 本轮没有完成：{humanize_text(result.get('not_done', 'none recorded'))}",
+        f"- 当前最重要未完成项：{humanize_text(result.get('not_done', 'none recorded'))}",
+        "Next recommendation",
+        f"- 下一步唯一最高优先建议：{humanize_text(result.get('next_recommendation', 'none recorded'))}",
         "Subagent status",
-        f"- gate mode: {result.get('subagent_gate_mode', status.get('gate_mode', 'AUTO'))}; max active: {result.get('max_active_subagents', 0)}",
-        f"- active/blocked/retired/merged={status.get('active_count', 0)}/{status.get('blocked_count', 0)}/{status.get('retired_count', 0)}/{status.get('merged_count', 0)}; {result.get('subagent_reason', status.get('reason', 'no extra subagents'))}",
+        f"- gate mode: {result.get('subagent_gate_mode', status.get('gate_mode', 'AUTO'))}",
+        f"- 本轮最大活跃 subagent 数：{result.get('max_active_subagents', 0)}",
+        (
+            f"- 当前 active / blocked / retired / merged / archived："
+            f"{status.get('active_count', 0)} / {status.get('blocked_count', 0)} / {status.get('retired_count', 0)} / "
+            f"{status.get('merged_count', 0)} / {status.get('archived_count', 0)}"
+        ),
+        (
+            f"- 自动关停：{', '.join(item.get('subagent_id', '') for item in auto_closed) if auto_closed else '无'}；"
+            f"替代 subagents：{', '.join(item.get('subagent_id', '') for item in alternatives) if alternatives else '无'}"
+        ),
+        f"- 为什么没有启用更多 subagents：{humanize_text(result.get('subagent_reason', status.get('reason', 'none recorded')))}",
+        f"- stop_reason：{zh_stop_reason(str(result.get('stop_reason', 'unknown')))}；blocker_key={result.get('blocker_key', 'unknown')}；repeats={result.get('blocker_repeat_count', 0)}",
     ]
     return "\n".join(lines)

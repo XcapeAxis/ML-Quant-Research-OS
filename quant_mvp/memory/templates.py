@@ -77,57 +77,57 @@ DOCS_AGENTS_TEMPLATE = """# docs Scope
 """
 
 
-PROJECT_STATE_TEMPLATE = """# Project State
+PROJECT_STATE_TEMPLATE = """# 项目状态
 
-- current_total_task: Keep the Phase 1 Research OS reproducible, auditable, and memory-stable.
-- current_phase: Phase 1 Research OS
-- current_blocker: Default project still lacks usable validated bars for the frozen universe.
-- current_real_capability_boundary: Engineering guardrails work; real default-project research remains blocked on data coverage.
-- next_priority_action: Restore a usable validated bar snapshot for the frozen default universe.
-- last_verified_capability: Contract and dry-run orchestration tests passed in the repository virtual environment.
-- last_failed_capability: Promotion on the default project is blocked by missing research inputs.
+- 当前总任务: 保持 Phase 1 Research OS 可复现、可审计，并让 tracked memory 稳定。
+- 当前阶段: Phase 1 Research OS
+- 当前 blocker: 默认项目在 frozen universe 上仍缺少可用的 validated bars。
+- 当前真实能力边界: 工程护栏可用，但真实 default project 研究仍被数据覆盖率阻塞。
+- 下一优先动作: 恢复 frozen default universe 可用的 validated bar 快照。
+- 最近已验证能力: 仓库虚拟环境中的 contract 与 dry-run orchestration 测试已通过。
+- 最近失败能力: 默认项目的 promotion 仍被缺失研究输入阻塞。
 """
 
 
-HYPOTHESIS_QUEUE_TEMPLATE = """# Hypothesis Queue
+HYPOTHESIS_QUEUE_TEMPLATE = """# 假设队列
 
-1. [blocked] Restore validated daily bars for the frozen default universe, then rerun promotion.
-2. [pending] Revalidate the audited limit-up screening spec on validated data only.
-3. [pending] Compare the audited strategy against baselines and cost stress before any promotion claim.
+1. [阻塞] 先恢复 frozen default universe 的 validated daily bars，再重跑 promotion。
+2. [待处理] 仅在已验证数据上重新校验审计后的 limit-up screening 规格。
+3. [待处理] 任何 promotion 结论前，先与基线和成本压力场景做对比。
 """
 
 
-POSTMORTEMS_TEMPLATE = """# Postmortems
+POSTMORTEMS_TEMPLATE = """# 失败复盘
 
-No critical failures recorded yet. Append only high-signal failures with root cause, corrective action, and current resolution status.
+当前尚无关键失败。后续仅追加高信号失败，记录根因、纠偏动作和当前状态。
 """
 
 
-RESEARCH_MEMORY_TEMPLATE = """# Research Memory
+RESEARCH_MEMORY_TEMPLATE = """# 研究记忆
 
-## Durable Facts
-- The limit-up screening path now shares one audited research core between the standalone script and the modular steps.
-- Tracked long-term memory lives under `memory/projects/<project>/`; runtime artifacts stay under `data/` and `artifacts/`.
+## 长期事实
+- standalone script 与 modular steps 现已共享同一个经过审计的研究核心。
+- tracked long-term memory 位于 `memory/projects/<project>/`，runtime artifacts 位于 `data/` 和 `artifacts/`。
 
-## Negative Memory
-- Default-project promotion is not trustworthy until validated bars exist for the frozen universe.
-- Ignored runtime directories are not sufficient as the sole store for durable project memory.
+## 负面记忆
+- 在 frozen universe 拥有 validated bars 之前，不要信任 default project 的 promotion 结论。
+- 被忽略的 runtime 目录不能作为 durable project memory 的唯一存储。
 
-## Next-Step Memory
-- Restore validated default-project bars before trusting any research conclusion.
-- Keep compact tracked ledgers and handoff files in sync with runtime experiment payloads.
+## 下一步记忆
+- 在相信任何研究结论之前，先恢复 default project 的 validated bars。
+- 保持紧凑的 tracked ledger 与 handoff 文件和 runtime experiment payloads 同步。
 """
 
 
-VERIFY_LAST_TEMPLATE = """# Verify Last
+VERIFY_LAST_TEMPLATE = """# 最近验证快照
 
 - head: unknown
 - branch: unknown
-- passed_commands:
-  - none recorded yet
-- failed_commands:
-  - none recorded yet
-- default_project_data_status: unknown
-- conclusion_boundary_engineering: unknown
-- conclusion_boundary_research: unknown
+- 通过命令:
+  - 未记录
+- 失败命令:
+  - 未记录
+- 默认项目数据状态: unknown
+- 工程边界结论: unknown
+- 研究边界结论: unknown
 """

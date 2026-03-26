@@ -70,10 +70,12 @@ def test_subagent_sync_updates_session_state_and_registry(limit_up_project) -> N
     session = json.loads(paths.session_state_path.read_text(encoding="utf-8"))
     handoff = paths.handoff_path.read_text(encoding="utf-8")
     migration = paths.migration_prompt_path.read_text(encoding="utf-8")
+    registry = paths.subagent_registry_path.read_text(encoding="utf-8")
 
     assert sync_payload["gate_mode"] == "AUTO"
     assert session["subagent_gate_mode"] == "AUTO"
     assert session["subagents"]
-    assert "## Subagent Status" in handoff
-    assert "## Subagent Status" in migration
+    assert "## Subagent 状态" in handoff
+    assert "## Subagent 状态" in migration
     assert paths.subagent_registry_path.exists()
+    assert "# Subagent 注册表" in registry

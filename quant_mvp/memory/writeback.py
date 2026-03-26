@@ -10,6 +10,7 @@ from ..agent.subagent_policy import load_subagent_roles
 from ..agent.subagent_registry import default_subagent_state, render_subagent_registry, summarize_subagent_state
 from ..project import resolve_project_paths
 from .ledger import append_jsonl, to_jsonable
+from .localization import humanize_text, zh_bool, zh_status, zh_stop_reason
 from .templates import (
     DOCS_AGENTS_TEMPLATE,
     HYPOTHESIS_QUEUE_TEMPLATE,
@@ -113,6 +114,17 @@ def _parse_bullet_state(text: str) -> dict[str, Any]:
 
 
 def _parse_hypotheses(text: str) -> list[dict[str, str]]:
+    status_map = {
+        "blocked": "blocked",
+        "pending": "pending",
+        "active": "active",
+        "done": "done",
+        "阻塞": "blocked",
+        "待处理": "pending",
+        "待验证": "pending",
+        "进行中": "active",
+        "已完成": "done",
+    }
     items: list[dict[str, str]] = []
     for raw_line in text.splitlines():
         stripped = raw_line.strip()
@@ -125,7 +137,8 @@ def _parse_hypotheses(text: str) -> list[dict[str, str]]:
         entry = remainder.strip()
         if entry.startswith("[") and "]" in entry:
             status, hypothesis = entry[1:].split("]", 1)
-            items.append({"status": status.strip().lower(), "hypothesis": hypothesis.strip()})
+            key = status.strip().lower()
+            items.append({"status": status_map.get(key, status_map.get(status.strip(), "pending")), "hypothesis": hypothesis.strip()})
         elif entry:
             items.append({"status": "pending", "hypothesis": entry})
     return items
@@ -133,13 +146,18 @@ def _parse_hypotheses(text: str) -> list[dict[str, str]]:
 
 def _parse_section_bullets(text: str, heading: str) -> list[str]:
     lines = text.splitlines()
-    target = heading.strip().lower()
+    aliases = {
+        "durable facts": {"durable facts", "长期事实"},
+        "negative memory": {"negative memory", "负面记忆"},
+        "next-step memory": {"next-step memory", "下一步记忆"},
+    }
+    target = aliases.get(heading.strip().lower(), {heading.strip().lower()})
     in_section = False
     items: list[str] = []
     for raw_line in lines:
         stripped = raw_line.strip()
         if stripped.startswith("## "):
-            in_section = stripped[3:].strip().lower() == target
+            in_section = stripped[3:].strip().lower() in target
             continue
         if not in_section:
             continue
@@ -161,9 +179,9 @@ def _parse_legacy_research_memory(text: str) -> dict[str, list[str]]:
 
     data = _parse_bullet_state(text)
     return {
-        "durable_facts": _normalize_list(data.get("Durable facts") or data.get("durable_facts")),
-        "negative_memory": _normalize_list(data.get("Negative memory") or data.get("negative_memory")),
-        "next_step_memory": _normalize_list(data.get("Next-step memory") or data.get("next_step_memory")),
+        "durable_facts": _normalize_list(data.get("Durable facts") or data.get("durable_facts") or data.get("长期事实")),
+        "negative_memory": _normalize_list(data.get("Negative memory") or data.get("negative_memory") or data.get("负面记忆")),
+        "next_step_memory": _normalize_list(data.get("Next-step memory") or data.get("next_step_memory") or data.get("下一步记忆")),
     }
 
 
@@ -171,12 +189,12 @@ def _render_research_memory(state: dict[str, Any]) -> str:
     durable = _normalize_list(state.get("durable_facts"))
     negative = _normalize_list(state.get("negative_memory"))
     next_steps = _normalize_list(state.get("next_step_memory"))
-    lines = ["# Research Memory", "", "## Durable Facts"]
-    lines.extend([f"- {item}" for item in durable] or ["- none recorded"])
-    lines.extend(["", "## Negative Memory"])
-    lines.extend([f"- {item}" for item in negative] or ["- none recorded"])
-    lines.extend(["", "## Next-Step Memory"])
-    lines.extend([f"- {item}" for item in next_steps] or ["- none recorded"])
+    lines = ["# 研究记忆", "", "## 长期事实"]
+    lines.extend([f"- {humanize_text(item)}" for item in durable] or ["- 未记录"])
+    lines.extend(["", "## 负面记忆"])
+    lines.extend([f"- {humanize_text(item)}" for item in negative] or ["- 未记录"])
+    lines.extend(["", "## 下一步记忆"])
+    lines.extend([f"- {humanize_text(item)}" for item in next_steps] or ["- 未记录"])
     return "\n".join(lines)
 
 
@@ -194,19 +212,56 @@ def _render_loop_summary_lines(state: dict[str, Any]) -> list[str]:
         f"- iteration_count: {loop.get('iteration_count', 0)}",
         f"- target_iterations: {loop.get('target_iterations', 0)}",
         f"- max_iterations: {loop.get('max_iterations', 0)}",
-        f"- stop_reason: {loop.get('stop_reason', 'unknown')}",
-        f"- direction_change: {loop.get('direction_change', False)}",
-        f"- blocker_escalation: {loop.get('blocker_escalation', False)}",
+        f"- stop_reason: {zh_stop_reason(str(loop.get('stop_reason', 'unknown')))}",
+        f"- direction_change: {zh_bool(loop.get('direction_change', False))}",
+        f"- blocker_escalation: {zh_bool(loop.get('blocker_escalation', False))}",
         f"- blocker_key: {loop.get('blocker_key', 'unknown')} (repeat_count={loop.get('blocker_repeat_count', 0)}, historical_count={loop.get('historical_blocker_count', 0)})",
-        f"- last_classification: {loop.get('last_classification', 'unknown')}",
+        f"- last_classification: {humanize_text(loop.get('last_classification', 'unknown'))}",
         f"- max_active_subagents: {loop.get('max_active_subagents', 0)}",
-        f"- subagent_gate_mode: {loop.get('subagent_gate_mode', 'AUTO')} (blocked/retired/merged={loop.get('blocked_subagent_count', 0)}/{loop.get('retired_subagent_count', 0)}/{loop.get('merged_subagent_count', 0)})",
+        (
+            f"- subagent_gate_mode: {loop.get('subagent_gate_mode', 'AUTO')} "
+            f"(blocked/retired/merged/archived={loop.get('blocked_subagent_count', 0)}/"
+            f"{loop.get('retired_subagent_count', 0)}/{loop.get('merged_subagent_count', 0)}/{loop.get('archived_subagent_count', 0)})"
+        ),
         f"- subagents_used: {', '.join(loop.get('subagents_used', [])) or 'none'}",
-        f"- subagent_reason: {loop.get('subagent_reason', 'n/a')}",
-        f"- completed: {loop.get('last_completed', 'none recorded')}",
-        f"- not_done: {loop.get('last_not_done', 'none recorded')}",
-        f"- next_recommendation: {loop.get('next_recommendation', 'none recorded')}",
+        f"- subagent_reason: {humanize_text(loop.get('subagent_reason', 'n/a'))}",
+        f"- auto_closed_subagents: {', '.join(loop.get('auto_closed_subagents', [])) or 'none'}",
+        f"- alternative_subagents: {', '.join(loop.get('alternative_subagents', [])) or 'none'}",
+        f"- 本轮完成: {humanize_text(loop.get('last_completed', 'none recorded'))}",
+        f"- 本轮未完成: {humanize_text(loop.get('last_not_done', 'none recorded'))}",
+        f"- 下一步建议: {humanize_text(loop.get('next_recommendation', 'none recorded'))}",
     ]
+
+
+def _localize_postmortems_text(text: str) -> str:
+    if not text.strip():
+        return "# 失败复盘\n\n- 未记录\n"
+    localized: list[str] = []
+    key_aliases = {
+        "summary": "摘要",
+        "root_cause": "根因",
+        "corrective_action": "纠偏动作",
+        "resolution_status": "当前状态",
+        "摘要": "摘要",
+        "根因": "根因",
+        "纠偏动作": "纠偏动作",
+        "当前状态": "当前状态",
+    }
+    for raw_line in text.splitlines():
+        stripped = raw_line.strip()
+        if raw_line.startswith("# Postmortems"):
+            localized.append("# 失败复盘")
+            continue
+        if "No recorded failures yet" in raw_line:
+            localized.append("当前 bootstrap 状态尚无失败复盘。后续仅追加高信号失败，记录根因、纠偏动作和当前状态。")
+            continue
+        if stripped.startswith("- ") and ":" in stripped:
+            key, value = stripped[2:].split(":", 1)
+            localized_key = key_aliases.get(key.strip(), key.strip())
+            localized.append(f"- {localized_key}: {humanize_text(value.strip())}")
+            continue
+        localized.append(humanize_text(raw_line) if stripped and not stripped.startswith("## ") else raw_line)
+    return "\n".join(localized)
 
 
 def _extract_last_postmortem(text: str) -> dict[str, str]:
@@ -220,11 +275,21 @@ def _extract_last_postmortem(text: str) -> dict[str, str]:
         "timestamp": headline,
         "experiment_id": headline.split("|", 1)[-1].strip() if "|" in headline else headline.strip(),
     }
+    aliases = {
+        "summary": "summary",
+        "摘要": "summary",
+        "root_cause": "root_cause",
+        "根因": "root_cause",
+        "corrective_action": "corrective_action",
+        "纠偏动作": "corrective_action",
+        "resolution_status": "resolution_status",
+        "当前状态": "resolution_status",
+    }
     for line in lines[1:]:
         stripped = line.strip()
         if stripped.startswith("- ") and ":" in stripped:
             key, value = stripped[2:].split(":", 1)
-            payload[key.strip()] = value.strip()
+            payload[aliases.get(key.strip(), key.strip())] = value.strip()
     return payload
 
 
@@ -288,6 +353,11 @@ def _default_iterative_loop_state() -> dict[str, Any]:
         "blocked_subagent_count": 0,
         "retired_subagent_count": 0,
         "merged_subagent_count": 0,
+        "archived_subagent_count": 0,
+        "canceled_subagent_count": 0,
+        "refactored_subagent_count": 0,
+        "auto_closed_subagents": [],
+        "alternative_subagents": [],
         "artifact_path": "",
         "last_classification": "not_run",
     }
@@ -349,39 +419,45 @@ def _render_project_state(state: dict[str, Any]) -> str:
     subagents = summarize_subagent_state(state)
     stage0a = dict(state.get("stage0a_decision", {}) or {})
     lines = [
-        "# Project State",
+        "# 项目状态",
         "",
-        f"- current_total_task: {state.get('current_task', 'unknown')}",
-        f"- current_phase: {state.get('current_phase', 'unknown')}",
-        f"- current_blocker: {state.get('current_blocker', 'unknown')}",
-        f"- current_real_capability_boundary: {state.get('current_capability_boundary', 'unknown')}",
-        f"- next_priority_action: {state.get('next_priority_action', 'unknown')}",
-        f"- last_verified_capability: {state.get('last_verified_capability', 'unknown')}",
-        f"- last_failed_capability: {state.get('last_failed_capability', 'unknown')}",
+        f"- 当前总任务: {humanize_text(state.get('current_task', 'unknown'))}",
+        f"- 当前阶段: {humanize_text(state.get('current_phase', 'unknown'))}",
+        f"- 当前 blocker: {humanize_text(state.get('current_blocker', 'unknown'))}",
+        f"- 当前真实能力边界: {humanize_text(state.get('current_capability_boundary', 'unknown'))}",
+        f"- 下一优先动作: {humanize_text(state.get('next_priority_action', 'unknown'))}",
+        f"- 最近已验证能力: {humanize_text(state.get('last_verified_capability', 'unknown'))}",
+        f"- 最近失败能力: {humanize_text(state.get('last_failed_capability', 'unknown'))}",
         f"- subagent_gate_mode: {subagents['gate_mode']}",
-        f"- subagent_active: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
-        f"- subagent_blocked: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
-        f"- subagent_recent_event: {subagents['last_event'].get('action', 'none recorded')}",
+        f"- active subagents: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
+        f"- blocked subagents: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
+        f"- 最近 subagent 事件: {humanize_text(subagents['last_event'].get('action', 'none recorded'))}",
     ]
     if stage0a:
         lines.extend(
             [
-                f"- stage0a_last_decision: {stage0a.get('decision', 'unknown')}",
-                f"- stage0a_universe_shift: {stage0a.get('old_universe_size', 'n/a')} -> {stage0a.get('new_universe_size', 'n/a')}",
+                f"- stage0a 最近决策: {humanize_text(stage0a.get('decision', 'unknown'))}",
+                f"- stage0a 宇宙变化: {stage0a.get('old_universe_size', 'n/a')} -> {stage0a.get('new_universe_size', 'n/a')}",
             ],
         )
-    lines.extend(["", "## Last Iterative Run"])
+    lines.extend(["", "## 最近一次高阶迭代"])
     lines.extend(_render_loop_summary_lines(state))
     return "\n".join(lines)
 
 
 def _render_hypothesis_queue(hypotheses: list[dict[str, str]]) -> str:
-    lines = ["# Hypothesis Queue", ""]
+    lines = ["# 假设队列", ""]
     if not hypotheses:
-        lines.append("1. [pending] No active hypothesis yet.")
+        lines.append("1. [待处理] 尚无活跃假设。")
         return "\n".join(lines)
+    status_map = {
+        "pending": "待处理",
+        "blocked": "阻塞",
+        "active": "进行中",
+        "done": "已完成",
+    }
     for idx, item in enumerate(hypotheses, start=1):
-        lines.append(f"{idx}. [{item['status']}] {item['hypothesis']}")
+        lines.append(f"{idx}. [{status_map.get(item['status'], item['status'])}] {humanize_text(item['hypothesis'])}")
     return "\n".join(lines)
 
 
@@ -391,26 +467,26 @@ def _render_verify_last(state: dict[str, Any]) -> str:
     passed = _normalize_list(verify.get("passed_commands"))
     failed = _normalize_list(verify.get("failed_commands"))
     lines = [
-        "# Verify Last",
+        "# 最近验证快照",
         "",
         f"- head: {state.get('head', 'unknown')}",
         f"- branch: {state.get('branch', 'unknown')}",
-        "- passed_commands:",
+        "- 通过命令:",
     ]
-    lines.extend([f"  - {item}" for item in passed] or ["  - none recorded"])
-    lines.append("- failed_commands:")
-    lines.extend([f"  - {item}" for item in failed] or ["  - none recorded"])
+    lines.extend([f"  - {item}" for item in passed] or ["  - 未记录"])
+    lines.append("- 失败命令:")
+    lines.extend([f"  - {item}" for item in failed] or ["  - 未记录"])
     lines.extend(
         [
-            f"- default_project_data_status: {verify.get('default_project_data_status', 'unknown')}",
-            f"- conclusion_boundary_engineering: {verify.get('conclusion_boundary_engineering', 'unknown')}",
-            f"- conclusion_boundary_research: {verify.get('conclusion_boundary_research', 'unknown')}",
+            f"- 默认项目数据状态: {humanize_text(verify.get('default_project_data_status', 'unknown'))}",
+            f"- 工程边界结论: {humanize_text(verify.get('conclusion_boundary_engineering', 'unknown'))}",
+            f"- 研究边界结论: {humanize_text(verify.get('conclusion_boundary_research', 'unknown'))}",
             f"- subagent_gate_mode: {subagents['gate_mode']}",
             f"- active_subagents: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
             f"- blocked_subagents: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
-            f"- recent_subagent_event: {subagents['last_event'].get('action', 'none recorded')}",
+            f"- 最近 subagent 事件: {humanize_text(subagents['last_event'].get('action', 'none recorded'))}",
             "",
-            "## Iterative Loop",
+            "## 高阶迭代摘要",
         ],
     )
     lines.extend(_render_loop_summary_lines(state))
@@ -421,45 +497,45 @@ def _render_handoff(state: dict[str, Any], paths) -> str:
     failure = state.get("last_failure", {}) or {}
     subagents = summarize_subagent_state(state)
     lines = [
-        "# Handoff Next Chat",
+        "# 下一轮交接",
         "",
-        "## Current Total Task",
-        state.get("current_task", "unknown"),
+        "## 当前总任务",
+        humanize_text(state.get("current_task", "unknown")),
         "",
-        "## Current Phase",
-        state.get("current_phase", "unknown"),
+        "## 当前阶段",
+        humanize_text(state.get("current_phase", "unknown")),
         "",
-        "## Completed",
-        f"- Tracked memory dir: {paths.memory_dir}",
-        f"- Runtime meta dir: {paths.meta_dir}",
-        f"- Runtime artifacts dir: {paths.artifacts_dir}",
+        "## 已确认路径",
+        f"- tracked memory 目录: {paths.memory_dir}",
+        f"- runtime meta 目录: {paths.meta_dir}",
+        f"- runtime artifacts 目录: {paths.artifacts_dir}",
         "",
-        "## Current Blocker",
-        state.get("current_blocker", "unknown"),
+        "## 当前 blocker",
+        humanize_text(state.get("current_blocker", "unknown")),
         "",
-        "## Recent Critical Failure",
-        failure.get("summary", state.get("last_failed_capability", "none recorded")),
+        "## 最近关键失败",
+        humanize_text(failure.get("summary", state.get("last_failed_capability", "none recorded"))),
         "",
-        "## Current Real Capability Boundary",
-        state.get("current_capability_boundary", "unknown"),
+        "## 当前真实能力边界",
+        humanize_text(state.get("current_capability_boundary", "unknown")),
         "",
-        "## Subagent Status",
+        "## Subagent 状态",
         f"- gate_mode: {subagents['gate_mode']}",
         f"- active: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
         f"- blocked: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
-        f"- recent_transition: {subagents['last_event'].get('action', 'none recorded')}",
-        f"- continue_using_subagents: {'yes' if subagents['should_expand'] else 'no'}",
+        f"- recent_transition: {humanize_text(subagents['last_event'].get('action', 'none recorded'))}",
+        f"- continue_using_subagents: {zh_bool(subagents['should_expand'])}",
         "",
-        "## Last Iterative Run",
+        "## 最近一次高阶迭代",
     ]
     lines.extend(_render_loop_summary_lines(state))
     lines.extend(
         [
             "",
-        "## Next Highest-Priority Action",
-        state.get("next_priority_action", "unknown"),
+        "## 下一步唯一建议",
+        humanize_text(state.get("next_priority_action", "unknown")),
         "",
-        "## Read First In The Next Chat",
+        "## 下一轮先读这些文件",
         f"- {paths.project_state_path}",
         f"- {paths.verify_last_path}",
         f"- {paths.migration_prompt_path}",
@@ -474,82 +550,82 @@ def _render_migration_prompt(state: dict[str, Any], paths) -> str:
     verify = state.get("verify_last", {}) or {}
     subagents = summarize_subagent_state(state)
     lines = [
-        "# Migration Prompt Next Chat",
+        "# 下一轮迁移提示",
         "",
-        "## Current Total Task",
-        state.get("current_task", "unknown"),
+        "## 当前总任务",
+        humanize_text(state.get("current_task", "unknown")),
         "",
-        "## Current Phase",
-        state.get("current_phase", "unknown"),
+        "## 当前阶段",
+        humanize_text(state.get("current_phase", "unknown")),
         "",
-        "## Current Repo / Branch / HEAD",
+        "## 当前 Repo / Branch / HEAD",
         f"- repo_root: {paths.root}",
         f"- branch: {state.get('branch', 'unknown')}",
         f"- head: {state.get('head', 'unknown')}",
         "",
-        "## Confirmed Facts",
+        "## 已确认事实",
         f"- tracked_memory_dir: {paths.memory_dir}",
         f"- runtime_meta_dir: {paths.meta_dir}",
         f"- runtime_artifacts_dir: {paths.artifacts_dir}",
-        f"- current_blocker: {state.get('current_blocker', 'unknown')}",
+        f"- current_blocker: {humanize_text(state.get('current_blocker', 'unknown'))}",
         "",
-        "## Unconfirmed Questions",
-        "- No additional unconfirmed questions have been recorded yet.",
+        "## 未确认问题",
+        f"- {humanize_text('No additional unconfirmed questions have been recorded yet.')}",
         "",
-        "## Recent Critical Failure",
-        failure.get("summary", state.get("last_failed_capability", "none recorded")),
+        "## 最近关键失败",
+        humanize_text(failure.get("summary", state.get("last_failed_capability", "none recorded"))),
         "",
-        "## Current Blocker",
-        state.get("current_blocker", "unknown"),
+        "## 当前 blocker",
+        humanize_text(state.get("current_blocker", "unknown")),
         "",
-        "## Subagent Status",
+        "## Subagent 状态",
         f"- gate_mode: {subagents['gate_mode']}",
         f"- active: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
         f"- blocked: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
-        f"- recent_transition: {subagents['last_event'].get('action', 'none recorded')}",
-        f"- continue_using_subagents: {'yes' if subagents['should_expand'] else 'no'}",
+        f"- recent_transition: {humanize_text(subagents['last_event'].get('action', 'none recorded'))}",
+        f"- continue_using_subagents: {zh_bool(subagents['should_expand'])}",
         "",
-        "## Last Iterative Run",
+        "## 最近一次高阶迭代",
     ]
     lines.extend(_render_loop_summary_lines(state))
     lines.extend(
         [
             "",
-            "## Next Highest-Priority Action",
-            state.get("next_priority_action", "unknown"),
+            "## 下一步唯一建议",
+            humanize_text(state.get("next_priority_action", "unknown")),
             "",
-            "## Avoid Repeating Work",
-            "- Do not move durable memory back into ignored runtime directories.",
-            "- Do not trust default-project research claims until validated bars exist for the frozen universe.",
+            "## 避免重复犯错",
+            f"- {humanize_text('Do not move durable memory back into ignored runtime directories.')}",
+            f"- {humanize_text('Do not trust default-project research claims until validated bars exist for the frozen universe.')}",
             "",
-            "## Required Verification First",
+            "## 必要验证优先",
         ],
     )
-    lines.extend([f"- {item}" for item in _normalize_list(verify.get("passed_commands"))] or ["- Run the tracked-memory and contract test suite first."])
+    lines.extend([f"- {item}" for item in _normalize_list(verify.get("passed_commands"))] or [f"- {humanize_text('Run the tracked-memory and contract test suite first.')}"])
     lines.extend(
         [
             "",
-            "## Read These Files First If Context Is Thin",
+            "## 如果上下文变薄，先读这些文件",
             f"- {paths.project_state_path}",
             f"- {paths.verify_last_path}",
             f"- {paths.handoff_path}",
             f"- {paths.research_memory_path}",
             f"- {paths.postmortems_path}",
             "",
-            "## Tracked Memory Location",
+            "## Tracked Memory 位置",
             str(paths.memory_dir),
             "",
-            "## Subagent Tracked Files",
+            "## Subagent 相关 tracked 文件",
             f"- {paths.subagent_registry_path}",
             f"- {paths.subagent_ledger_path}",
             "",
-            "## Runtime Artifacts Location",
+            "## Runtime Artifacts 位置",
             f"- {paths.meta_dir}",
             f"- {paths.artifacts_dir}",
             f"- {paths.subagent_artifacts_dir}",
             "",
-            "## Current Real Capability Boundary",
-            state.get("current_capability_boundary", "unknown"),
+            "## 当前真实能力边界",
+            humanize_text(state.get("current_capability_boundary", "unknown")),
         ],
     )
     return "\n".join(lines)
@@ -573,7 +649,7 @@ def _legacy_memory_paths(paths) -> dict[str, Path]:
     }
 
 
-def _migrate_legacy_memory(paths, state: dict[str, Any]) -> dict[str, Any]:
+def _migrate_legacy_memory(paths, state: dict[str, Any], *, prefer_tracked_files: bool = True) -> dict[str, Any]:
     legacy = _legacy_memory_paths(paths)
     if _is_missing_or_empty(paths.project_state_path) and legacy["project_state"].exists():
         _write_text(paths.project_state_path, legacy["project_state"].read_text(encoding="utf-8"))
@@ -600,21 +676,35 @@ def _migrate_legacy_memory(paths, state: dict[str, Any]) -> dict[str, Any]:
                     handle.write(json.dumps(to_jsonable(item), ensure_ascii=False, sort_keys=True))
                     handle.write("\n")
 
+    if not prefer_tracked_files:
+        return state
+
     project_state_text = _read_text(paths.project_state_path) or _read_text(legacy["project_state"])
     parsed_state = _parse_bullet_state(project_state_text)
     if parsed_state:
         state = _merge_state(
             state,
             {
-                "current_phase": parsed_state.get("phase") or parsed_state.get("current_phase"),
-                "current_blocker": parsed_state.get("data_status") or parsed_state.get("current_blocker"),
-                "current_capability_boundary": parsed_state.get("data_status") or state.get("current_capability_boundary"),
+                "current_phase": parsed_state.get("phase") or parsed_state.get("current_phase") or parsed_state.get("当前阶段"),
+                "current_blocker": parsed_state.get("data_status") or parsed_state.get("current_blocker") or parsed_state.get("当前 blocker"),
+                "current_capability_boundary": (
+                    parsed_state.get("data_status")
+                    or parsed_state.get("current_real_capability_boundary")
+                    or parsed_state.get("当前真实能力边界")
+                    or state.get("current_capability_boundary")
+                ),
                 "next_priority_action": (
                     parsed_state.get("next_priority", [state.get("next_priority_action")])[0]
                     if isinstance(parsed_state.get("next_priority"), list)
-                    else parsed_state.get("next_priority_action") or state.get("next_priority_action")
+                    else parsed_state.get("next_priority_action")
+                    or parsed_state.get("下一优先动作")
+                    or state.get("next_priority_action")
                 ),
-                "last_failed_capability": parsed_state.get("last_agent_cycle") or state.get("last_failed_capability"),
+                "last_failed_capability": (
+                    parsed_state.get("last_agent_cycle")
+                    or parsed_state.get("最近失败能力")
+                    or state.get("last_failed_capability")
+                ),
             },
         )
 
@@ -672,12 +762,24 @@ def _refresh_derived_memory(paths, state: dict[str, Any]) -> None:
         paths.next_round_plan_path,
         "\n".join(
             [
-                "# Next Round Research Plan",
+                "# 下一轮研究计划",
                 "",
-                f"- stop_reason: {loop.get('stop_reason', 'unknown')}",
-                f"- next_recommendation: {loop.get('next_recommendation', 'none recorded')}",
-                f"- blocker_escalation: {loop.get('blocker_escalation', False)}",
-                f"- direction_change: {loop.get('direction_change', False)}",
+                f"- stop_reason: {zh_stop_reason(str(loop.get('stop_reason', 'unknown')))}",
+                f"- next_recommendation: {humanize_text(loop.get('next_recommendation', 'none recorded'))}",
+                f"- blocker_escalation: {zh_bool(loop.get('blocker_escalation', False))}",
+                f"- direction_change: {zh_bool(loop.get('direction_change', False))}",
+            ],
+        ),
+    )
+    _write_text(
+        paths.portfolio_status_path,
+        "\n".join(
+            [
+                "# 组合状态",
+                "",
+                f"- 当前 blocker: {humanize_text(state.get('current_blocker', 'unknown'))}",
+                f"- 最近已验证能力: {humanize_text(state.get('last_verified_capability', 'unknown'))}",
+                f"- 下一步建议: {humanize_text(loop.get('next_recommendation', state.get('next_priority_action', 'none recorded')))}",
             ],
         ),
     )
@@ -685,6 +787,8 @@ def _refresh_derived_memory(paths, state: dict[str, Any]) -> None:
         paths.subagent_registry_path,
         render_subagent_registry(state, role_templates=load_subagent_roles(_subagent_roles_path(paths.root))),
     )
+    if paths.postmortems_path.exists():
+        _write_text(paths.postmortems_path, _localize_postmortems_text(paths.postmortems_path.read_text(encoding="utf-8")))
     _write_json(paths.session_state_path, state)
 
 
@@ -717,8 +821,9 @@ def bootstrap_memory_files(project: str, *, repo_root: Path | None = None) -> di
         "runtime_automation_runs_dir": paths.automation_runs_dir,
     }
 
+    session_preexisted = paths.session_state_path.exists() and bool(paths.session_state_path.read_text(encoding="utf-8").strip())
     state = _read_json(paths.session_state_path, default=_default_session_state(project, root=paths.root, paths=paths))
-    state = _migrate_legacy_memory(paths, state)
+    state = _migrate_legacy_memory(paths, state, prefer_tracked_files=not session_preexisted)
     _write_if_missing(paths.project_state_path, PROJECT_STATE_TEMPLATE)
     _write_if_missing(paths.postmortems_path, POSTMORTEMS_TEMPLATE)
     _write_if_missing(paths.hypothesis_queue_path, HYPOTHESIS_QUEUE_TEMPLATE)
@@ -963,6 +1068,19 @@ def record_iterative_run(project: str, payload: dict[str, Any], *, repo_root: Pa
             "blocked_subagent_count": int((payload.get("subagent_status", {}) or {}).get("blocked_count", 0) or 0),
             "retired_subagent_count": int((payload.get("subagent_status", {}) or {}).get("retired_count", 0) or 0),
             "merged_subagent_count": int((payload.get("subagent_status", {}) or {}).get("merged_count", 0) or 0),
+            "archived_subagent_count": int((payload.get("subagent_status", {}) or {}).get("archived_count", 0) or 0),
+            "canceled_subagent_count": int((payload.get("subagent_status", {}) or {}).get("canceled_count", 0) or 0),
+            "refactored_subagent_count": int((payload.get("subagent_status", {}) or {}).get("refactored_count", 0) or 0),
+            "auto_closed_subagents": [
+                str(item.get("subagent_id", ""))
+                for item in payload.get("auto_closed_subagents", [])
+                if isinstance(item, dict) and item.get("subagent_id")
+            ],
+            "alternative_subagents": [
+                str(item.get("subagent_id", ""))
+                for item in payload.get("alternative_subagents", [])
+                if isinstance(item, dict) and item.get("subagent_id")
+            ],
             "artifact_path": str(run_path),
             "last_classification": str(payload.get("classification", "unknown")),
         },

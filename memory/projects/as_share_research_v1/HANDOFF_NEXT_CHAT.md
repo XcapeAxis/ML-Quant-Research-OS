@@ -1,53 +1,55 @@
-# Handoff Next Chat
+# 下一轮交接
 
-## Current Total Task
-Keep promotion honest by separating data-readiness blockers from strategy-quality blockers.
+## 当前总任务
+把数据就绪 blocker 与策略质量 blocker 拆开判断，保持 promotion 结论诚实。
 
-## Current Phase
-Phase 1 Research OS - promotion evaluation
+## 当前阶段
+Phase 1 Research OS - promotion 评估
 
-## Completed
-- Tracked memory dir: C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1
-- Runtime meta dir: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta
-- Runtime artifacts dir: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1
+## 已确认路径
+- tracked memory 目录: C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1
+- runtime meta 目录: C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta
+- runtime artifacts 目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1
 
-## Current Blocker
-Max drawdown 50.44% exceeds 30.00%.; Benchmark or equal-weight baselines are incomplete.
+## 当前 blocker
+最大回撤 50.44% 高于 30.00%。；基准或等权基线不完整.
 
-## Recent Critical Failure
-Max drawdown 50.44% exceeds 30.00%.; Benchmark or equal-weight baselines are incomplete.
+## 最近关键失败
+最大回撤 50.44% 高于 30.00%。；基准或等权基线不完整.
 
-## Current Real Capability Boundary
-Research inputs are ready, but the candidate still fails strategy-quality checks.
+## 当前真实能力边界
+研究输入已就绪，但候选仍未通过策略质量检查。
 
-## Subagent Status
+## Subagent 状态
 - gate_mode: AUTO
 - active: none
 - blocked: none
-- recent_transition: iterative_assess
-- continue_using_subagents: no
+- recent_transition: iterative_relevance_review
+- continue_using_subagents: 否
 
-## Last Iterative Run
+## 最近一次高阶迭代
 - iteration_count: 1
 - target_iterations: 3
 - max_iterations: 5
-- stop_reason: no_verified_progress
-- direction_change: False
-- blocker_escalation: False
-- blocker_key: max_drawdown (repeat_count=2, historical_count=1)
-- last_classification: no_meaningful_progress
+- stop_reason: 同一 blocker 已升级且继续推进 ROI 很低，自动停止。
+- direction_change: 否
+- blocker_escalation: 是
+- blocker_key: max_drawdown (repeat_count=4, historical_count=3)
+- last_classification: blocker 已被澄清
 - max_active_subagents: 0
-- subagent_gate_mode: AUTO (blocked/retired/merged=0/31/0)
+- subagent_gate_mode: AUTO (blocked/retired/merged/archived=0/31/0/0)
 - subagents_used: none
-- subagent_reason: Task breadth is below the minimum threshold for safe decomposition.
-- completed: `promote_candidate` did not produce a new verified state change.
-- not_done: Max drawdown 50.44% exceeds 30.00%.; Benchmark or equal-weight baselines are incomplete.
-- next_recommendation: Run a finer root-cause diagnosis for `max_drawdown` before another automation iteration.
+- subagent_reason: 任务广度尚未达到安全拆分的最低阈值。
+- auto_closed_subagents: none
+- alternative_subagents: none
+- 本轮完成: 重复 blocker `max_drawdown` 并已停止自动重试。
+- 本轮未完成: 最大回撤 50.44% 高于 30.00%。；基准或等权基线不完整.
+- 下一步建议: 升级 blocker `max_drawdown`: 已停止自动重试，请收窄路径，并在下一次 run 前写回根因诊断。
 
-## Next Highest-Priority Action
-Run a finer root-cause diagnosis for `max_drawdown` before another automation iteration.
+## 下一步唯一建议
+升级 blocker `max_drawdown`: 已停止自动重试，请收窄路径，并在下一次 run 前写回根因诊断。
 
-## Read First In The Next Chat
+## 下一轮先读这些文件
 - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\PROJECT_STATE.md
 - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\VERIFY_LAST.md
 - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\MIGRATION_PROMPT_NEXT_CHAT.md

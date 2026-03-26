@@ -160,7 +160,8 @@ def test_data_validate_auto_refreezes_to_validated_subset(limit_up_project) -> N
     assert manifest["coverage_gap_decision"]["new_universe_size"] == 2
 
     project_state_text = ctx["paths"].project_state_path.read_text(encoding="utf-8")
-    assert "stage0a_last_decision: refreeze" in project_state_text
+    assert "stage0a" in project_state_text
+    assert "refreeze" in project_state_text
 
     session_state = json.loads(ctx["paths"].session_state_path.read_text(encoding="utf-8"))
     assert session_state["stage0a_decision"]["new_universe_size"] == 2

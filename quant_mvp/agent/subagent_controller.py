@@ -226,6 +226,159 @@ def register_worker_subagent(
     }
 
 
+def reconcile_loop_subagents(
+    *,
+    project: str,
+    desired_roles: list[str],
+    should_expand: bool,
+    summary: str,
+    repo_root: Path | None = None,
+    close_status_if_unused: str = "retired",
+) -> dict[str, Any]:
+    paths, state = load_machine_state(project, repo_root=repo_root)
+    policy = load_subagent_policy(_policy_path(paths.root))
+    role_templates = load_subagent_roles(_roles_path(paths.root))
+    records = [dict(item) for item in state.get("subagents", [])]
+    timestamp = _utc_now()
+
+    desired = list(desired_roles if should_expand else [])
+    desired_counts: dict[str, int] = {}
+    for role in desired:
+        desired_counts[role] = desired_counts.get(role, 0) + 1
+
+    created_ids: list[str] = []
+    created_roles: list[str] = []
+    auto_closed: list[dict[str, str]] = []
+    replacement_ids: list[str] = []
+    canceled_ids: list[str] = []
+
+    def _close_record(item: dict[str, Any], *, to_status: str, note: str) -> dict[str, Any]:
+        previous = str(item.get("status", "unknown"))
+        item["status"] = to_status
+        item["updated_at"] = timestamp
+        item["last_action"] = "relevance_review"
+        item["last_note"] = note
+        auto_closed.append(
+            {
+                "subagent_id": str(item.get("subagent_id", "")),
+                "role": str(item.get("role", "")),
+                "status": to_status,
+                "summary": note,
+            },
+        )
+        if to_status == "canceled":
+            canceled_ids.append(str(item.get("subagent_id", "")))
+        _append_event(
+            paths,
+            SubagentEvent(
+                timestamp=timestamp,
+                action="relevance_review",
+                project=project,
+                subagent_id=str(item.get("subagent_id", "")),
+                from_status=previous,
+                to_status=to_status,
+                summary=note,
+            ),
+        )
+        return item
+
+    for index, record in enumerate(records):
+        if record.get("status") != "active":
+            continue
+        role = str(record.get("role", ""))
+        if not should_expand:
+            note = "Auto-retired by iterative relevance review because the task no longer owns an independent work package."
+            if close_status_if_unused == "archived":
+                note = "Auto-archived by iterative relevance review because the run is stopping and the task should not remain active."
+            records[index] = _close_record(record, to_status=close_status_if_unused, note=note)
+            continue
+        if desired_counts.get(role, 0) > 0:
+            desired_counts[role] -= 1
+            continue
+        note = "Auto-canceled by iterative relevance review because the current direction superseded the old work package."
+        records[index] = _close_record(record, to_status="canceled", note=note)
+
+    remaining_slots = _hard_limit(policy) - _active_subagent_count(records)
+    parent_ids = list(canceled_ids)
+    new_ids_by_parent: list[str] = []
+    for role in desired:
+        if desired_counts.get(role, 0) <= 0:
+            continue
+        template = role_templates.get(role)
+        if template is None or remaining_slots <= 0:
+            continue
+        subagent_id = _next_subagent_id(records)
+        artifact_dir = ensure_subagent_runtime_dir(paths, subagent_id)
+        record = SubagentRecord(
+            subagent_id=subagent_id,
+            role=role,
+            summary=f"{role}: {summary}",
+            status="active",
+            transient=role != "memory_curator",
+            allowed_paths=list(template.allowed_paths),
+            expected_artifacts=list(template.expected_artifacts),
+            artifact_dir=str(artifact_dir),
+            parent_ids=parent_ids,
+            created_at=timestamp,
+            updated_at=timestamp,
+            last_action="loop_spawn",
+            last_note="Loop spawned a replacement subagent for the current bounded work package." if parent_ids else summary,
+        )
+        records.append(record.to_dict())
+        created_ids.append(subagent_id)
+        created_roles.append(role)
+        desired_counts[role] -= 1
+        remaining_slots -= 1
+        if parent_ids:
+            replacement_ids.append(subagent_id)
+        new_ids_by_parent.append(subagent_id)
+        _append_event(
+            paths,
+            SubagentEvent(
+                timestamp=timestamp,
+                action="loop_spawn",
+                project=project,
+                subagent_id=subagent_id,
+                from_status="none",
+                to_status="active",
+                summary=summary,
+                related_ids=parent_ids,
+                artifact_refs=[str(artifact_dir)],
+            ),
+        )
+
+    if parent_ids and new_ids_by_parent:
+        updated_records: list[dict[str, Any]] = []
+        for record in records:
+            item = dict(record)
+            if item.get("subagent_id") in parent_ids:
+                children = list(item.get("child_ids", []))
+                for new_id in new_ids_by_parent:
+                    if new_id not in children:
+                        children.append(new_id)
+                item["child_ids"] = children
+            updated_records.append(item)
+        records = updated_records
+
+    state["subagents"] = records
+    state["subagent_continue_recommended"] = bool(should_expand)
+    state["subagent_continue_reason"] = summary
+    state["subagent_last_event"] = {
+        "timestamp": timestamp,
+        "action": "iterative_relevance_review",
+        "summary": summary,
+        "related_ids": [*created_ids, *[item["subagent_id"] for item in auto_closed]],
+    }
+    save_machine_state(project, state, repo_root=repo_root)
+    return {
+        "created_ids": created_ids,
+        "created_roles": created_roles,
+        "auto_closed": auto_closed,
+        "replacement_ids": replacement_ids,
+        "registry_path": str(paths.subagent_registry_path),
+    }
+
+
 def sync_subagent_memory(project: str, *, repo_root: Path | None = None) -> dict[str, Any]:
     paths, state = load_machine_state(project, repo_root=repo_root)
     save_machine_state(project, state, repo_root=repo_root)
