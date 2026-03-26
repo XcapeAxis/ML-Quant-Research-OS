@@ -15,6 +15,7 @@ from ..memory.ledger import stable_hash, to_jsonable
 from ..project import resolve_project_paths
 from ..selection import compute_start_point_scores, count_limit_up_history, filter_top_limit_up
 from ..universe import load_universe_codes
+from ..universe_profiles import materialize_universe_profile
 from .models import (
     BranchPoolSnapshot,
     BranchPoolSpec,
@@ -522,6 +523,18 @@ def resolve_research_universe_codes(
     repo_root: Path | None = None,
     build_if_missing: bool = True,
 ) -> tuple[list[str], str]:
+    cfg, _ = load_config(project, config_path=config_path)
+    universe_policy = dict(cfg.get("universe_policy", {}) or {})
+    profile_name = str(universe_policy.get("research_profile", "")).strip()
+    if profile_name:
+        materialization = materialize_universe_profile(
+            project,
+            profile_name,
+            config_path=config_path,
+            repo_root=repo_root,
+        )
+        if materialization.codes:
+            return list(materialization.codes), materialization.source_id
     snapshot = load_latest_core_pool_snapshot(
         project,
         repo_root=repo_root,

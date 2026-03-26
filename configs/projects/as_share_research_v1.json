@@ -39,6 +39,43 @@
     "random_trials": 200,
     "random_seed": 42
   },
+  "universe_policy": {
+    "definitions_dir": "configs/universes",
+    "research_profile": "full_a_mainboard_incl_st",
+    "deployment_profile": "full_a_mainboard_ex_st",
+    "comparison_profiles": [
+      "full_a_mainboard_incl_st",
+      "full_a_mainboard_ex_st"
+    ],
+    "materialization_note": "Universe profiles are materialized from the current frozen symbols snapshot for reproducible research."
+  },
+  "strategy_variants": {
+    "baseline_limit_up": {
+      "title": "baseline_limit_up",
+      "decision_role": "control",
+      "thesis": "保留当前 6 持仓基线，作为后续 challenger 的统一对照。",
+      "overrides": {}
+    },
+    "risk_constrained_limit_up": {
+      "title": "risk_constrained_limit_up",
+      "decision_role": "candidate",
+      "thesis": "通过收紧持仓预算，验证回撤是否主要来自尾部持仓质量。",
+      "overrides": {
+        "stock_num": 4,
+        "topk": 4,
+        "topn_max": 4
+      }
+    },
+    "tighter_entry_limit_up": {
+      "title": "tighter_entry_limit_up",
+      "decision_role": "candidate",
+      "thesis": "收紧历史涨停入池比例与初始候选池，减少过早入场的弱候选。",
+      "overrides": {
+        "top_pct_limit_up": 0.08,
+        "init_pool_size": 800
+      }
+    }
+  },
   "tradability": {
     "require_positive_volume": true,
     "min_volume": 0.0

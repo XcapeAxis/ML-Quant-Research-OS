@@ -7,10 +7,10 @@
 - economic_rationale: 如果主线 alpha 来自强势股二次启动，而不是单纯硬扛波动，那么更强的风险约束应该先砍掉最差交易，同时保住大部分有效信号。
 - required_data: 主板 A 股日频 OHLCV、上市天数、ST/板块过滤、涨停代理、下个交易日收益、基准与等权基线。
 - current_stage: secondary-validation
-- latest_action: ??????????????? baseline_limit_up ??????
-- latest_result: ???????????????????
+- latest_action: No new strategy validation this run; waiting for the baseline_limit_up blocker decomposition.
+- latest_result: No new decision delta; the branch stays secondary and blocked.
 - decision: blocked
-- next_validation: ????????????????????????
+- next_validation: Choose branch priority only after the main-track blocker decomposition is written back.
 - owner: main
 - subagents_assigned:
   - none
@@ -20,5 +20,5 @@
   - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\BRANCH_LEDGER.jsonl
   - risk_constrained_limit_up-fb46198eddd7
 - blocked_by:
-  - baseline_limit_up ???? max drawdown ? 56.50%??? 30.00% ?????
+  - Promotion is currently blocked: max drawdown 50.44% exceeds 30.00%, and direct promote_candidate also reports benchmark_missing:000001.
 - kill_criteria: 如果回撤改善很弱、但收益和通过率明显恶化，就停止继续扩大这条风控分支。

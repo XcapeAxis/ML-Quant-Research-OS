@@ -1,0 +1,8 @@
+{
+  "profile_id": "full_a_mainboard_ex_st",
+  "display_name": "部署对照宇宙",
+  "description": "全A主板，不包括ST；用于和研究基线宇宙做部署条件对照。",
+  "board_scope": "mainboard_a_share",
+  "include_st": false,
+  "source_kind": "project_symbols_csv"
+}

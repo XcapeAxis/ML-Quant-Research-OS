@@ -204,6 +204,7 @@ def run_strategy_diagnostics(
             baselines = run_simple_baselines(
                 close_panel=backtest_artifacts.close_panel,
                 benchmark_code=str(cfg.get("baselines", {}).get("benchmark_code", "000001")),
+                benchmark_series=backtest_artifacts.benchmark_series,
             )
             cost = cost_sensitivity_summary(
                 metrics_df=backtest_artifacts.metrics_df,

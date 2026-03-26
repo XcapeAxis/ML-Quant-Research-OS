@@ -2,4 +2,6 @@
 
 | 时间 | 策略 | 执行者 | 动作 | 结果 | 决策变化 |
 |---|---|---|---|---|---|
-| 2026-03-26T09:52:10+00:00 | 本轮无实质策略研究 | main:automated-integration-v1 | 统一活跃项目、blocker 叙事与动作可见性 | 当前 canonical truth 已统一为 promotion-stage failure，不再把缺 bars 当成当前 blocker | 无新增策略结论；主线和支线保持不变 |
+| 2026-03-26T13:17:10+00:00 | baseline_limit_up | main:main | 完成双宇宙同口径比较 | 收益 5.62% / 回撤 56.50% | 保留为对照线，继续承担 benchmark 修复后的基线职责。 |
+| 2026-03-26T13:17:10+00:00 | risk_constrained_limit_up | main:main | 完成双宇宙同口径比较 | 收益 175.94% / 回撤 47.29% | 升为下一轮主线候选，优先继续做更细的风控/组合归因。 |
+| 2026-03-26T13:17:10+00:00 | tighter_entry_limit_up | main:main | 完成双宇宙同口径比较 | 收益 14.09% / 回撤 52.42% | 暂缓，等待主线 drawdown 拆解后再决定是否重开。 |

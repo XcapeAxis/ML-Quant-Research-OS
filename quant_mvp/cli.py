@@ -35,6 +35,7 @@ from .project import find_repo_root
 from .promotion import promote_candidate
 from .research_audit import run_research_audit
 from .config import load_config
+from .strategy_campaign import run_baseline_strategy_diagnostic
 
 
 TASK_TO_SCRIPT = {
@@ -195,6 +196,14 @@ def main() -> None:
     promote_parser = sub.add_parser("promote_candidate", help="Evaluate the current candidate against promotion gates")
     promote_parser.add_argument("--project", type=str, required=True)
     promote_parser.add_argument("--config", type=Path, default=None)
+
+    diagnostic_parser = sub.add_parser(
+        "baseline_strategy_diagnostic",
+        help="Run the baseline strategy diagnostic campaign and write tracked research memory",
+    )
+    diagnostic_parser.add_argument("--project", type=str, required=True)
+    diagnostic_parser.add_argument("--config", type=Path, default=None)
+    diagnostic_parser.add_argument("--verified-command", action="append", default=[])
 
     args = parser.parse_args()
 
@@ -398,6 +407,15 @@ def main() -> None:
 
     if args.command == "promote_candidate":
         result = promote_candidate(args.project, config_path=args.config)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "baseline_strategy_diagnostic":
+        result = run_baseline_strategy_diagnostic(
+            args.project,
+            config_path=args.config,
+            verified_commands=list(args.verified_command),
+        )
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return
 

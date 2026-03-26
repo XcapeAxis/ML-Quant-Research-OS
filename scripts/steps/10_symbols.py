@@ -87,7 +87,7 @@ def _build_symbols_from_akshare(project: str, target_size: int | None = None) ->
     frame["code"] = frame["code"].astype(str).str.zfill(6)
     frame["board"] = frame["code"].apply(_board)
     frame["is_st"] = frame["name"].apply(_is_st)
-    frame = frame[(frame["board"] == "mainboard") & (~frame["is_st"])]
+    frame = frame[frame["board"] == "mainboard"]
     frame = frame.drop_duplicates("code").sort_values("code").reset_index(drop=True)
     if target_size and target_size > 0 and len(frame) > target_size:
         frame = frame.head(target_size).copy()
@@ -148,7 +148,7 @@ def build_symbols(project: str, db_path: Path, freq: str, target_size: int | Non
         frame = _fetch_remote_symbols(NetworkRuntimeConfig.from_sources())
         frame["board"] = frame["code"].apply(_board)
         frame["is_st"] = frame["name"].apply(_is_st)
-        frame = frame[(frame["board"] == "mainboard") & (~frame["is_st"])].copy()
+        frame = frame[frame["board"] == "mainboard"].copy()
         if target_size and target_size > 0 and len(frame) > target_size:
             frame = frame.head(target_size).copy()
         symbols_path, universe_path, count = _finalize_symbols(project, frame)

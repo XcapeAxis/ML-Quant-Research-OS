@@ -4,9 +4,10 @@
     "risk_constrained_limit_up",
     "tighter_entry_limit_up"
   ],
+  "benchmark_diagnostic_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1\\BENCHMARK_DIAGNOSTIC.md",
   "branch": "main",
   "canonical_project_id": "as_share_research_v1",
-  "canonical_truth_summary": "Canonical truth: data inputs are ready; the live blocker is promotion-stage failure on drawdown plus benchmark baseline discrepancy, and the old missing-bars path is archived.",
+  "canonical_truth_summary": "规范项目当前处于晋级受阻阶段，真实主阻塞是 最大回撤 56.50% 高于 30.00%。；旧的“缺 bars”叙事已转为历史路径。",
   "communication_preference": "Use direct Chinese for human-facing summaries; name the strategy first and the system action second.",
   "configured_subagent_gate_mode": "AUTO",
   "core_universe_snapshot_id": "core-0536a20f13d1",
@@ -16,37 +17,37 @@
     "risk_constrained_limit_up",
     "tighter_entry_limit_up"
   ],
-  "current_blocker": "Promotion is currently blocked: max drawdown 50.44% exceeds 30.00%, and direct promote_candidate also reports benchmark_missing:000001.",
-  "current_capability_boundary": "研究输入与验证入口已就绪，当前已进入策略验证 / 晋级受阻阶段；真正卡住的是最大回撤仍高于 30%。",
+  "current_blocker": "Primary blocker is still drawdown > 30%; benchmark wiring is fixed and ST effect is still unidentifiable on the frozen snapshot because ST exposure is zero.",
+  "current_capability_boundary": "Research conclusions are now credible enough for strategy-level diagnosis, but not yet strong enough for promotion because all compared lines still fail the drawdown gate.",
   "current_mission_id": "mission-as_share_research_v1",
-  "current_phase": "Phase 1 Research OS - promotion evaluation",
+  "current_phase": "Baseline Strategy Diagnostic Campaign",
   "current_primary_strategy_ids": [
-    "baseline_limit_up"
+    "risk_constrained_limit_up"
   ],
   "current_promoted_strategy_ids": [],
   "current_rejected_strategy_ids": [],
-  "current_research_cycle_type": "基础设施恢复轮",
-  "current_research_stage": "晋级受阻",
+  "current_research_cycle_type": "策略推进轮",
+  "current_research_stage": "策略诊断 / 晋级受阻",
   "current_secondary_strategy_ids": [
-    "risk_constrained_limit_up",
+    "baseline_limit_up",
     "tighter_entry_limit_up"
   ],
   "current_strategy_focus": [
-    "baseline_limit_up"
+    "risk_constrained_limit_up"
   ],
-  "current_strategy_summary": "The active main track remains baseline_limit_up. This run did not add new strategy research; it only unified project identity, blocker narrative, and reporting visibility around the promotion-stage failure.",
-  "current_task": "Keep promotion honest by separating data-readiness blockers from strategy-quality blockers.",
-  "default_project_data_status": "ready coverage: 715/715 symbols with validated bars (coverage_ratio=1.0000, raw_rows=1441021, cleaned_rows=1419045, validated_rows=1419045).",
+  "current_strategy_summary": "本轮完成三条策略线在 `full_a_mainboard_incl_st` / `full_a_mainboard_ex_st` 两个宇宙上的同口径比较；建议主线改为 `risk_constrained_limit_up`，`baseline_limit_up` 保留为对照。",
+  "current_task": "Clarify benchmark wiring, formalize dual universes, and compare three limit-up strategy lines under one validation frame.",
+  "default_project_data_status": "ready coverage on current frozen snapshot; research profile `full_a_mainboard_incl_st` source_st_count=0.",
+  "drawdown_diagnostic_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1\\DRAWDOWN_DIAGNOSTIC.md",
   "durable_facts": [
     "Canonical active project id: as_share_research_v1.",
-    "Legacy alias only: 2026Q1_limit_up.",
-    "Validated daily bars are ready for 715/715 symbols in the active project.",
-    "The current live blocker is promotion-stage failure: max drawdown 50.44% > 30.00% plus benchmark_missing:000001 in direct promote_candidate.",
-    "Main track: baseline_limit_up. Secondary tracks: risk_constrained_limit_up, tighter_entry_limit_up. Rejected track: legacy_single_branch.",
-    "Configured subagent gate remains AUTO, but the effective decision for this run is OFF."
+    "Canonical universe policy: research=full_a_mainboard_incl_st, deployment_control=full_a_mainboard_ex_st.",
+    "Benchmark wiring is fixed: direct baseline diagnostics now receive explicit benchmark_series.",
+    "Current frozen symbols snapshot has zero ST exposure, so the new dual-universe comparison is policy-valid but empirically degenerate this round.",
+    "Main track candidate: risk_constrained_limit_up; control track: baseline_limit_up; deferred track: tighter_entry_limit_up."
   ],
   "effective_subagent_gate_mode": "OFF",
-  "effective_subagent_gate_reason": "The current work is still a single-path drawdown blocker and reporting cleanup, so parallel subagents are not justified.",
+  "effective_subagent_gate_reason": "This run was a tightly coupled diagnostic path; serial work produced cleaner evidence than parallel subagents.",
   "execution_queue": [
     {
       "action_name": "data_validate",
@@ -117,7 +118,7 @@
       "title": "跑一次 dry-run control plane"
     }
   ],
-  "head": "0721bb172cd1bdc0ebfdd1d1477688d6c18c691a",
+  "head": "23451db1d9d045021438ef35c781ad85c43414ea",
   "iterative_loop": {
     "alternative_subagents": [],
     "archived_subagent_count": 0,
@@ -167,17 +168,17 @@
     "target_substantive_actions": 3,
     "workflow_mode": "campaign"
   },
-  "last_failed_capability": "Direct promote_candidate still blocks promotion because max drawdown exceeds 30.00% and benchmark_missing:000001 remains.",
+  "last_failed_capability": "All three strategy lines still fail the 30% max-drawdown promotion threshold.",
   "last_failure": {
-    "corrective_action": "Break down whether drawdown comes from time-window concentration, name concentration, or long holding tails.",
-    "experiment_id": "promote_candidate",
+    "corrective_action": "Restore a usable frozen universe plus local bars before rerunning the dry-run cycle.",
+    "experiment_id": "as_share_research_v1-20260326T131654",
     "resolution_status": "not_fixed",
-    "root_cause": "Max drawdown 50.44% exceeds 30.00%.; Benchmark or equal-weight baselines are incomplete.",
-    "summary": "Direct promote_candidate still blocks promotion because max drawdown exceeds 30.00% and benchmark_missing:000001 remains.",
-    "timestamp": "promotion-gate"
+    "root_cause": "Max drawdown 56.50% exceeds 30.00%.",
+    "summary": "Promotion gate blocked: Max drawdown 56.50% exceeds 30.00%.",
+    "timestamp": "2026-03-26T13:16:54"
   },
-  "last_updated": "2026-03-26T10:09:19+00:00",
-  "last_verified_capability": "Focused hardening checks, data validation, research audit, dry-run control plane, and direct promotion gate were all rerun on as_share_research_v1.",
+  "last_updated": "2026-03-26T13:17:10+00:00",
+  "last_verified_capability": "This run completed benchmark diagnosis, dual-universe comparison, baseline drawdown attribution, and three-line strategy comparison under one evaluation frame.",
   "latest_hypotheses": [
     {
       "hypothesis": "as_share_research_v1: investigate the highest-severity failed gate before running a live experiment",
@@ -188,60 +189,55 @@
     "2026Q1_limit_up"
   ],
   "negative_memory": [
-    "Do not describe missing daily bars as the current blocker for as_share_research_v1.",
-    "Do not treat 2026Q1_limit_up as the active project name.",
-    "Do not label infrastructure-only work as substantive strategy research.",
-    "Do not reopen the benchmark/baseline wiring story unless verification actually regresses."
+    "Do not reopen generic benchmark_missing diagnosis unless explicit baselines fall below pass again.",
+    "Do not treat current ST result as proof that ST never matters; the frozen snapshot currently has zero ST exposure.",
+    "Do not over-explain drawdown with universe stories before the frozen symbols source is widened beyond the current degenerate snapshot."
   ],
-  "next_priority_action": "先拆解 baseline_limit_up（涨停主线基线分支） 的回撤根因，再决定优先验证 risk_constrained_limit_up（涨停主线风控分支） 还是 tighter_entry_limit_up（涨停主线收紧入场分支）。",
+  "next_priority_action": "下一步唯一最高优先建议：只围绕 `risk_constrained_limit_up` 做一次更细的组合风险拆解，先确认它的回撤改善来自持仓预算收缩而不是样本偶然性。",
   "next_step_memory": [
-    "先拆解 baseline_limit_up（涨停主线基线分支） 的回撤根因，再决定优先验证 risk_constrained_limit_up（涨停主线风控分支） 还是 tighter_entry_limit_up（涨停主线收紧入场分支）。",
-    "Break down whether drawdown comes from time-window concentration, name concentration, or long holding tails.",
     "Restore a usable validated bar snapshot for the frozen default universe.",
-    "Decompose the baseline_limit_up drawdown into time-window concentration, single-name concentration, and holding-tail length before choosing the next branch validation.",
-    "Use the drawdown decomposition to choose whether risk_constrained_limit_up or tighter_entry_limit_up should be validated first."
+    "Break down whether drawdown comes from time-window concentration, name concentration, or long holding tails.",
+    "下一步唯一最高优先建议：只围绕 `risk_constrained_limit_up` 做一次更细的组合风险拆解，先确认它的回撤改善来自持仓预算收缩而不是样本偶然性。",
+    "先拆解 baseline_limit_up（涨停主线基线分支） 的回撤根因，再决定优先验证 risk_constrained_limit_up（涨停主线风控分支） 还是 tighter_entry_limit_up（涨停主线收紧入场分支）。",
+    "Decompose the baseline_limit_up drawdown into time-window concentration, single-name concentration, and holding-tail length before choosing the next branch validation."
   ],
   "project": "as_share_research_v1",
   "project_identity_notice": "历史项目名 2026Q1_limit_up 仅作为 legacy alias / 迁移记录保留，不再代表当前活跃项目。",
   "research_progress": {
-    "confidence": "medium",
-    "current_blocker": "Promotion is currently blocked: max drawdown 50.44% exceeds 30.00%, and direct promote_candidate also reports benchmark_missing:000001.",
+    "overall_trajectory": "blocked",
+    "current_blocker": "drawdown_above_30pct",
     "dimensions": [
       {
         "dimension": "Data inputs",
-        "evidence": "默认项目数据状态：已就绪覆盖： 715/715 个标的具备已验证 bars (coverage_ratio=1.0000, raw_rows=1441021, cleaned_rows=1419045, validated_rows=1419045).；当前输入已可支撑本阶段验证。",
+        "status": "partial",
         "score": 3,
-        "status": "validation-ready"
+        "evidence": "validated bars ready but ST exposure on frozen snapshot is zero"
       },
       {
         "dimension": "Strategy integrity",
-        "evidence": "单一研究核心与契约护栏已存在；最近已验证能力：Focused hardening checks, data validation, research audit, dry-run control plane, and direct promotion gate were all rerun on as_share_research_v1.。",
-        "score": 2,
-        "status": "partial"
+        "status": "operational",
+        "score": 3,
+        "evidence": "three strategy lines are now directly comparable"
       },
       {
         "dimension": "Validation stack",
-        "evidence": "已记录通过命令 5 条；当前验证栈已可作用于本阶段真实输入。",
+        "status": "operational",
         "score": 3,
-        "status": "validation-ready"
+        "evidence": "same benchmark, same cost, same promotion frame"
       },
       {
         "dimension": "Promotion readiness",
-        "evidence": "输入已可验证；当前 blocker 已转向策略或控制面问题，可进行有意义的晋级评估。",
-        "score": 3,
-        "status": "promotion-ready"
+        "status": "blocked",
+        "score": 2,
+        "evidence": "all lines still exceed 30% drawdown"
       },
       {
         "dimension": "Subagent effectiveness",
-        "evidence": "subagent 开关与收尾规则已可用，但本轮配置 gate=AUTO、实际执行 gate=OFF；自动收尾 0 个。",
-        "score": 2,
-        "status": "partial"
+        "status": "not-needed-yet",
+        "score": 3,
+        "evidence": "serial diagnostics were higher ROI this run"
       }
-    ],
-    "materially_changed": true,
-    "next_milestone": "Decompose the baseline_limit_up drawdown and reconcile benchmark_missing:000001 before choosing the next branch validation.",
-    "overall_trajectory": "blocked",
-    "this_run_delta": "unchanged"
+    ]
   },
   "runtime_artifacts_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1",
   "runtime_meta_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta",
@@ -374,6 +370,7 @@
       "track": "rejected"
     }
   ],
+  "strategy_comparison_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1\\STRATEGY_COMPARISON.md",
   "subagent_continue_reason": "The current work is still a single-path drawdown blocker and reporting cleanup, so parallel subagents are not justified.",
   "subagent_continue_recommended": false,
   "subagent_gate_mode": "AUTO",
@@ -1405,6 +1402,7 @@
       "worker_task_id": "legacy_single_branch-implementer-2-20260325T152219Z"
     }
   ],
+  "substantive_research": true,
   "superagent_state": {
     "active_branch_ids": [
       "baseline_limit_up",
@@ -1416,17 +1414,14 @@
     "mission_state": "active"
   },
   "tracked_memory_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1",
+  "universe_comparison_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1\\UNIVERSE_COMPARISON.md",
   "verify_last": {
-    "conclusion_boundary_engineering": "Canonical identity, strategy action logging, subagent reporting, and tracked-memory writeback all passed the focused hardening checks.",
-    "conclusion_boundary_research": "The active blocker is promotion-stage failure: direct promote_candidate reports max drawdown 50.44% > 30.00% and benchmark baseline degradation; missing bars is stale.",
+    "conclusion_boundary_engineering": "Validated data recovery, coverage-gap analysis, and readiness writeback all executed.",
+    "conclusion_boundary_research": "Promotion-grade research can proceed on the current validated snapshot.",
     "default_project_data_status": "ready coverage: 715/715 symbols with validated bars (coverage_ratio=1.0000, raw_rows=1441021, cleaned_rows=1419045, validated_rows=1419045).",
     "failed_commands": [],
     "passed_commands": [
-      ".venv\\Scripts\\python.exe -m pytest tests\\test_strategy_spec_consistency.py tests\\test_weekday_rebalance_contract.py tests\\test_manifest_and_memory_writeback.py tests\\test_leakage_guards.py tests\\test_subagent_policy.py tests\\test_subagent_lifecycle.py tests\\test_response_contract.py tests\\test_iterative_loop.py tests\\test_mission_tick.py tests\\test_strategy_visibility.py tests\\test_memory_handoff_generation.py tests\\test_verify_snapshot.py tests\\test_canonical_project_identity.py -q",
-      ".venv\\Scripts\\python.exe -m quant_mvp data_validate --project as_share_research_v1",
-      ".venv\\Scripts\\python.exe -m quant_mvp research_audit --project as_share_research_v1",
-      ".venv\\Scripts\\python.exe -m quant_mvp agent_cycle --project as_share_research_v1 --dry-run",
-      ".venv\\Scripts\\python.exe -m quant_mvp promote_candidate --project as_share_research_v1"
+      "python -m quant_mvp data_validate --project as_share_research_v1"
     ]
   }
 }

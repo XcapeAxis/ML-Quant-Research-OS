@@ -7,10 +7,10 @@
 - economic_rationale: 这不是市场行为假设，只是为了兼容旧控制面而保留的一条过渡路径。
 - required_data: 无额外市场数据要求；它主要依赖旧控制面的兼容行为。
 - current_stage: archived
-- latest_action: ????? rejected ????????????????
-- latest_result: ?????????????????????
+- latest_action: Kept only as a historical rejected branch.
+- latest_result: Not part of the active research story.
 - decision: rejected
-- next_validation: ?
+- next_validation: None.
 - owner: main
 - subagents_assigned:
   - none
@@ -20,5 +20,5 @@
   - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\BRANCH_LEDGER.jsonl
   - legacy_single_branch-79952d61ffa6
 - blocked_by:
-  - baseline_limit_up ???? max drawdown ? 56.50%??? 30.00% ?????
+  - Promotion is currently blocked: max drawdown 50.44% exceeds 30.00%, and direct promote_candidate also reports benchmark_missing:000001.
 - kill_criteria: 只要旧单分支兼容不再是必须前提，就不要再把它当作策略研究候选。

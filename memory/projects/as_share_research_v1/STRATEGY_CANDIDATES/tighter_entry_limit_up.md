@@ -7,10 +7,10 @@
 - economic_rationale: 如果真正的二次启动往往发生在更接近突破起点、筹码更集中的位置，那么收紧入场条件应该先减少质量差的提前埋伏。
 - required_data: 主板 A 股日频 OHLCV、上市天数、ST/板块过滤、涨停代理、下个交易日收益、基准与等权基线。
 - current_stage: secondary-validation
-- latest_action: ??????????????? baseline_limit_up ??????
-- latest_result: ???????????????????
+- latest_action: No new strategy validation this run; waiting for the baseline_limit_up blocker decomposition.
+- latest_result: No new decision delta; the branch stays secondary and blocked.
 - decision: blocked
-- next_validation: ????????????????????????
+- next_validation: Choose branch priority only after the main-track blocker decomposition is written back.
 - owner: main
 - subagents_assigned:
   - none
@@ -20,5 +20,5 @@
   - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\BRANCH_LEDGER.jsonl
   - tighter_entry_limit_up-f5113e17c1b2
 - blocked_by:
-  - baseline_limit_up ???? max drawdown ? 56.50%??? 30.00% ?????
+  - Promotion is currently blocked: max drawdown 50.44% exceeds 30.00%, and direct promote_candidate also reports benchmark_missing:000001.
 - kill_criteria: 如果收紧入场后只是在减少交易次数，却没有改善回撤或收益质量，就停止继续扩展这条分支。

@@ -1,0 +1,8 @@
+{
+  "profile_id": "full_a_mainboard_incl_st",
+  "display_name": "研究基线宇宙",
+  "description": "全A主板，包括ST；当前按项目冻结的 symbols 快照物化，保证研究基线可追溯。",
+  "board_scope": "mainboard_a_share",
+  "include_st": true,
+  "source_kind": "project_symbols_csv"
+}

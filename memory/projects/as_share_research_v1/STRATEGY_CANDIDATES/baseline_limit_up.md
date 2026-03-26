@@ -7,10 +7,10 @@
 - economic_rationale: A 股主板里的涨停通常意味着资金短时间集中抢筹。若个股涨停后没有彻底转弱，而是在突破起点附近重新整理，说明强势资金可能仍在，后续二次启动概率更高；保留基线则能判断后续改动到底是在修复风险还是只是在制造噪音。
 - required_data: 主板 A 股日频 OHLCV、上市天数、ST/板块过滤、涨停代理、下个交易日收益、基准与等权基线。
 - current_stage: promotion-blocked
-- latest_action: ?????????????????????????????
-- latest_result: ?????????? max drawdown 56.50% ?? 30.00% ??????
+- latest_action: No new strategy validation this run; only canonical identity and blocker cleanup.
+- latest_result: Still blocked by max drawdown 50.44% > 30.00% and benchmark_missing:000001 in direct promote_candidate.
 - decision: blocked
-- next_validation: ?? baseline_limit_up ?? max drawdown ????????????????????????????
+- next_validation: Decompose drawdown and reconcile benchmark_missing:000001 before choosing the next branch validation.
 - owner: main
 - subagents_assigned:
   - none
@@ -20,5 +20,5 @@
   - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\BRANCH_LEDGER.jsonl
   - baseline_limit_up-df14a72f3cd8
 - blocked_by:
-  - baseline_limit_up ???? max drawdown ? 56.50%??? 30.00% ?????
+  - Promotion is currently blocked: max drawdown 50.44% exceeds 30.00%, and direct promote_candidate also reports benchmark_missing:000001.
 - kill_criteria: 如果可用输入恢复后，这条主线在泄漏、可交易性、walk-forward 与成本压力检查下仍无法把最大回撤压到 30% 以内，就停止继续把它当主线。
