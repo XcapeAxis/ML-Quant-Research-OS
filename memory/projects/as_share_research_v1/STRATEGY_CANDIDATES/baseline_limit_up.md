@@ -1,24 +1,17 @@
-# 涨停主线基线分支
+# baseline_limit_up
 
-- strategy_id: baseline_limit_up
-- name: 涨停主线基线分支
-- category: limit-up continuation
-- core_hypothesis: 过去一段时间反复出现涨停、随后回到突破起点附近的主板个股，后续更容易再次走强；先把这条主线稳定保存成基线，再评估其它改法。
-- economic_rationale: A 股主板里的涨停通常意味着资金短时间集中抢筹。若个股涨停后没有彻底转弱，而是在突破起点附近重新整理，说明强势资金可能仍在，后续二次启动概率更高；保留基线则能判断后续改动到底是在修复风险还是只是在制造噪音。
-- required_data: 主板 A 股日频 OHLCV、上市天数、ST/板块过滤、涨停代理、下个交易日收益、基准与等权基线。
-- current_stage: promotion-blocked
-- latest_action: No new strategy validation this run; only canonical identity and blocker cleanup.
-- latest_result: Still blocked by max drawdown 50.44% > 30.00% and benchmark_missing:000001 in direct promote_candidate.
-- decision: blocked
-- next_validation: Decompose drawdown and reconcile benchmark_missing:000001 before choosing the next branch validation.
-- owner: main
-- subagents_assigned:
-  - none
-- artifact_refs:
-  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\EVIDENCE_LEDGER.jsonl
-  - C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments\as_share_research_v1__baseline_limit_up__20260325T152141Z.json
-  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\BRANCH_LEDGER.jsonl
-  - baseline_limit_up-df14a72f3cd8
-- blocked_by:
-  - Promotion is currently blocked: max drawdown 50.44% exceeds 30.00%, and direct promote_candidate also reports benchmark_missing:000001.
-- kill_criteria: 如果可用输入恢复后，这条主线在泄漏、可交易性、walk-forward 与成本压力检查下仍无法把最大回撤压到 30% 以内，就停止继续把它当主线。
+- strategy_id: `baseline_limit_up`
+- role: `active baseline`
+- status: `baseline_reset_pending`
+- current_truth_level: `pilot_only`
+- why_active: 新 canonical universe 上需要先有一条可复跑的 baseline，对后续所有分支提供对照。
+- why_not_truth_yet: 当前 canonical universe coverage 只有 `51.11%`，最小验证可跑通不等于结论成立。
+- latest_minimal_run:
+  - total_return: `7.834251`
+  - annualized_return: `0.306932`
+  - max_drawdown: `-0.464826`
+  - sharpe_ratio: `0.826956`
+  - rank_dates: `412`
+  - rank_unique_codes: `509`
+- blocker: 先补齐 bars，再谈 baseline 真值
+- next_validation: `data_validate` 通过后重跑 baseline 最小重建

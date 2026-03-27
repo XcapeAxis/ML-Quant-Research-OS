@@ -525,7 +525,11 @@ def resolve_research_universe_codes(
 ) -> tuple[list[str], str]:
     cfg, _ = load_config(project, config_path=config_path)
     universe_policy = dict(cfg.get("universe_policy", {}) or {})
-    profile_name = str(universe_policy.get("research_profile", "")).strip()
+    profile_name = str(
+        universe_policy.get("canonical_universe_id")
+        or universe_policy.get("research_profile")
+        or "",
+    ).strip()
     if profile_name:
         materialization = materialize_universe_profile(
             project,

@@ -311,3 +311,21 @@
 - 根因: 最大回撤 56.50% 高于 30.00%。
 - 纠偏动作: 先恢复可用的 frozen universe 和本地 bars，再重跑 dry-run cycle。
 - 当前状态: 未修复
+
+## promotion-gate | promote_candidate
+- 摘要: 当前候选仍被晋级门阻塞。
+- 根因: Coverage ratio 48.45% is below the promotion-readiness threshold 95.00%.
+- 纠偏动作: Restore readiness on the current research universe before retrying promotion.
+- 当前状态: 未修复
+
+## 2026-03-27T03:08:38 | as_share_research_v1-20260327T030838
+- 摘要: 晋级门阻塞： 最大回撤 44.45% 高于 30.00%。
+- 根因: 最大回撤 44.45% 高于 30.00%。
+- 纠偏动作: 先恢复可用的 frozen universe 和本地 bars，再重跑 dry-run cycle。
+- 当前状态: 未修复
+
+## 2026-03-27T03:12:42 | as_share_research_v1-20260327T031242
+- 摘要: 晋级门阻塞： Coverage ratio 50.74% is below the promotion-readiness threshold 95.00%.
+- 根因: Coverage ratio 50.74% is below the promotion-readiness threshold 95.00%.
+- 纠偏动作: 先恢复可用的 frozen universe 和本地 bars，再重跑 dry-run cycle。
+- 当前状态: 未修复

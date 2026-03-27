@@ -1,24 +1,8 @@
-# 涨停主线收紧入场分支
+# tighter_entry_limit_up
 
-- strategy_id: tighter_entry_limit_up
-- name: 涨停主线收紧入场分支
-- category: entry timing
-- core_hypothesis: 把入选阈值收紧，只保留更接近再次启动位置的个股，可以减少过早买入带来的假突破和大回撤。
-- economic_rationale: 如果真正的二次启动往往发生在更接近突破起点、筹码更集中的位置，那么收紧入场条件应该先减少质量差的提前埋伏。
-- required_data: 主板 A 股日频 OHLCV、上市天数、ST/板块过滤、涨停代理、下个交易日收益、基准与等权基线。
-- current_stage: secondary-validation
-- latest_action: No new strategy validation this run; waiting for the baseline_limit_up blocker decomposition.
-- latest_result: No new decision delta; the branch stays secondary and blocked.
-- decision: blocked
-- next_validation: Choose branch priority only after the main-track blocker decomposition is written back.
-- owner: main
-- subagents_assigned:
-  - none
-- artifact_refs:
-  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\EVIDENCE_LEDGER.jsonl
-  - C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments\as_share_research_v1__tighter_entry_limit_up__20260325T152141Z.json
-  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\BRANCH_LEDGER.jsonl
-  - tighter_entry_limit_up-f5113e17c1b2
-- blocked_by:
-  - Promotion is currently blocked: max drawdown 50.44% exceeds 30.00%, and direct promote_candidate also reports benchmark_missing:000001.
-- kill_criteria: 如果收紧入场后只是在减少交易次数，却没有改善回撤或收益质量，就停止继续扩展这条分支。
+- strategy_id: `tighter_entry_limit_up`
+- role: `legacy comparison`
+- status: `legacy_comparison_only`
+- why_downgraded: 现有判断同样来自旧 universe，对当前 canonical universe 不成立。
+- current_rule: baseline rebuild 完成前，不进入 active truth 叙事。
+- next_validation: 新 baseline 建立后，再决定是否恢复比较。

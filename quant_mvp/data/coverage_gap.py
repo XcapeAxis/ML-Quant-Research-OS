@@ -226,6 +226,7 @@ def build_coverage_gap_ledger(
     required_end_date = _policy_value(cfg, "required_end_date", cfg.get("end_date"))
     auto_refreeze = bool(_policy_value(cfg, "auto_refreeze", True))
     decision_style = str(_policy_value(cfg, "decision_style", "conservative"))
+    allow_universe_shrink = bool(_policy_value(cfg, "allow_universe_shrink", True))
 
     entries: list[CoverageGapSymbolEntry] = []
     counts = {
@@ -294,6 +295,16 @@ def build_coverage_gap_ledger(
         next_action = (
             f"Retry transient bar recovery for {transient_recoverable} symbols listed in the coverage-gap ledger "
             "before changing the frozen universe."
+        )
+    elif not allow_universe_shrink:
+        decision = "expand_bars_to_canonical_universe"
+        reason = (
+            f"Recoverable symbols {recoverable_symbols} do not meet the readiness floor {required_symbols}, "
+            "but the current project is pinned to a fixed canonical universe and must not auto-shrink."
+        )
+        next_action = (
+            "Backfill and validate the missing canonical-universe bars instead of refreezing the universe. "
+            "Treat current strategy conclusions as baseline-reset pending until coverage catches up."
         )
     else:
         decision = "refreeze"

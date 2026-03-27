@@ -1,5 +1,7 @@
 # 组合状态
 
-- 当前 blocker: 最大回撤 56.50% 高于 30.00%。
-- 最近已验证能力: Tracked memory 已按计划刷新： as_share_research_v1: revalidate spec parity before any new alpha claim
-- 下一步建议: Decompose the baseline_limit_up drawdown and reconcile benchmark_missing:000001 before choosing the next branch validation.
+- 当前 blocker: canonical universe coverage 只有 `51.11%`，readiness 仍是 `pilot`
+- 当前 active baseline: `baseline_limit_up`
+- 当前 baseline 状态: `baseline_reset_pending`
+- 旧分支地位: `risk_constrained_limit_up` 与 `tighter_entry_limit_up` 只保留为 legacy comparison
+- 下一步建议: 先补齐 `cn_a_mainboard_all_v1` 缺失 bars，再重跑 `data_validate` 与 baseline 最小重建

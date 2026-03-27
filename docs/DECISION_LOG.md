@@ -28,3 +28,11 @@
 - Stop filtering ST names out at symbol-freeze time; universe inclusion/exclusion must now happen explicitly at the universe-profile layer.
 - Treat current ST impact as unidentifiable on the frozen 715-symbol snapshot because source ST exposure is zero; do not over-interpret identical incl/ex-ST results as proof that ST never matters.
 - Keep `baseline_limit_up` as the comparison control, advance `risk_constrained_limit_up` as the next mainline candidate, and defer `tighter_entry_limit_up` until the drawdown decomposition is exhausted.
+
+## 2026-03-27
+- Retire the old 715-stock pool from the active research path; keep it only as a legacy archive and migration reference.
+- Make `cn_a_mainboard_all_v1` the only canonical active universe for `as_share_research_v1`.
+- Rebuild the active universe from exchange security-master metadata instead of patching the old `symbols.csv`.
+- Keep `ST` / `*ST` inside the canonical universe as labels only, never as an exclusion filter.
+- Fix the coverage-gap policy so a fixed canonical universe cannot auto-shrink or silently refreeze back into a legacy sample.
+- Reset strategy truth after the universe change: `baseline_limit_up` becomes the only active baseline rebuild track, while `risk_constrained_limit_up` and `tighter_entry_limit_up` are downgraded to legacy comparison only until the new baseline is rebuilt.

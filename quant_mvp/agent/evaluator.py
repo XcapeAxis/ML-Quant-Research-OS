@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
+from ..data.validation import validate_project_data
+from ..research_readiness import evaluate_research_readiness
 from ..validation.baselines import run_simple_baselines
 from ..validation.leakage import audit_strategy_leakage
 from ..validation.promotion_gate import evaluate_promotion_gate
@@ -24,6 +27,36 @@ def evaluate_execution(
     hypothesis: str,
     benchmark_series: pd.Series | None = None,
 ) -> EvaluationRecord:
+    readiness_report = validate_project_data(
+        project=project,
+        db_path=Path(str(cfg["db_path"])),
+        freq=str(cfg["freq"]),
+        universe_codes=universe_codes,
+        provider_name=str(cfg.get("data_provider", {}).get("provider", "akshare")),
+        data_quality_cfg=cfg.get("data_quality"),
+        limit_threshold=float(cfg.get("limit_up_threshold", 0.095)),
+    )
+    readiness = evaluate_research_readiness(report=readiness_report, cfg=cfg)
+    if not readiness.ready:
+        payload = {
+            "promotable": False,
+            "reasons": list(readiness.reasons),
+            "checks": {
+                "research_readiness": readiness.to_dict(),
+            },
+            "baselines": {
+                "status": "not_run",
+                "benchmark_available": False,
+                "equal_weight_available": False,
+                "reasons": ["blocked_by_research_readiness"],
+            },
+        }
+        return EvaluationRecord(
+            passed=False,
+            summary=f"Promotion gate blocked: {'; '.join(payload['reasons'])}",
+            promotion_decision=payload,
+        )
+
     leakage = audit_strategy_leakage(
         rank_df=rank_df,
         close_panel=close_panel,
@@ -66,6 +99,8 @@ def evaluate_execution(
         else f"Promotion gate blocked: {'; '.join(decision.reasons)}"
     )
     payload = decision.to_dict()
+    payload.setdefault("checks", {})
+    payload["checks"]["research_readiness"] = readiness.to_dict()
     payload["baselines"] = baselines
     payload["leakage"] = leakage.to_dict()
     payload["walk_forward"] = walk_forward

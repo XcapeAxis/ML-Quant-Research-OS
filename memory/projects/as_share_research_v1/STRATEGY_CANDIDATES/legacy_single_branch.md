@@ -1,24 +1,6 @@
-# 旧单分支兼容路径
+# legacy_single_branch
 
-- strategy_id: legacy_single_branch
-- name: 旧单分支兼容路径
-- category: other
-- core_hypothesis: 先把旧 `agent_cycle` 兼容跑通，再谈更复杂的多分支研究。
-- economic_rationale: 这不是市场行为假设，只是为了兼容旧控制面而保留的一条过渡路径。
-- required_data: 无额外市场数据要求；它主要依赖旧控制面的兼容行为。
-- current_stage: archived
-- latest_action: Kept only as a historical rejected branch.
-- latest_result: Not part of the active research story.
-- decision: rejected
-- next_validation: None.
-- owner: main
-- subagents_assigned:
-  - none
-- artifact_refs:
-  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\EVIDENCE_LEDGER.jsonl
-  - C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments\as_share_research_v1__legacy_single_branch__20260325T152213Z.json
-  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\BRANCH_LEDGER.jsonl
-  - legacy_single_branch-79952d61ffa6
-- blocked_by:
-  - Promotion is currently blocked: max drawdown 50.44% exceeds 30.00%, and direct promote_candidate also reports benchmark_missing:000001.
-- kill_criteria: 只要旧单分支兼容不再是必须前提，就不要再把它当作策略研究候选。
+- strategy_id: `legacy_single_branch`
+- role: `archived`
+- status: `archived`
+- note: 历史实验分支，仅保留可追溯性，不再进入 active research path。

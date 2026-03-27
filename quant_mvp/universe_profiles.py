@@ -10,6 +10,7 @@ import pandas as pd
 from .config import load_config
 from .memory.ledger import stable_hash
 from .project import find_repo_root
+from .security_master import CANONICAL_UNIVERSE_ID, load_security_master_frame
 from .universe import load_universe_codes
 
 
@@ -45,6 +46,10 @@ class UniverseProfileDefinition:
     board_scope: str = "mainboard_a_share"
     include_st: bool = True
     source_kind: str = "project_symbols_csv"
+    allowed_exchanges: tuple[str, ...] = ("SSE", "SZSE")
+    allowed_boards: tuple[str, ...] = ("mainboard",)
+    allowed_security_types: tuple[str, ...] = ("common_stock",)
+    allowed_share_classes: tuple[str, ...] = ("A",)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -88,6 +93,10 @@ def load_universe_profile_definition(
         board_scope=str(payload.get("board_scope") or "mainboard_a_share"),
         include_st=bool(payload.get("include_st", True)),
         source_kind=str(payload.get("source_kind") or "project_symbols_csv"),
+        allowed_exchanges=tuple(str(item) for item in payload.get("allowed_exchanges", ["SSE", "SZSE"])),
+        allowed_boards=tuple(str(item) for item in payload.get("allowed_boards", ["mainboard"])),
+        allowed_security_types=tuple(str(item) for item in payload.get("allowed_security_types", ["common_stock"])),
+        allowed_share_classes=tuple(str(item) for item in payload.get("allowed_share_classes", ["A"])),
     )
 
 
@@ -104,19 +113,28 @@ def load_universe_profile_catalog(
 
 
 def _load_symbols_frame(project: str, *, config_path: Path | None = None) -> tuple[pd.DataFrame, str]:
-    _, paths = load_config(project, config_path=config_path)
-    symbols_path = paths.meta_dir / "symbols.csv"
-    if symbols_path.exists():
-        frame = pd.read_csv(symbols_path, dtype={"code": str})
+    frame, source_path = load_security_master_frame(project, config_path=config_path)
+    if not frame.empty:
+        frame = frame.copy()
         frame["code"] = frame["code"].astype(str).map(_normalize_code)
-        frame["name"] = frame.get("name", pd.Series([""] * len(frame))).fillna("").astype(str)
+        frame["name"] = frame.get("name", frame.get("security_name", pd.Series([""] * len(frame)))).fillna("").astype(str)
         raw_is_st = frame.get("is_st", pd.Series([False] * len(frame)))
         if raw_is_st.dtype == bool:
             frame["is_st"] = raw_is_st.fillna(False)
         else:
             frame["is_st"] = raw_is_st.fillna(False).astype(str).str.lower().isin({"1", "true", "yes"})
         frame["board"] = frame.get("board", pd.Series([""] * len(frame))).fillna("").astype(str)
-        return frame[["code", "name", "is_st", "board"]].drop_duplicates("code"), str(symbols_path)
+        frame["exchange"] = frame.get("exchange", pd.Series(["UNKNOWN"] * len(frame))).fillna("UNKNOWN").astype(str)
+        frame["security_type"] = (
+            frame.get("security_type", pd.Series(["common_stock"] * len(frame))).fillna("common_stock").astype(str)
+        )
+        frame["share_class"] = frame.get("share_class", pd.Series(["A"] * len(frame))).fillna("A").astype(str)
+        return (
+            frame[
+                ["code", "name", "is_st", "board", "exchange", "security_type", "share_class"]
+            ].drop_duplicates("code"),
+            source_path,
+        )
 
     codes = load_universe_codes(project)
     frame = pd.DataFrame(
@@ -125,6 +143,9 @@ def _load_symbols_frame(project: str, *, config_path: Path | None = None) -> tup
             "name": [""] * len(codes),
             "is_st": [False] * len(codes),
             "board": ["mainboard" if _looks_like_mainboard(code) else "unknown" for code in codes],
+            "exchange": [("SSE" if str(code).startswith("6") else "SZSE") for code in codes],
+            "security_type": ["common_stock"] * len(codes),
+            "share_class": ["A"] * len(codes),
         },
     )
     return frame, "universe_codes_fallback"
@@ -146,9 +167,24 @@ def materialize_universe_profile(
     frame["code"] = frame["code"].map(_normalize_code)
     frame["is_st"] = frame["is_st"].astype(bool) | frame["name"].map(_is_st_like)
     frame["board"] = frame["board"].fillna("").astype(str)
+    frame["exchange"] = frame.get("exchange", pd.Series(["UNKNOWN"] * len(frame))).fillna("UNKNOWN").astype(str)
+    frame["security_type"] = frame.get("security_type", pd.Series(["common_stock"] * len(frame))).fillna("common_stock").astype(str)
+    frame["share_class"] = frame.get("share_class", pd.Series(["A"] * len(frame))).fillna("A").astype(str)
     if definition.board_scope == "mainboard_a_share":
         frame = frame[
             frame["board"].str.lower().eq("mainboard") | frame["code"].map(_looks_like_mainboard)
+        ].copy()
+    if definition.allowed_exchanges:
+        frame = frame[frame["exchange"].isin(set(definition.allowed_exchanges))].copy()
+    if definition.allowed_boards:
+        frame = frame[frame["board"].str.lower().isin({item.lower() for item in definition.allowed_boards})].copy()
+    if definition.allowed_security_types:
+        frame = frame[
+            frame["security_type"].str.lower().isin({item.lower() for item in definition.allowed_security_types})
+        ].copy()
+    if definition.allowed_share_classes:
+        frame = frame[
+            frame["share_class"].str.upper().isin({item.upper() for item in definition.allowed_share_classes})
         ].copy()
     if not definition.include_st:
         frame = frame[~frame["is_st"]].copy()
@@ -159,9 +195,28 @@ def materialize_universe_profile(
     source_frame["code"] = source_frame["code"].map(_normalize_code)
     source_frame["is_st"] = source_frame["is_st"].astype(bool) | source_frame["name"].map(_is_st_like)
     source_frame["board"] = source_frame["board"].fillna("").astype(str)
+    source_frame["exchange"] = source_frame.get("exchange", pd.Series(["UNKNOWN"] * len(source_frame))).fillna("UNKNOWN").astype(str)
+    source_frame["security_type"] = (
+        source_frame.get("security_type", pd.Series(["common_stock"] * len(source_frame))).fillna("common_stock").astype(str)
+    )
+    source_frame["share_class"] = source_frame.get("share_class", pd.Series(["A"] * len(source_frame))).fillna("A").astype(str)
     if definition.board_scope == "mainboard_a_share":
         source_frame = source_frame[
             source_frame["board"].str.lower().eq("mainboard") | source_frame["code"].map(_looks_like_mainboard)
+        ].copy()
+    if definition.allowed_exchanges:
+        source_frame = source_frame[source_frame["exchange"].isin(set(definition.allowed_exchanges))].copy()
+    if definition.allowed_boards:
+        source_frame = source_frame[
+            source_frame["board"].str.lower().isin({item.lower() for item in definition.allowed_boards})
+        ].copy()
+    if definition.allowed_security_types:
+        source_frame = source_frame[
+            source_frame["security_type"].str.lower().isin({item.lower() for item in definition.allowed_security_types})
+        ].copy()
+    if definition.allowed_share_classes:
+        source_frame = source_frame[
+            source_frame["share_class"].str.upper().isin({item.upper() for item in definition.allowed_share_classes})
         ].copy()
 
     artifact_dir = paths.meta_dir / "universe_profiles"
@@ -178,6 +233,8 @@ def materialize_universe_profile(
     }
     payload_hash = stable_hash(artifact_payload)
     source_id = f"universe-profile:{definition.profile_id}:{payload_hash[:12]}"
+    if definition.profile_id == CANONICAL_UNIVERSE_ID:
+        source_id = f"{CANONICAL_UNIVERSE_ID}:{payload_hash[:12]}"
     artifact_payload["source_id"] = source_id
     artifact_path = artifact_dir / f"{definition.profile_id}.json"
     artifact_path.write_text(

@@ -342,6 +342,15 @@ def _market_stoploss_probe(variant_result: Mapping[str, Any]) -> dict[str, Any]:
     )
     close_panel = variant_result["_close_panel"]
     targets = dict(variant_result["_targets"])
+    if close_panel.empty or not targets:
+        return {
+            "with_market_stoploss_total_return": float(variant_result["metrics"].get("total_return", 0.0)),
+            "with_market_stoploss_max_drawdown": float(variant_result["metrics"].get("max_drawdown", 0.0)),
+            "without_market_stoploss_total_return": 0.0,
+            "without_market_stoploss_max_drawdown": 0.0,
+            "market_stoploss_trigger_days": 0,
+            "market_stoploss_ratio": float(stoploss_params.market_stoploss_ratio),
+        }
     equity_without_market = run_rebalance_backtest_with_stoploss(
         close_panel=close_panel,
         targets_by_date=targets,
@@ -416,10 +425,12 @@ def _build_drawdown_diagnostic(
     peer_baseline_result: Mapping[str, Any] | None,
     market_probe: Mapping[str, Any],
 ) -> dict[str, Any]:
-    episode = _max_drawdown_episode(baseline_result["_equity"])
-    monthly_returns = (
-        baseline_result["_equity"].pct_change().fillna(0.0).add(1.0).groupby(baseline_result["_equity"].index.to_period("M")).prod().sub(1.0)
-    )
+    equity = baseline_result["_equity"]
+    episode = _max_drawdown_episode(equity)
+    if equity.empty or not isinstance(equity.index, pd.DatetimeIndex):
+        monthly_returns = pd.Series(dtype=float)
+    else:
+        monthly_returns = equity.pct_change().fillna(0.0).add(1.0).groupby(equity.index.to_period("M")).prod().sub(1.0)
     worst_months = [
         {"month": str(period), "return": float(value)}
         for period, value in monthly_returns.sort_values().head(3).items()

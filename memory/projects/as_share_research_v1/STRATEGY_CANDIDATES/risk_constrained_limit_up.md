@@ -1,24 +1,8 @@
-# 涨停主线风控分支
+# risk_constrained_limit_up
 
-- strategy_id: risk_constrained_limit_up
-- name: 涨停主线风控分支
-- category: risk control
-- core_hypothesis: 在不破坏涨停回踩再启动这个主线定义的前提下，更严格的止损、市场过滤或持仓约束可以显著降低回撤。
-- economic_rationale: 如果主线 alpha 来自强势股二次启动，而不是单纯硬扛波动，那么更强的风险约束应该先砍掉最差交易，同时保住大部分有效信号。
-- required_data: 主板 A 股日频 OHLCV、上市天数、ST/板块过滤、涨停代理、下个交易日收益、基准与等权基线。
-- current_stage: secondary-validation
-- latest_action: No new strategy validation this run; waiting for the baseline_limit_up blocker decomposition.
-- latest_result: No new decision delta; the branch stays secondary and blocked.
-- decision: blocked
-- next_validation: Choose branch priority only after the main-track blocker decomposition is written back.
-- owner: main
-- subagents_assigned:
-  - none
-- artifact_refs:
-  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\EVIDENCE_LEDGER.jsonl
-  - C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments\as_share_research_v1__risk_constrained_limit_up__20260325T152141Z.json
-  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\BRANCH_LEDGER.jsonl
-  - risk_constrained_limit_up-fb46198eddd7
-- blocked_by:
-  - Promotion is currently blocked: max drawdown 50.44% exceeds 30.00%, and direct promote_candidate also reports benchmark_missing:000001.
-- kill_criteria: 如果回撤改善很弱、但收益和通过率明显恶化，就停止继续扩大这条风控分支。
+- strategy_id: `risk_constrained_limit_up`
+- role: `legacy comparison`
+- status: `legacy_comparison_only`
+- why_downgraded: 现有优劣判断来自旧 universe，不再代表当前 active truth。
+- current_rule: 在 `baseline_limit_up` 完成新 universe baseline rebuild 前，不允许恢复为 active candidate。
+- next_validation: 等新 baseline 建好后，再决定是否重新纳入 active 比较。

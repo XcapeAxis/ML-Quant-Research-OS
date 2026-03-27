@@ -1,7 +1,7 @@
 {
   "project": "as_share_research_v1",
-  "generated_at": "2026-03-26T21:16:25.626615",
-  "git_commit": "23451db1d9d045021438ef35c781ad85c43414ea",
+  "generated_at": "2026-03-27T11:32:43.836325",
+  "git_commit": "b4a34885b729643b63946367d29e10217eec9741",
   "paths": {
     "signals_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\signals",
     "features_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\features",
@@ -9,7 +9,7 @@
     "artifacts_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1",
     "db_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\market.db"
   },
-  "universe_size": 715,
+  "universe_size": 3193,
   "universe_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\universe_codes.txt",
   "symbols_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\symbols.csv",
   "bars_update": {
@@ -65,11 +65,11 @@
     "max": "2025-07-01"
   },
   "candidate_count_stats": {
-    "min": 191.0,
-    "median": 198.0,
-    "p10": 195.0,
-    "mean": 197.30434782608697,
-    "max": 200.0
+    "min": 604.0,
+    "median": 1339.0,
+    "p10": 1198.0,
+    "mean": 1341.3446601941748,
+    "max": 1487.0
   },
   "strategy_mode": "limit_up_screening",
   "params": {
@@ -85,11 +85,11 @@
     ],
     "market_stoploss_ratio": 0.93
   },
-  "rank_path": "D:\\MYFILES\\MyQuantJournal\\data\\projects\\as_share_research_v1\\signals\\rank_top6.parquet",
-  "rank_dates": 115,
-  "rank_unique_codes": 28,
-  "summary_metrics_path": "D:\\MYFILES\\MyQuantJournal\\artifacts\\projects\\as_share_research_v1\\summary_metrics.csv",
-  "plot_path": "D:\\MYFILES\\MyQuantJournal\\artifacts\\projects\\as_share_research_v1\\equity_curve.png",
+  "rank_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\signals\\rank_top6.parquet",
+  "rank_dates": 412,
+  "rank_unique_codes": 509,
+  "summary_metrics_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\summary_metrics.csv",
+  "plot_path": "",
   "db_coverage_stats": {
     "project": "as_share_research_v1",
     "universe_size": 200,
@@ -372,17 +372,17 @@
     "by_symbol_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\data_quality_by_symbol.csv"
   },
   "coverage_gap_decision": {
-    "decision": "expand_bars",
-    "decision_style": "conservative",
-    "required_symbols_for_readiness": 680,
-    "covered_symbols": 715,
+    "decision": "expand_bars_to_canonical_universe",
+    "decision_style": "canonical_universe_fixed",
+    "required_symbols_for_readiness": 3034,
+    "covered_symbols": 1632,
     "transient_recoverable_symbols": 0,
-    "eligible_refreeze_symbols": 699,
-    "old_universe_size": 715,
+    "eligible_refreeze_symbols": 1603,
+    "old_universe_size": 3193,
     "new_universe_size": null,
-    "auto_refreeze_enabled": true,
+    "auto_refreeze_enabled": false,
     "auto_refreeze_applied": false,
-    "decision_reason": "Recoverable symbols 715 meet the readiness floor 680; keep the frozen universe and retry transient failures first.",
+    "decision_reason": "Recoverable symbols 1632 do not meet the readiness floor 3034, but the current project is pinned to a fixed canonical universe and must not auto-shrink.",
     "artifact_paths": {
       "markdown_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\COVERAGE_GAP_LEDGER.md",
       "json_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\coverage_gap_ledger.json",
@@ -400,5 +400,26 @@
         "config_path": "configs\\projects\\as_share_research_v1.json"
       }
     }
-  }
+  },
+  "universe_id": "cn_a_mainboard_all_v1",
+  "security_master_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\security_master.csv",
+  "security_master_assumptions": [],
+  "security_master_archive_paths": {
+    "legacy_universe_codes_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\legacy_universe\\legacy_universe_codes_20260327T020144Z.txt",
+    "legacy_symbols_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\legacy_universe\\legacy_symbols_20260327T020144Z.csv"
+  },
+  "universe_excluded_security_types": [
+    "chinext",
+    "star_market",
+    "bse",
+    "etf",
+    "lof",
+    "index_security",
+    "b_share",
+    "bond",
+    "convertible_bond",
+    "other_non_common_stock"
+  ],
+  "st_policy": "include_as_label_only",
+  "drawdown_path": ""
 }

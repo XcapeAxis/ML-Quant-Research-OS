@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 import importlib.util
-import sqlite3
 from pathlib import Path
 import sys
 import types
 
 import pandas as pd
-import pytest
 
 from quant_mvp.data.contracts import ProviderFetchRequest
 from quant_mvp.data.providers import akshare_provider
+from quant_mvp.security_master import _fetch_remote_security_master, _st_label, build_security_master
 
 
 def _load_script_module(module_name: str, rel_path: str):
@@ -92,69 +91,62 @@ def test_akshare_provider_prefers_tencent_path_before_eastmoney(monkeypatch) -> 
     assert float(out.iloc[0]["volume"]) == 123456.0
 
 
-def test_build_symbols_falls_back_to_db_when_remote_fetch_fails(monkeypatch, tmp_path: Path) -> None:
-    step10 = _load_script_module("step10_for_test", "scripts/steps/10_symbols.py")
-    db_path = tmp_path / "market.db"
-    conn = sqlite3.connect(db_path)
-    conn.execute("CREATE TABLE bars (symbol TEXT, datetime TEXT, freq TEXT, open REAL, high REAL, low REAL, close REAL, volume REAL)")
-    conn.executemany(
-        "INSERT INTO bars VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        [
-            ("000001", "2025-01-02", "1d", 10, 10.5, 9.8, 10.2, 100000),
-            ("600000", "2025-01-02", "1d", 11, 11.2, 10.8, 11.1, 120000),
-            ("300001", "2025-01-02", "1d", 12, 12.3, 11.9, 12.1, 130000),
-        ],
-    )
-    conn.commit()
-    conn.close()
-
-    monkeypatch.setattr(step10, "_fetch_remote_symbols", lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("network down")))
-
-    def _fake_save_universe_codes(project: str, codes: list[str]) -> Path:
-        out = tmp_path / "data" / "projects" / project / "meta" / "universe_codes.txt"
-        out.parent.mkdir(parents=True, exist_ok=True)
-        with open(out, "w", encoding="utf-8") as handle:
-            for code in codes:
-                handle.write(f"{code}\n")
-        return out
-
-    monkeypatch.setattr(step10, "save_universe_codes", _fake_save_universe_codes)
-
-    symbols_path, universe_path, count, source = step10.build_symbols(
-        project="unit_test_project",
-        db_path=db_path,
-        freq="1d",
-        target_size=None,
-    )
-
-    assert symbols_path.exists()
-    assert universe_path.exists()
-    saved = pd.read_csv(symbols_path)
-    codes = set(saved["code"].astype(str).str.zfill(6).tolist())
-    assert codes == {"000001", "600000"}
-    assert count == 2
-    assert source == "db"
-
-
-def test_fetch_remote_symbols_requires_both_exchanges(monkeypatch) -> None:
-    step10 = _load_script_module("step10_remote_test", "scripts/steps/10_symbols.py")
+def test_build_security_master_falls_back_to_db_when_remote_fetch_fails(monkeypatch, synthetic_project) -> None:
+    ctx = synthetic_project
     monkeypatch.setattr(
-        step10,
-        "_fetch_sse_mainboard_symbols",
-        lambda _cfg: pd.DataFrame({"code": ["600000"], "name": ["浦发银行"]}),
-    )
-    monkeypatch.setattr(
-        step10,
-        "_fetch_szse_a_symbols",
-        lambda _cfg: pd.DataFrame(columns=["code", "name"]),
+        "quant_mvp.security_master._fetch_remote_security_master",
+        lambda: (_ for _ in ()).throw(RuntimeError("network down")),
     )
 
-    with pytest.raises(RuntimeError, match="remote symbol fetch failed"):
-        step10._fetch_remote_symbols(step10.NetworkRuntimeConfig())
+    result = build_security_master(ctx["project"], config_path=ctx["config_path"])
+
+    assert result.source == "db_fallback"
+    assert result.count == 3
+    saved = pd.read_csv(ctx["paths"].meta_dir / "security_master.csv", dtype={"code": str})
+    assert set(saved["code"].astype(str).str.zfill(6).tolist()) == {"000001", "000002", "000003"}
+    assert {"exchange", "board", "security_type", "share_class", "is_st", "st_label"}.issubset(saved.columns)
+    assert saved["board"].eq("mainboard").all()
+    assert saved["security_type"].eq("common_stock").all()
+    assert saved["share_class"].eq("A").all()
 
 
-def test_is_st_recognizes_delisted_keyword() -> None:
-    step10 = _load_script_module("step10_st_test", "scripts/steps/10_symbols.py")
-    assert step10._is_st("ST中珠")
-    assert step10._is_st("退市海航")
-    assert not step10._is_st("平安银行")
+def test_fetch_remote_security_master_keeps_mainboard_st_as_label(monkeypatch) -> None:
+    fake_ak = types.SimpleNamespace(
+        stock_info_sh_name_code=lambda **_: pd.DataFrame(
+            {
+                "证券代码": ["600000", "688001"],
+                "证券简称": ["浦发银行", "星河芯片"],
+                "证券全称": ["上海浦东发展银行股份有限公司", "星河芯片股份有限公司"],
+                "上市日期": ["1999-11-10", "2019-01-01"],
+            },
+        ),
+        stock_info_sz_name_code=lambda **_: pd.DataFrame(
+            {
+                "板块": ["主板", "创业板"],
+                "A股代码": ["000001", "300001"],
+                "A股简称": ["*ST样本", "创业样本"],
+                "A股上市日期": ["1991-04-03", "2020-01-01"],
+            },
+        ),
+    )
+    monkeypatch.setitem(sys.modules, "akshare", fake_ak)
+
+    frame, source, assumptions = _fetch_remote_security_master()
+
+    assert source == "akshare_exchange_lists"
+    assert assumptions == []
+    filtered = frame[
+        frame["exchange"].isin({"SSE", "SZSE"})
+        & frame["board"].eq("mainboard")
+        & frame["security_type"].eq("common_stock")
+        & frame["share_class"].eq("A")
+    ]
+    assert filtered["code"].tolist() == ["000001", "600000"]
+    assert bool(filtered.loc[filtered["code"] == "000001", "is_st"].iloc[0]) is True
+    assert filtered.loc[filtered["code"] == "000001", "st_label"].iloc[0] == "*ST"
+
+
+def test_st_label_recognizes_prefixed_st_names() -> None:
+    assert _st_label("*ST中珠") == "*ST"
+    assert _st_label("ST海航") == "ST"
+    assert _st_label("平安银行") == ""

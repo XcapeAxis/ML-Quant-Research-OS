@@ -17,6 +17,10 @@ ACTIVE_MEMORY_FILES = [
     "SESSION_STATE.json",
     "STRATEGY_BOARD.md",
     "SUBAGENT_REGISTRY.md",
+    "UNIVERSE_POLICY.md",
+    "UNIVERSE_AUDIT.md",
+    "LEGACY_UNIVERSE_NOTE.md",
+    "BASELINE_RESET_NOTE.md",
 ]
 FORBIDDEN_ACTIVE_PATTERNS = [
     '"project": "2026Q1_limit_up"',
@@ -25,6 +29,10 @@ FORBIDDEN_ACTIVE_PATTERNS = [
     "\\projects\\2026Q1_limit_up\\",
     "data/projects/2026Q1_limit_up",
     "artifacts/projects/2026Q1_limit_up",
+    "full_a_mainboard_incl_st",
+    "full_a_mainboard_ex_st",
+    "715-symbol",
+    "715 symbol",
 ]
 
 
@@ -54,6 +62,7 @@ def test_active_session_state_keeps_one_coherent_blocker_story() -> None:
 
     assert session["project"] == CANONICAL_PROJECT_ID
     assert session["canonical_project_id"] == CANONICAL_PROJECT_ID
+    assert session["canonical_universe_id"] == "cn_a_mainboard_all_v1"
     assert "2026Q1_limit_up" in session["legacy_project_aliases"]
     assert session["configured_subagent_gate_mode"] in {"AUTO", "OFF", "FORCE"}
     assert session["effective_subagent_gate_mode"] in {"OFF", "AUTO", "FORCE"}
@@ -61,5 +70,7 @@ def test_active_session_state_keeps_one_coherent_blocker_story() -> None:
     assert session["current_research_stage"].strip()
     assert isinstance(session.get("canonical_truth_summary"), str)
     assert session["canonical_truth_summary"].strip()
-    assert "drawdown" in truth_text.lower()
-    assert "missing usable daily bars" not in truth_text.lower()
+    assert "cn_a_mainboard_all_v1" in truth_text
+    assert "715" not in truth_text
+    assert "full_a_mainboard_incl_st" not in truth_text
+    assert "full_a_mainboard_ex_st" not in truth_text

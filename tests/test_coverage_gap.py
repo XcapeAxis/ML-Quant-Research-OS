@@ -165,3 +165,32 @@ def test_data_validate_auto_refreezes_to_validated_subset(limit_up_project) -> N
 
     session_state = json.loads(ctx["paths"].session_state_path.read_text(encoding="utf-8"))
     assert session_state["stage0a_decision"]["new_universe_size"] == 2
+
+
+def test_fixed_canonical_universe_does_not_auto_refreeze_even_when_coverage_is_short(synthetic_project) -> None:
+    ctx = synthetic_project
+    trailing_gap = ctx["universe_codes"][1:]
+    delete_bars(ctx["db_path"], table_name="bars", freq="1d", codes=trailing_gap)
+    delete_bars(ctx["db_path"], table_name="bars_clean", freq="1d", codes=trailing_gap)
+
+    cfg, _ = load_config(ctx["project"], config_path=ctx["config_path"])
+    cfg["coverage_gap_policy"] = {
+        "required_end_date": None,
+        "eligibility_min_bars": 20,
+        "auto_refreeze": False,
+        "allow_universe_shrink": False,
+        "decision_style": "canonical_universe_fixed",
+    }
+    ledger = build_coverage_gap_ledger(
+        project=ctx["project"],
+        db_path=ctx["db_path"],
+        freq="1d",
+        universe_codes=ctx["universe_codes"],
+        cfg=cfg,
+        meta_dir=ctx["paths"].meta_dir,
+        data_quality_cfg={"source_table": "bars", "clean_table": "bars_clean"},
+    )
+
+    assert ledger.decision.decision == "expand_bars_to_canonical_universe"
+    assert ledger.decision.auto_refreeze_enabled is False
+    assert "must not auto-shrink" in ledger.decision.decision_reason

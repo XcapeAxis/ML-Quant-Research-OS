@@ -1,13 +1,11 @@
-# Universe 对比
+# Universe Comparison
 
-- canonical research profile: `full_a_mainboard_incl_st`
-- canonical deployment control profile: `full_a_mainboard_ex_st`
+本文件只保留历史比较说明，不再代表当前 active truth。
 
-| Universe | ST policy | source_count | included_count | source_st_count | included_st_count | readiness |
-|---|---|---:|---:|---:|---:|---|
-| full_a_mainboard_incl_st | 含 ST | 715 | 715 | 0 | 0 | ready |
-| full_a_mainboard_ex_st | 不含 ST | 715 | 715 | 0 | 0 | ready |
+## 当前结论
+- 当前 active universe 只有一个: `cn_a_mainboard_all_v1`
+- 旧 universe 比较结果只允许作为迁移说明或历史参考
 
-## 研究结论
-- `full_a_mainboard_incl_st`: 当前冻结 symbols 快照里的 ST 暴露为 0，本轮物化结果与另一宇宙实质一致，暂时无法识别 ST 效应。
-- `full_a_mainboard_ex_st`: 当前冻结 symbols 快照里的 ST 暴露为 0，本轮物化结果与另一宇宙实质一致，暂时无法识别 ST 效应。
+## 历史备注
+- 旧比较曾基于一个缩窄样本池进行，无法代表当前“沪深主板全量 A 股”研究对象
+- 如需查看旧样本，请到 `memory/projects/as_share_research_v1/LEGACY_UNIVERSE_NOTE.md`

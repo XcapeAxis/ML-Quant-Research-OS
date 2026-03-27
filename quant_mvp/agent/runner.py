@@ -7,11 +7,10 @@ from ..config import load_config
 from ..memory.ledger import stable_hash
 from ..memory.writeback import bootstrap_memory_files, load_machine_state, record_agent_cycle, record_failure, update_hypothesis_queue
 from ..project import resolve_project_paths
-from ..research_core import build_limit_up_rank_artifacts, run_limit_up_backtest_artifacts
+from ..strategy_diagnostics import run_strategy_diagnostics
 from ..universe import load_universe_codes
 from ..llm.dry_run import DryRunLLM
 from ..llm.openai_compatible import OpenAICompatibleLLM
-from .evaluator import evaluate_execution
 from .executor import execute_plan
 from .memory import load_memory_context
 from .planner import build_plan
@@ -54,24 +53,23 @@ def run_agent_cycle(
 
     try:
         universe = load_universe_codes(project)
-        rank_artifacts = build_limit_up_rank_artifacts(cfg=cfg, paths=paths, universe_codes=universe)
-        backtest_artifacts = run_limit_up_backtest_artifacts(
-            cfg=cfg,
-            paths=paths,
-            rank_df=rank_artifacts.selection.rank_df,
-            save="none" if dry_run else "auto",
-            no_show=True,
-        )
-        evaluation = evaluate_execution(
+        diagnostics = run_strategy_diagnostics(
             project=project,
             cfg=cfg,
+            paths=paths,
             universe_codes=universe,
-            rank_df=rank_artifacts.selection.rank_df,
-            close_panel=backtest_artifacts.close_panel,
-            volume_panel=backtest_artifacts.volume_panel,
-            metrics_df=backtest_artifacts.metrics_df,
             hypothesis=plan.primary_hypothesis,
-            benchmark_series=backtest_artifacts.benchmark_series,
+        )
+        decision = diagnostics["decision"]
+        summary = (
+            "Promotion gate passed in dry-run mode."
+            if decision.get("promotable")
+            else f"Promotion gate blocked: {'; '.join(decision.get('reasons', []))}"
+        )
+        evaluation = EvaluationRecord(
+            passed=bool(decision.get("promotable")),
+            summary=summary,
+            promotion_decision=decision,
         )
     except Exception as exc:
         evaluation = EvaluationRecord(

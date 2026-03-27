@@ -1,0 +1,21 @@
+{
+  "profile_id": "cn_a_mainboard_all_v1",
+  "display_name": "中国 A 股主板全量池 v1",
+  "description": "Canonical active universe: all Shanghai and Shenzhen mainboard A-share common stocks. ST and *ST are retained as labels only, not filters.",
+  "board_scope": "mainboard_a_share",
+  "include_st": true,
+  "source_kind": "project_security_master",
+  "allowed_exchanges": [
+    "SSE",
+    "SZSE"
+  ],
+  "allowed_boards": [
+    "mainboard"
+  ],
+  "allowed_security_types": [
+    "common_stock"
+  ],
+  "allowed_share_classes": [
+    "A"
+  ]
+}
