@@ -36,3 +36,6 @@
 - Keep `ST` / `*ST` inside the canonical universe as labels only, never as an exclusion filter.
 - Fix the coverage-gap policy so a fixed canonical universe cannot auto-shrink or silently refreeze back into a legacy sample.
 - Reset strategy truth after the universe change: `baseline_limit_up` becomes the only active baseline rebuild track, while `risk_constrained_limit_up` and `tighter_entry_limit_up` are downgraded to legacy comparison only until the new baseline is rebuilt.
+- Recover canonical coverage with missing-only incremental backfill instead of rerunning the whole universe; post-cutoff IPOs are structural no-bars, not provider failures.
+- Keep `validation-ready` as the highest automatic stage for this recovery pass even after baseline rerun; `research-ready` requires a later explicit promotion gate and does not unlock legacy branch restoration here.
+- Interpret the rebuilt baseline only as `baseline_validation_ready` on the canonical universe until the remaining provider failures are retried and a later promotion review is passed.

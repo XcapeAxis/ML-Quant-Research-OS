@@ -35,6 +35,7 @@ from .project import find_repo_root
 from .promotion import promote_candidate
 from .research_audit import run_research_audit
 from .config import load_config
+from .coverage_recovery import run_coverage_recovery
 from .strategy_campaign import run_baseline_strategy_diagnostic
 
 
@@ -188,6 +189,7 @@ def main() -> None:
     validate_parser.add_argument("--project", type=str, required=True)
     validate_parser.add_argument("--config", type=Path, default=None)
     validate_parser.add_argument("--full-refresh", action="store_true")
+    validate_parser.add_argument("--skip-clean", action="store_true")
 
     audit_parser = sub.add_parser("research_audit", help="Write repo audit documents")
     audit_parser.add_argument("--project", type=str, required=True)
@@ -204,6 +206,17 @@ def main() -> None:
     diagnostic_parser.add_argument("--project", type=str, required=True)
     diagnostic_parser.add_argument("--config", type=Path, default=None)
     diagnostic_parser.add_argument("--verified-command", action="append", default=[])
+
+    recovery_parser = sub.add_parser(
+        "coverage_recovery",
+        help="Audit canonical-universe missingness, run missing-only backfill, and refresh tracked coverage memory",
+    )
+    recovery_parser.add_argument("--project", type=str, required=True)
+    recovery_parser.add_argument("--config", type=Path, default=None)
+    recovery_parser.add_argument("--execute-backfill", action="store_true")
+    recovery_parser.add_argument("--max-backfill-symbols", type=int, default=None)
+    recovery_parser.add_argument("--workers", type=int, default=4)
+    recovery_parser.add_argument("--rerun-baseline", action="store_true")
 
     args = parser.parse_args()
 
@@ -396,6 +409,7 @@ def main() -> None:
             project=args.project,
             config_path=args.config,
             full_refresh=args.full_refresh,
+            skip_clean=args.skip_clean,
         )
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return
@@ -417,6 +431,18 @@ def main() -> None:
             verified_commands=list(args.verified_command),
         )
         print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "coverage_recovery":
+        result = run_coverage_recovery(
+            args.project,
+            config_path=args.config,
+            execute_backfill=args.execute_backfill,
+            max_backfill_symbols=args.max_backfill_symbols,
+            workers=args.workers,
+            rerun_baseline=args.rerun_baseline,
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2, default=str))
         return
 
 

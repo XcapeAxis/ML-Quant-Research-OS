@@ -74,19 +74,37 @@ def run_data_validate_flow(
     project: str,
     config_path: Path | None = None,
     full_refresh: bool = False,
+    skip_clean: bool = False,
 ) -> dict[str, Any]:
     cfg, paths = load_config(project, config_path=config_path)
     config_file = Path(config_path) if config_path is not None else paths.config_path
     universe_codes = load_universe_codes(project)
-    clean_stats = clean_project_bars(
-        project=project,
-        db_path=Path(str(cfg["db_path"])),
-        freq=str(cfg["freq"]),
-        codes=universe_codes,
-        meta_dir=paths.meta_dir,
-        data_quality_cfg=cfg.get("data_quality"),
-        full_refresh=full_refresh,
-    )
+    if skip_clean:
+        clean_stats = {
+            "source_table": str((cfg.get("data_quality") or {}).get("source_table", "bars")),
+            "clean_table": str((cfg.get("data_quality") or {}).get("clean_table", "bars_clean")),
+            "updated_codes": [],
+            "scanned_rows": 0,
+            "kept_rows": 0,
+            "dropped_rows": 0,
+            "repaired_rows": 0,
+            "warned_rows": 0,
+            "issue_counts_by_code": {},
+            "issue_counts_by_type": {},
+            "summary_path": str(paths.meta_dir / "data_quality_summary.json"),
+            "by_symbol_path": str(paths.meta_dir / "data_quality_by_symbol.csv"),
+            "skipped_clean_rebuild": True,
+        }
+    else:
+        clean_stats = clean_project_bars(
+            project=project,
+            db_path=Path(str(cfg["db_path"])),
+            freq=str(cfg["freq"]),
+            codes=universe_codes,
+            meta_dir=paths.meta_dir,
+            data_quality_cfg=cfg.get("data_quality"),
+            full_refresh=full_refresh,
+        )
 
     report, readiness, readiness_md_path, readiness_json_path, data_quality_md_path = _validate_snapshot(
         project=project,

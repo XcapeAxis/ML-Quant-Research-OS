@@ -27,6 +27,29 @@ from quant_mvp.project import resolve_project_paths
 from quant_mvp.universe import load_universe_codes
 
 
+def _normalize_codes(codes: list[str] | None) -> list[str]:
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for code in codes or []:
+        value = str(code or "").strip()
+        if not value:
+            continue
+        padded = value.zfill(6)
+        if padded in seen:
+            continue
+        seen.add(padded)
+        normalized.append(padded)
+    return normalized
+
+
+def _load_selected_codes(*, explicit_codes: list[str] | None, codes_file: Path | None) -> list[str]:
+    selected: list[str] = []
+    if codes_file is not None and codes_file.exists():
+        selected.extend(codes_file.read_text(encoding="utf-8").splitlines())
+    selected.extend(explicit_codes or [])
+    return _normalize_codes(selected)
+
+
 def _to_yyyymmdd(date_text: str | None) -> str:
     if not date_text:
         return datetime.now().strftime("%Y%m%d")
@@ -137,12 +160,17 @@ def run_update(
     max_codes_scan: int,
     db_path: Path,
     data_quality_cfg: dict[str, Any] | None = None,
+    selected_codes: list[str] | None = None,
 ) -> dict[str, Any]:
     network_cfg = _prepare_network_runtime()
     paths = resolve_project_paths(project)
     paths.ensure_dirs()
 
-    codes = load_universe_codes(project)[:max_codes_scan]
+    base_codes = _normalize_codes(selected_codes) if selected_codes else load_universe_codes(project)
+    if max_codes_scan > 0:
+        codes = base_codes[:max_codes_scan]
+    else:
+        codes = list(base_codes)
     if not codes:
         raise RuntimeError("Universe is empty; run the symbols step before updating bars.")
 
@@ -299,6 +327,8 @@ def main() -> None:
     parser.add_argument("--end-date", type=str, default=None)
     parser.add_argument("--workers", type=int, default=None)
     parser.add_argument("--max-codes-scan", type=int, default=None)
+    parser.add_argument("--code", action="append", default=[])
+    parser.add_argument("--codes-file", type=Path, default=None)
     args = parser.parse_args()
 
     cfg, _ = load_config(args.project, config_path=args.config)
@@ -308,6 +338,7 @@ def main() -> None:
     db_path = Path(cfg["db_path"])
     workers = int(args.workers if args.workers is not None else 4)
     max_codes_scan = int(args.max_codes_scan if args.max_codes_scan is not None else cfg["max_codes_scan"])
+    selected_codes = _load_selected_codes(explicit_codes=list(args.code or []), codes_file=args.codes_file)
 
     try:
         stats = run_update(
@@ -320,6 +351,7 @@ def main() -> None:
             max_codes_scan=max_codes_scan,
             db_path=db_path,
             data_quality_cfg=cfg.get("data_quality"),
+            selected_codes=selected_codes or None,
         )
     except Exception as exc:
         raise RuntimeError(_friendly_network_error(exc, NetworkRuntimeConfig.from_sources())) from exc

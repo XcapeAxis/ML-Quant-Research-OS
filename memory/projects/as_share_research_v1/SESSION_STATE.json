@@ -1,72 +1,325 @@
 {
-  "project": "as_share_research_v1",
-  "canonical_project_id": "as_share_research_v1",
-  "legacy_project_aliases": [
-    "2026Q1_limit_up"
-  ],
-  "canonical_universe_id": "cn_a_mainboard_all_v1",
-  "branch": "main",
-  "configured_subagent_gate_mode": "AUTO",
-  "effective_subagent_gate_mode": "OFF",
-  "effective_subagent_gate_reason": "Universe reset, readiness audit, and baseline reset are still one serial path.",
-  "current_task": "Reset the active universe to cn_a_mainboard_all_v1 and rebuild the active baseline honestly.",
-  "current_research_stage": "universe reset / baseline rebuild",
-  "current_research_cycle_type": "universe_reset_campaign",
-  "canonical_truth_summary": "当前 active truth 已切换到 cn_a_mainboard_all_v1；旧 legacy 池已归档，baseline 仍在重建，当前 blocker 是 coverage 只有 51.11%。",
-  "current_blocker": "Coverage ratio 51.11% is below the promotion-readiness threshold 95.00% for cn_a_mainboard_all_v1.",
-  "current_capability_boundary": "当前只确认 universe reset 与 baseline reset 已启动；任何策略结论都还不能当成新 universe 的 active truth。",
   "active_branch_ids": [
     "baseline_limit_up"
   ],
+  "baseline_status": "baseline_validation_ready",
+  "branch": "main",
+  "canonical_project_id": "as_share_research_v1",
+  "canonical_truth_summary": "canonical universe coverage 已从 51.11% 修复到 99.12%，当前阶段是 validation-ready，legacy 主线仍冻结。",
+  "canonical_universe_id": "cn_a_mainboard_all_v1",
+  "configured_subagent_gate_mode": "AUTO",
+  "coverage_recovery": {
+    "bias_explained": true,
+    "candidate_success_rate": 0.0,
+    "legacy_restore_allowed": false,
+    "post_coverage_ratio": 0.9912308174130912,
+    "pre_coverage_ratio": 0.9912308174130912
+  },
+  "current_blocked_strategy_ids": [],
+  "current_blocker": "4 个 provider failure 尚未稳定分类，legacy 主线仍冻结。",
+  "current_capability_boundary": "当前只能把 baseline 解释为 baseline_validation_ready；还不能把任何 legacy 结论恢复成 active truth。",
+  "current_phase": "Canonical Universe Coverage Recovery",
   "current_primary_strategy_ids": [
     "baseline_limit_up"
   ],
-  "current_secondary_strategy_ids": [],
+  "current_promoted_strategy_ids": [],
+  "current_rejected_strategy_ids": [
+    "legacy_single_branch"
+  ],
+  "current_research_cycle_type": "coverage recovery",
+  "current_research_stage": "validation-ready",
+  "current_secondary_strategy_ids": [
+    "risk_constrained_limit_up",
+    "tighter_entry_limit_up"
+  ],
+  "current_strategy_focus": [
+    "baseline_limit_up"
+  ],
+  "current_strategy_summary": "baseline_limit_up 已完成 canonical universe 上的最小重建并达到 baseline_validation_ready，但仍不是 active truth。",
+  "current_task": "Audit canonical coverage gaps, classify remaining missingness, and hold legacy branches frozen until baseline promotion is explicitly re-reviewed.",
+  "durable_facts": [
+    "历史项目名 2026Q1_limit_up 仅作为 legacy alias / 迁移记录保留，不再代表当前活跃项目。"
+  ],
+  "effective_subagent_gate_mode": "OFF",
+  "effective_subagent_gate_reason": "本轮是 coverage audit、incremental backfill 结果收口和 readiness judgement 的串行路径，保持 OFF 更稳。",
+  "execution_queue": [],
+  "head": "573f4a7f48b3e979367e24a52114ff0ba5243851",
+  "iterative_loop": {
+    "alternative_subagents": [],
+    "archived_subagent_count": 0,
+    "artifact_path": "",
+    "auto_closed_subagents": [],
+    "blocked_subagent_count": 0,
+    "blocker_escalation": false,
+    "blocker_history": {},
+    "blocker_key": "unknown",
+    "blocker_repeat_count": 0,
+    "canceled_subagent_count": 0,
+    "clarify_only_iterations": 0,
+    "clarify_only_limit": 1,
+    "consecutive_no_new_info_runs": 0,
+    "controlled_refresh_count": 0,
+    "direction_change": false,
+    "effective_progress_count": 0,
+    "historical_blocker_count": 0,
+    "iteration_count": 0,
+    "last_classification": "not_run",
+    "last_completed": "none recorded",
+    "last_not_done": "none recorded",
+    "last_run_id": "",
+    "max_active_subagents": 0,
+    "max_iterations": 0,
+    "max_runtime_mode": "bounded",
+    "merged_subagent_count": 0,
+    "min_substantive_actions": 2,
+    "next_recommendation": "none recorded",
+    "refactored_subagent_count": 0,
+    "retired_subagent_count": 0,
+    "run_start_read_count": 0,
+    "stop_reason": "not_run",
+    "subagent_gate_mode": "AUTO",
+    "subagent_reason": "No iterative loop run has been recorded yet.",
+    "subagents_used": [],
+    "substantive_action_count": 0,
+    "target_iterations": 0,
+    "target_productive_minutes": 40,
+    "target_substantive_actions": 3,
+    "workflow_mode": "campaign"
+  },
+  "last_failed_capability": "none",
+  "last_updated": "2026-03-27T10:58:54+00:00",
+  "last_verified_capability": "data_validate refreshed readiness artifacts and tracked memory.",
   "legacy_comparison_strategy_ids": [
     "risk_constrained_limit_up",
     "tighter_entry_limit_up"
   ],
-  "current_blocked_strategy_ids": [
-    "baseline_limit_up"
+  "legacy_project_aliases": [
+    "2026Q1_limit_up"
   ],
-  "current_promoted_strategy_ids": [],
-  "current_rejected_strategy_ids": [],
-  "baseline_status": "baseline_reset_pending",
+  "legacy_universe_archive": {
+    "legacy_symbols_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\legacy_universe\\legacy_symbols_20260327T020144Z.csv",
+    "legacy_universe_codes_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\legacy_universe\\legacy_universe_codes_20260327T020144Z.txt"
+  },
+  "next_priority_action": "只重试并分类 605296、605259、601665、601528；在它们没有稳定结论前，不恢复任何 legacy 策略结论。",
+  "project": "as_share_research_v1",
+  "project_identity_notice": "历史项目名 2026Q1_limit_up 仅作为 legacy alias / 迁移记录保留，不再代表当前活跃项目。",
+  "readiness": {
+    "coverage_ratio": 0.9912308174130912,
+    "covered_symbols": 3165,
+    "eligible_coverage_ratio": 0.9987377721678763,
+    "ready": true,
+    "stage": "validation-ready",
+    "universe_symbols": 3193
+  },
+  "research_progress": {
+    "confidence": "medium",
+    "current_blocker": "none",
+    "dimensions": [
+      {
+        "dimension": "Data inputs",
+        "evidence": "默认项目数据状态：已就绪覆盖： 3165/3193 个标的具备已验证 bars (coverage_ratio=0.9912, raw_rows=6310163, cleaned_rows=6223398, validated_rows=6223398).；当前 blocker：无",
+        "score": 1,
+        "status": "blocked"
+      },
+      {
+        "dimension": "Strategy integrity",
+        "evidence": "单一研究核心与契约护栏已存在；最近已验证能力：`data_validate` 已刷新 readiness 产物与 tracked memory。。",
+        "score": 2,
+        "status": "partial"
+      },
+      {
+        "dimension": "Validation stack",
+        "evidence": "审计/泄漏/晋级框架存在；最近已验证能力：`data_validate` 已刷新 readiness 产物与 tracked memory。。",
+        "score": 2,
+        "status": "partial"
+      },
+      {
+        "dimension": "Promotion readiness",
+        "evidence": "当前 blocker：无；研究输入仍不足以支撑晋级评估。",
+        "score": 1,
+        "status": "blocked"
+      },
+      {
+        "dimension": "Subagent effectiveness",
+        "evidence": "subagent 开关与收尾规则已可用，但本轮配置 gate=AUTO、实际执行 gate=OFF；自动收尾 0 个。",
+        "score": 2,
+        "status": "partial"
+      }
+    ],
+    "materially_changed": false,
+    "next_milestone": "Run promotion and treat any remaining failure as a strategy or validation issue rather than a data-coverage issue.",
+    "overall_trajectory": "blocked",
+    "this_run_delta": "unchanged"
+  },
+  "runtime_artifacts_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1",
+  "runtime_meta_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta",
+  "stage0a_decision": {
+    "artifact_paths": {
+      "csv_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\coverage_gap_by_symbol.csv",
+      "json_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\coverage_gap_ledger.json",
+      "markdown_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\COVERAGE_GAP_LEDGER.md"
+    },
+    "auto_refreeze_applied": false,
+    "auto_refreeze_enabled": false,
+    "covered_symbols": 3165,
+    "decision": "expand_bars",
+    "decision_reason": "Recoverable symbols 3169 meet the readiness floor 3034; keep the frozen universe and retry transient failures first.",
+    "decision_style": "canonical_universe_fixed",
+    "eligible_refreeze_symbols": 3095,
+    "ledger_csv_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\coverage_gap_by_symbol.csv",
+    "ledger_json_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\coverage_gap_ledger.json",
+    "ledger_markdown_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\COVERAGE_GAP_LEDGER.md",
+    "new_universe_size": null,
+    "next_action": "Retry transient bar recovery for 4 symbols listed in the coverage-gap ledger before changing the frozen universe.",
+    "old_universe_size": 3193,
+    "recoverable_symbols": 3169,
+    "required_symbols_for_readiness": 3034,
+    "transient_recoverable_symbols": 4
+  },
+  "strategy_candidates": [
+    {
+      "artifact_refs": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1\\EVIDENCE_LEDGER.jsonl",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments\\as_share_research_v1__baseline_limit_up__20260325T152141Z.json",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1\\BRANCH_LEDGER.jsonl",
+        "baseline_limit_up-df14a72f3cd8"
+      ],
+      "blocked_by": [
+        "Coverage ratio 51.11% is below the promotion-readiness threshold 95.00% for cn_a_mainboard_all_v1."
+      ],
+      "category": "limit-up continuation",
+      "core_hypothesis": "过去一段时间反复出现涨停、随后回到突破起点附近的主板个股，后续更容易再次走强；先把这条主线稳定保存成基线，再评估其它改法。",
+      "current_stage": "data-blocked",
+      "decision": "blocked",
+      "economic_rationale": "A 股主板里的涨停通常意味着资金短时间集中抢筹。若个股涨停后没有彻底转弱，而是在突破起点附近重新整理，说明强势资金可能仍在，后续二次启动概率更高；保留基线则能判断后续改动到底是在修复风险还是只是在制造噪音。",
+      "kill_criteria": "如果可用输入恢复后，这条主线在泄漏、可交易性、walk-forward 与成本压力检查下仍无法把最大回撤压到 30% 以内，就停止继续把它当主线。",
+      "latest_action": "最近一次记录里，baseline_limit_up 已完成 scout/implementer 资料整理；verifier 仍未真正开始有界验证。",
+      "latest_result": "baseline_limit_up 目前只有候选池与实验记录，真正的 verifier 结论仍缺失。",
+      "name": "涨停主线基线分支",
+      "next_validation": "先恢复可用日频 bars，再对主线做第一轮有界验证。",
+      "owner": "main",
+      "required_data": "主板 A 股日频 OHLCV、上市天数、ST/板块过滤、涨停代理、下个交易日收益、基准与等权基线。",
+      "strategy_id": "baseline_limit_up",
+      "subagents_assigned": [],
+      "track": "primary"
+    },
+    {
+      "artifact_refs": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1\\EVIDENCE_LEDGER.jsonl",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments\\as_share_research_v1__risk_constrained_limit_up__20260325T152141Z.json",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1\\BRANCH_LEDGER.jsonl",
+        "risk_constrained_limit_up-fb46198eddd7"
+      ],
+      "blocked_by": [
+        "Coverage ratio 51.11% is below the promotion-readiness threshold 95.00% for cn_a_mainboard_all_v1."
+      ],
+      "category": "risk control",
+      "core_hypothesis": "在不破坏涨停回踩再启动这个主线定义的前提下，更严格的止损、市场过滤或持仓约束可以显著降低回撤。",
+      "current_stage": "data-blocked",
+      "decision": "blocked",
+      "economic_rationale": "如果主线 alpha 来自强势股二次启动，而不是单纯硬扛波动，那么更强的风险约束应该先砍掉最差交易，同时保住大部分有效信号。",
+      "kill_criteria": "如果回撤改善很弱、但收益和通过率明显恶化，就停止继续扩大这条风控分支。",
+      "latest_action": "最近一次记录里，risk_constrained_limit_up 已完成 scout/implementer 资料整理；verifier 仍未真正开始有界验证。",
+      "latest_result": "risk_constrained_limit_up 目前只有候选池与实验记录，真正的 verifier 结论仍缺失。",
+      "name": "涨停主线风控分支",
+      "next_validation": "先恢复主线可用输入；输入没恢复前，这条分支不值得单独开跑。",
+      "owner": "main",
+      "required_data": "主板 A 股日频 OHLCV、上市天数、ST/板块过滤、涨停代理、下个交易日收益、基准与等权基线。",
+      "strategy_id": "risk_constrained_limit_up",
+      "subagents_assigned": [],
+      "track": "secondary"
+    },
+    {
+      "artifact_refs": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1\\EVIDENCE_LEDGER.jsonl",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments\\as_share_research_v1__tighter_entry_limit_up__20260325T152141Z.json",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1\\BRANCH_LEDGER.jsonl",
+        "tighter_entry_limit_up-f5113e17c1b2"
+      ],
+      "blocked_by": [
+        "Coverage ratio 51.11% is below the promotion-readiness threshold 95.00% for cn_a_mainboard_all_v1."
+      ],
+      "category": "entry timing",
+      "core_hypothesis": "把入选阈值收紧，只保留更接近再次启动位置的个股，可以减少过早买入带来的假突破和大回撤。",
+      "current_stage": "data-blocked",
+      "decision": "blocked",
+      "economic_rationale": "如果真正的二次启动往往发生在更接近突破起点、筹码更集中的位置，那么收紧入场条件应该先减少质量差的提前埋伏。",
+      "kill_criteria": "如果收紧入场后只是在减少交易次数，却没有改善回撤或收益质量，就停止继续扩展这条分支。",
+      "latest_action": "最近一次记录里，tighter_entry_limit_up 已完成 scout/implementer 资料整理；verifier 仍未真正开始有界验证。",
+      "latest_result": "tighter_entry_limit_up 目前只有候选池与实验记录，真正的 verifier 结论仍缺失。",
+      "name": "涨停主线收紧入场分支",
+      "next_validation": "先恢复主线可用输入；输入没恢复前，这条分支不值得单独开跑。",
+      "owner": "main",
+      "required_data": "主板 A 股日频 OHLCV、上市天数、ST/板块过滤、涨停代理、下个交易日收益、基准与等权基线。",
+      "strategy_id": "tighter_entry_limit_up",
+      "subagents_assigned": [],
+      "track": "secondary"
+    },
+    {
+      "artifact_refs": [
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1\\EVIDENCE_LEDGER.jsonl",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments\\as_share_research_v1__legacy_single_branch__20260325T152213Z.json",
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1\\BRANCH_LEDGER.jsonl",
+        "legacy_single_branch-79952d61ffa6"
+      ],
+      "blocked_by": [
+        "它只是旧控制面兼容路径，不再作为策略研究主线。"
+      ],
+      "category": "other",
+      "core_hypothesis": "先把旧 `agent_cycle` 兼容跑通，再谈更复杂的多分支研究。",
+      "current_stage": "rejected",
+      "decision": "reject",
+      "economic_rationale": "这不是市场行为假设，只是为了兼容旧控制面而保留的一条过渡路径。",
+      "kill_criteria": "只要旧单分支兼容不再是必须前提，就不要再把它当作策略研究候选。",
+      "latest_action": "最近一次记录里，legacy_single_branch 已完成 scout/implementer 资料整理；verifier 仍未真正开始有界验证。",
+      "latest_result": "legacy_single_branch 目前只有候选池与实验记录，真正的 verifier 结论仍缺失。",
+      "name": "旧单分支兼容路径",
+      "next_validation": "无；除非再次需要排查旧单分支兼容行为。",
+      "owner": "main",
+      "required_data": "无额外市场数据要求；它主要依赖旧控制面的兼容行为。",
+      "strategy_id": "legacy_single_branch",
+      "subagents_assigned": [],
+      "track": "rejected"
+    }
+  ],
+  "subagent_continue_reason": "默认项目的数据 blocker 还没清掉，现在扩展多个 subagent 只会增加协作成本。",
+  "subagent_continue_recommended": false,
+  "subagent_gate_mode": "AUTO",
+  "subagent_last_event": {},
+  "subagent_plan": {
+    "gate_mode": "AUTO",
+    "no_split_reason": "当前默认项目的 blocker 还不值得为它再加一层协作开销。",
+    "rationale": "在可用 validated bars 恢复前，subagent 保持有效 OFF，先不要拆分。",
+    "recommended_count": 0,
+    "recommended_gate": "OFF",
+    "recommended_roles": [],
+    "score": 0.0,
+    "should_expand": false,
+    "work_packages": []
+  },
+  "subagents": [],
+  "tracked_memory_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1",
   "universe_metrics": {
     "size": 3193,
     "sse_mainboard": 1703,
-    "szse_mainboard": 1490,
-    "st_count": 129
+    "st_count": 129,
+    "structural_no_bars": 24,
+    "szse_mainboard": 1490
   },
-  "readiness": {
-    "stage": "pilot",
-    "covered_symbols": 1632,
-    "universe_symbols": 3193,
-    "coverage_ratio": 0.5111180707798308,
-    "ready": false
-  },
-  "legacy_universe_archive": {
-    "legacy_universe_codes_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\legacy_universe\\legacy_universe_codes_20260327T020144Z.txt",
-    "legacy_symbols_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\legacy_universe\\legacy_symbols_20260327T020144Z.csv"
-  },
-  "tracked_memory_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1",
-  "runtime_meta_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta",
-  "runtime_artifacts_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1",
-  "next_priority_action": "Backfill missing canonical-universe bars, rerun data_validate, then rerun baseline_limit_up on cn_a_mainboard_all_v1.",
   "verify_last": {
-    "passed_commands": [
-      "python scripts/steps/10_symbols.py",
-      "python -m quant_mvp research_audit --project as_share_research_v1 --config configs/projects/as_share_research_v1.json",
-      "python -m quant_mvp agent_cycle --project as_share_research_v1 --config configs/projects/as_share_research_v1.json --dry-run",
-      "python scripts/run_limit_up_screening.py --project as_share_research_v1 --config configs/projects/as_share_research_v1.json --save none --no-show"
-    ],
+    "conclusion_boundary_engineering": "Validated data recovery, coverage-gap analysis, and readiness writeback all executed.",
+    "conclusion_boundary_research": "Promotion-grade research can proceed on the current validated snapshot.",
+    "default_project_data_status": "ready coverage: 3165/3193 symbols with validated bars (coverage_ratio=0.9912, raw_rows=6310163, cleaned_rows=6223398, validated_rows=6223398).",
+    "failed_commands": [],
     "key_metrics": {
-      "coverage_ratio": 0.5111180707798308,
-      "covered_symbols": 1632,
-      "universe_symbols": 3193,
-      "baseline_total_return": 7.834251,
-      "baseline_max_drawdown": -0.464826
-    }
-  },
-  "last_updated": "2026-03-27T12:20:00+08:00"
+      "candidate_success_rate": 0.0,
+      "coverage_ratio": 0.9912308174130912,
+      "covered_symbols": 3165,
+      "eligible_coverage_ratio": 0.9987377721678763,
+      "universe_symbols": 3193
+    },
+    "passed_commands": [
+      "python -m quant_mvp data_validate --project as_share_research_v1"
+    ]
+  }
 }
