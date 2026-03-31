@@ -1,10 +1,10 @@
 # 下一轮交接
 
 ## 当前总任务
-Review the denser Excel dashboard v2 and decide whether it is sufficient to retire the frozen local web UI.
+Use a focused Excel control sheet as the internal console while keeping F1 as mainline and F2.1 as the bounded challenger.
 
 ## 当前阶段
-Phase 1 Research OS
+F2 bounded challenger with Excel console refinement
 
 ## 项目身份
 - 当前规范项目ID: as_share_research_v1
@@ -18,8 +18,8 @@ Phase 1 Research OS
 - 当前支线策略: f2_structured_latent_factor_v1（F2.1 Structured Latent Deep Factor）, baseline_limit_up（????????）, risk_constrained_limit_up（????????）
 - 当前 blocked 策略: risk_constrained_limit_up（????????）, tighter_entry_limit_up（??????????）
 - 当前 rejected 策略: r1_predictive_error_overlay_v1（R1.1 Predictive Error Overlay）, legacy_single_branch（????????）
-- 当前策略推进判断: 本轮围绕 f1_elasticnet_v1（F1 ElasticNet ????） 继续收敛研究阻塞；当前最硬的限制仍是 最大回撤 48.67% 高于 30.00%。。
-- 规范叙事结论: 规范项目当前处于晋级受阻阶段，真实主阻塞是 最大回撤 48.67% 高于 30.00%。；旧的“缺 bars”叙事已转为历史路径。
+- 当前策略推进判断: 本轮围绕 f1_elasticnet_v1（F1 ElasticNet ????） 继续收敛研究阻塞；当前最硬的限制仍是 F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.。
+- 规范叙事结论: 规范项目当前处于晋级受阻阶段，真实主阻塞是 F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.；旧的“缺 bars”叙事已转为历史路径。
 
 ## 已确认路径
 - tracked memory 目录: C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1
@@ -27,7 +27,7 @@ Phase 1 Research OS
 - runtime artifacts 目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1
 
 ## 当前 blocker
-最大回撤 48.67% 高于 30.00%。
+F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.
 
 ## 最近关键失败
 晋级门阻塞： 最大回撤 48.67% 高于 30.00%。
@@ -58,15 +58,15 @@ Phase 1 Research OS
 
 ## 研究进度
 - Data inputs: 起步，1/4。证据：默认项目数据状态：latest core pool `core-0536a20f13d1` stayed consistent through F2 verifier and Excel export.；未发现足够证据支持更高评分。
-- Strategy integrity: 部分可用，2/4。证据：单一研究核心与契约护栏已存在；最近已验证能力：Excel console dashboard v2 exported a valid workbook with denser strategy metrics, experiment summaries, embedded preview charts, and safe launcher actions while keeping Python as the only source of truth.。
-- Validation stack: 起步，1/4。证据：仅具备基础验证入口，尚缺少足够已记录证据支持更高评分。
-- Promotion readiness: 阻塞，1/4。证据：当前 blocker：最大回撤 48.67% 高于 30.00%。；研究输入仍不足以支撑晋级评估。
+- Strategy integrity: 部分可用，2/4。证据：单一研究核心与契约护栏已存在；最近已验证能力：Excel console Control sheet now emphasizes mainline, blocker, next action, safe actions, and one large mainline-vs-challenger preview without changing Python as the source of truth.。
+- Validation stack: 部分可用，2/4。证据：审计/泄漏/晋级框架存在；最近已验证能力：Excel console Control sheet now emphasizes mainline, blocker, next action, safe actions, and one large mainline-vs-challenger preview without changing Python as the source of truth.。
+- Promotion readiness: 阻塞，1/4。证据：当前 blocker：F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.；研究输入仍不足以支撑晋级评估。
 - Subagent effectiveness: 部分可用，2/4。证据：subagent 开关与收尾规则已可用，但本轮配置 gate=OFF、实际执行 gate=OFF；自动收尾 0 个。
 - 总体轨迹: 阻塞
 - 本轮增量: 无实质变化
-- 当前 blocker: 最大回撤 48.67% 高于 30.00%。
-- 下一里程碑: Use the updated Excel dashboard v2；if it covers the core workflow, retire apps/web and dashboard/app.py next.
-- 置信度: 低
+- 当前 blocker: F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.
+- 下一里程碑: Review the focused Excel Control sheet；if accepted, retire the frozen web UI and continue one more bounded F2.1 variant.
+- 置信度: 中
 
 ## 最近一次高阶迭代
 - workflow_mode: campaign
@@ -96,7 +96,7 @@ Phase 1 Research OS
 - 下一步建议: Retain F1 as the mainline and run one more bounded F2.1 variant before any wider model search.
 
 ## 下一步唯一建议
-Use the updated Excel dashboard v2；if it covers the core workflow, retire apps/web and dashboard/app.py next.
+Review the focused Excel Control sheet；if accepted, retire the frozen web UI and continue one more bounded F2.1 variant.
 
 ## 下一轮先读这些文件
 - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\PROJECT_STATE.md

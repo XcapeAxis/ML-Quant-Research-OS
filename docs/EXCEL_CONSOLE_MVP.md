@@ -20,6 +20,7 @@ The MVP covers:
 - strategy comparison charts
 - recent experiment result chart
 - embedded preview images for the latest F1 / F2 / R1 comparison plots when those PNG artifacts exist
+- an opinionated `Control` sheet that keeps only the current blocker, next action, safe actions, and one large mainline-vs-challenger preview instead of trying to show every ledger at once
 - safe launcher links for:
   - `excel_export`
   - `research_audit`
@@ -48,3 +49,9 @@ The MVP does not cover:
 - Delete these web surfaces only after:
   - the Excel console covers overview, experiment ledger, latest verification results, and the safe command set
   - the user confirms the web entrypoints are no longer needed
+
+## Control Sheet Rule
+- The home sheet is a driving console, not a raw data dump.
+- Primary information belongs at the top: current mainline, blocker, next action, latest comparison.
+- Secondary ledgers belong on `Strategies`, `Experiments`, `Runs`, and `Artifacts`.
+- If the home sheet becomes crowded again, remove lower-priority details instead of adding more panels.

@@ -1339,6 +1339,7 @@ def _build_workbook(
     experiments_ws = workbook.create_sheet(WORKSHEET_NAMES[3])
     runs_ws = workbook.create_sheet(WORKSHEET_NAMES[4])
     artifacts_ws = workbook.create_sheet(WORKSHEET_NAMES[5])
+    preview_plot_rows = _preview_plot_rows(state)
 
     _write_control_sheet(
         control_ws,
@@ -1349,6 +1350,7 @@ def _build_workbook(
         console_paths=console_paths,
         strategy_metrics_rows=strategy_metrics_rows,
         experiment_summary_rows=experiment_summary_rows,
+        preview_plot_rows=preview_plot_rows,
     )
     _write_overview_sheet(
         overview_ws,
@@ -1375,7 +1377,7 @@ def _build_workbook(
     _write_artifacts_sheet(
         artifacts_ws,
         artifacts_rows=artifacts_rows,
-        preview_plot_rows=_preview_plot_rows(state),
+        preview_plot_rows=preview_plot_rows,
     )
     staging_dir = workbook_path.parent / "_staging"
     staging_dir.mkdir(parents=True, exist_ok=True)

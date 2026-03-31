@@ -148,9 +148,10 @@ def test_excel_export_generates_feed_and_workbook(synthetic_project) -> None:
     workbook = load_workbook(workbook_path)
     assert tuple(workbook.sheetnames) == WORKSHEET_NAMES
     control = workbook["Control"]
-    assert control["A1"].value == "Research Console / 研究主控台"
-    assert control["D12"].value == "Refresh Feed Pack"
-    assert len(control._charts) >= 1
+    assert control["A1"].value == "Research Console"
+    assert control["I12"].value == "Refresh Feed Pack"
+    assert control["A17"].value == "Mainline vs challenger snapshot"
+    assert control.freeze_panes == "A11"
     assert Path(result["action_scripts"]["refresh_data_pack"]).exists()
     assert Path(result["action_scripts"]["open_latest_console"]).exists()
 

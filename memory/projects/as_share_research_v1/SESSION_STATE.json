@@ -2,16 +2,16 @@
   "baseline_status": "baseline_validation_ready",
   "branch": "main",
   "canonical_project_id": "as_share_research_v1",
-  "canonical_truth_summary": "规范项目当前处于晋级受阻阶段，真实主阻塞是 最大回撤 48.67% 高于 30.00%。；旧的“缺 bars”叙事已转为历史路径。",
+  "canonical_truth_summary": "规范项目当前处于晋级受阻阶段，真实主阻塞是 F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.；旧的“缺 bars”叙事已转为历史路径。",
   "canonical_universe_id": "cn_a_mainboard_all_v1",
   "configured_subagent_gate_mode": "OFF",
   "current_blocked_strategy_ids": [
     "risk_constrained_limit_up",
     "tighter_entry_limit_up"
   ],
-  "current_blocker": "Max drawdown 48.67% exceeds 30.00%.",
+  "current_blocker": "F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.",
   "current_capability_boundary": "研究输入与验证入口已就绪，当前已进入策略验证 / 晋级受阻阶段；真正卡住的是最大回撤仍高于 30%。",
-  "current_phase": "Phase 1 Research OS",
+  "current_phase": "F2 bounded challenger with Excel console refinement",
   "current_primary_strategy_ids": [
     "f1_elasticnet_v1"
   ],
@@ -32,39 +32,24 @@
     "f1_elasticnet_v1",
     "f2_structured_latent_factor_v1"
   ],
-  "current_strategy_summary": "本轮围绕 f1_elasticnet_v1（F1 ElasticNet ????） 继续收敛研究阻塞；当前最硬的限制仍是 最大回撤 48.67% 高于 30.00%。。",
-  "current_task": "Review the denser Excel dashboard v2 and decide whether it is sufficient to retire the frozen local web UI.",
+  "current_strategy_summary": "本轮围绕 f1_elasticnet_v1（F1 ElasticNet ????） 继续收敛研究阻塞；当前最硬的限制仍是 F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.。",
+  "current_task": "Use a focused Excel control sheet as the internal console while keeping F1 as mainline and F2.1 as the bounded challenger.",
   "durable_facts": [
-    "The limit-up screening path now shares one audited research core between the standalone script and the modular steps.",
-    "Tracked long-term memory lives under `memory/projects/<project>/`; runtime artifacts stay under `data/` and `artifacts/`.",
-    "历史项目名 2026Q1_limit_up 仅作为 legacy alias / 迁移记录保留，不再代表当前活跃项目。",
-    "F1 bounded verifier now compares F1 and baseline_limit_up on the same core universe under one shared TopN shell.",
-    "The latest F1 bounded verifier decision is keep_f1_mainline.",
-    "R1.1 is a bounded predictive-error overlay on top of F1; it only scales exposure and does not update F1 weights.",
-    "The latest R1.1 verifier decision is reject_r1_v1_and_retain_f1_mainline.",
-    "F1 remains the verified mainline after the post-R1.1 frontier reselection.",
-    "R1.2 was selected as the next bounded challenger after R1.1 reduced drawdown but sacrificed too much return.",
-    "F2.1 remains the runner-up challenger for the next model branch.",
-    "Hybrid F1.5 remains deferred until a frozen sidecar contract and offline reproducibility are proven.",
-    "R1.2 is a bounded predictive-error overlay on top of F1; it only scales exposure and does not update F1 weights.",
-    "The latest R1.2 verifier decision is reject_r1_v2_and_promote_f2_next.",
-    "F2.1 is a bounded structured latent deep-factor challenger implemented inside the current scikit-learn stack.",
-    "F2.1 reuses the same core universe, label contract, and monthly retrain rhythm as F1.",
-    "F2.1 writes a latent-factor audit artifact instead of keeping only final scores.",
-    "F2.1 is a bounded structured latent deep-factor challenger built inside the current scikit-learn stack.",
+    "F1 remains the current mainline and F2.1 remains a bounded challenger under the shared shell.",
     "The latest F2.1 verifier decision is keep_f2_challenger.",
-    "An export-first Excel console MVP now lives under `artifacts/projects/<project>/excel/` and reads only tracked truth sources.",
+    "An export-first Excel console now lives under `artifacts/projects/<project>/excel/` and reads only tracked truth sources.",
     "The local web monitoring surfaces are frozen until the Excel console covers the core internal scenarios and the user approves deletion.",
     "On this machine Excel COM is available but VBProject access is blocked, so the console currently uses launcher links instead of embedded VBA macros.",
-    "The Excel console now exposes dashboard-style strategy metrics, experiment summaries, and embedded preview charts; it is no longer a minimal placeholder workbook."
+    "The Excel console Control sheet now acts as a single-screen dashboard instead of a multi-purpose dump sheet.",
+    "历史项目名 2026Q1_limit_up 仅作为 legacy alias / 迁移记录保留，不再代表当前活跃项目。"
   ],
   "effective_subagent_gate_mode": "OFF",
   "effective_subagent_gate_reason": "F2.1 verifier stayed in OFF mode because this round was a tightly coupled serial implementation.",
   "excel_console_last_validated_at": "2026-03-31T15:38:57+00:00",
-  "excel_console_mode": "dashboard_v2_launcher_links_fallback",
+  "excel_console_mode": "dashboard_v3_launcher_links_fallback",
   "excel_console_open_smoke_note": "The regenerated dashboard workbook opened successfully and exposed charts plus preview images.",
   "excel_console_open_smoke_status": "passed",
-  "excel_console_visual_density": "dashboard_v2_with_charts",
+  "excel_console_visual_density": "focused_control_sheet_with_single_comparison_preview",
   "excel_macro_injection_status": "blocked_vbproject_access",
   "excel_macro_runtime_mode": "launcher_links_fallback",
   "execution_queue": [
@@ -144,7 +129,7 @@
   "f2_verify_classification": "verifier_mixed",
   "f2_verify_decision": "keep_f2_challenger",
   "f2_verify_report_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f2\\F2_BOUNDED_VERIFIER.json",
-  "head": "b2290ceddc3650617d453c86ad73643f40580deb",
+  "head": "f528bc7e5458f20c2713b2f74cd72197a45d0d38",
   "iterative_loop": {
     "alternative_subagents": [],
     "archived_subagent_count": 0,
@@ -190,14 +175,14 @@
   "last_failed_capability": "Promotion gate blocked: Max drawdown 48.67% exceeds 30.00%.",
   "last_failure": {
     "corrective_action": "Restore a usable frozen universe plus local bars before rerunning the dry-run cycle.",
-    "experiment_id": "as_share_research_v1-20260331T154312",
+    "experiment_id": "as_share_research_v1-20260331T161519",
     "resolution_status": "not_fixed",
     "root_cause": "Max drawdown 48.67% exceeds 30.00%.",
     "summary": "Promotion gate blocked: Max drawdown 48.67% exceeds 30.00%.",
-    "timestamp": "2026-03-31T15:43:12"
+    "timestamp": "2026-03-31T16:15:19"
   },
-  "last_updated": "2026-03-31T15:44:33+00:00",
-  "last_verified_capability": "Excel console dashboard v2 exported a valid workbook with denser strategy metrics, experiment summaries, embedded preview charts, and safe launcher actions while keeping Python as the only source of truth.",
+  "last_updated": "2026-03-31T16:17:45+00:00",
+  "last_verified_capability": "Excel console Control sheet now emphasizes mainline, blocker, next action, safe actions, and one large mainline-vs-challenger preview without changing Python as the source of truth.",
   "latest_hypotheses": [
     {
       "hypothesis": "as_share_research_v1: investigate the highest-severity failed gate before running a live experiment",
@@ -208,35 +193,20 @@
     "2026Q1_limit_up"
   ],
   "negative_memory": [
-    "Default-project promotion is not trustworthy until validated bars exist for the frozen universe.",
-    "Ignored runtime directories are not sufficient as the sole store for durable project memory.",
-    "Do not compare F1 against the old legacy baseline output when the verifier requires the latest core pool only.",
-    "Do not reopen F2/R1 scouting unless the shared-shell verifier says F1 keeps the mainline strongly enough.",
-    "Do not treat R1.1 verifier output as promotion evidence or proof of profitability.",
-    "Do not let R1.1 silently change F1 weights; the v1 overlay only scales exposure.",
-    "Do not treat the R1.1 family as solved just because one overlay reduced drawdown; R1.1 v1 was rejected on return loss.",
-    "Do not jump to F2.1 or Hybrid F1.5 before checking whether a gentler R1.2 overlay can preserve more F1 return.",
-    "Do not let R1.2 update F1 weights; the near-term overlay family must stay exposure-only.",
-    "Do not describe frontier reselection as proof of profitability or promotion readiness.",
-    "Do not treat R1.2 verifier output as promotion evidence or proof of profitability.",
-    "Do not let R1.2 silently change F1 weights; this overlay family must stay exposure-only.",
-    "Do not treat F2.1 prototype metrics as promotion evidence or profitability proof.",
-    "Do not silently replace F1 with F2.1 before the shared-shell verifier completes.",
-    "Do not widen F2.1 into heavy dependencies when the bounded scikit-learn prototype has not been verified yet.",
     "Do not treat F2.1 verifier output as profitability proof or promotion evidence.",
     "Do not let F2.1 displace F1 mainline until the bounded verifier result is explicitly accepted.",
-    "Do not delete `apps/web` or `dashboard/app.py` before the Excel console MVP is accepted by the user.",
+    "Do not delete `apps/web` or `dashboard/app.py` before the Excel console is accepted by the user.",
     "Do not let Excel or launcher scripts become a second source of truth; Python and tracked memory remain canonical.",
-    "Do not judge the Excel console from the old sparse workbook; the current truth is the dashboard v2 workbook referenced by SESSION_STATE and the latest manifest."
+    "Do not overload the Control sheet with secondary ledgers, path dumps, or tiny low-signal charts; those belong on secondary tabs."
   ],
   "next_build_target": "f2_structured_latent_factor_v1",
-  "next_priority_action": "Use the updated Excel dashboard v2; if it covers the core workflow, retire apps/web and dashboard/app.py next.",
+  "next_priority_action": "Review the focused Excel Control sheet; if accepted, retire the frozen web UI and continue one more bounded F2.1 variant.",
   "next_step_memory": [
-    "Use the updated Excel dashboard v2; if it covers the core workflow, retire apps/web and dashboard/app.py next.",
-    "Restore a usable validated bar snapshot for the frozen default universe.",
-    "Run one more bounded F2.1 variant before widening the model search.",
-    "Reopen LIGHT scouting for Zeno / Popper / Fermat and start F2/R1 frontier scanning.",
-    "Keep F1 as the current mainline while F2.1 remains only a bounded challenger."
+    "Review the focused Excel Control sheet; if accepted, retire the frozen web UI and continue one more bounded F2.1 variant.",
+    "Review the focused Excel Control sheet and decide whether the frozen web UI can be retired.",
+    "If the Excel console is accepted, delete `apps/web` and `dashboard/app.py` next.",
+    "Keep F1 as the current mainline while F2.1 remains only a bounded challenger.",
+    "Run one more bounded F2.1 variant before widening the model search."
   ],
   "project": "as_share_research_v1",
   "project_identity_notice": "历史项目名 2026Q1_limit_up 仅作为 legacy alias / 迁移记录保留，不再代表当前活跃项目。",
@@ -248,8 +218,8 @@
     "stage": "validation-ready"
   },
   "research_progress": {
-    "confidence": "low",
-    "current_blocker": "Max drawdown 48.67% exceeds 30.00%.",
+    "confidence": "medium",
+    "current_blocker": "F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.",
     "dimensions": [
       {
         "dimension": "Data inputs",
@@ -259,19 +229,19 @@
       },
       {
         "dimension": "Strategy integrity",
-        "evidence": "单一研究核心与契约护栏已存在；最近已验证能力：Excel console dashboard v2 exported a valid workbook with denser strategy metrics, experiment summaries, embedded preview charts, and safe launcher actions while keeping Python as the only source of truth.。",
+        "evidence": "单一研究核心与契约护栏已存在；最近已验证能力：Excel console Control sheet now emphasizes mainline, blocker, next action, safe actions, and one large mainline-vs-challenger preview without changing Python as the source of truth.。",
         "score": 2,
         "status": "partial"
       },
       {
         "dimension": "Validation stack",
-        "evidence": "仅具备基础验证入口，尚缺少足够已记录证据支持更高评分。",
-        "score": 1,
-        "status": "bootstrap"
+        "evidence": "审计/泄漏/晋级框架存在；最近已验证能力：Excel console Control sheet now emphasizes mainline, blocker, next action, safe actions, and one large mainline-vs-challenger preview without changing Python as the source of truth.。",
+        "score": 2,
+        "status": "partial"
       },
       {
         "dimension": "Promotion readiness",
-        "evidence": "当前 blocker：最大回撤 48.67% 高于 30.00%。；研究输入仍不足以支撑晋级评估。",
+        "evidence": "当前 blocker：F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.；研究输入仍不足以支撑晋级评估。",
         "score": 1,
         "status": "blocked"
       },
@@ -283,7 +253,7 @@
       }
     ],
     "materially_changed": false,
-    "next_milestone": "Use the updated Excel dashboard v2; if it covers the core workflow, retire apps/web and dashboard/app.py next.",
+    "next_milestone": "Review the focused Excel Control sheet; if accepted, retire the frozen web UI and continue one more bounded F2.1 variant.",
     "overall_trajectory": "blocked",
     "this_run_delta": "unchanged"
   },
@@ -596,14 +566,20 @@
   ],
   "tracked_memory_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1",
   "ui_console_manifest_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\excel\\feed\\manifest.json",
-  "ui_console_mode": "excel_dashboard_v2",
+  "ui_console_mode": "excel_dashboard_v3",
   "ui_console_workbook_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\excel\\ResearchConsole_20260331T153849Z.xlsm",
   "verify_last": {
-    "conclusion_boundary_engineering": "The Excel console is now a denser dashboard with strategy comparison charts, experiment result charts, and embedded plot previews; launcher links remain the safe runtime path because VBProject injection is blocked on this machine.",
-    "conclusion_boundary_research": "This round changed only the internal Excel console layer and did not change the F1/F2 research conclusions or promotion status.",
+    "conclusion_boundary_engineering": "Excel remains a viable internal console path, and the Control sheet is now refocused into a single-screen dashboard; web surfaces are still frozen, not deleted.",
+    "conclusion_boundary_research": "F1 remains mainline, F2.1 remains a bounded challenger, and the current shared-shell blocker is still max drawdown above the 30% line; profitability is not established.",
     "default_project_data_status": "latest core pool `core-0536a20f13d1` stayed consistent through F2 verifier and Excel export.",
     "failed_commands": [],
-    "passed_commands": []
+    "passed_commands": [
+      "pytest tests/test_excel_export.py -q",
+      "pytest tests/test_strategy_visibility.py tests/test_manifest_and_memory_writeback.py tests/test_strategy_spec_consistency.py tests/test_weekday_rebalance_contract.py tests/test_leakage_guards.py -q",
+      "python -m quant_mvp excel_export --project as_share_research_v1",
+      "python -m quant_mvp research_audit --project as_share_research_v1",
+      "python -m quant_mvp agent_cycle --project as_share_research_v1 --dry-run"
+    ]
   },
   "web_frontend_status": "frozen_pending_dashboard_acceptance"
 }

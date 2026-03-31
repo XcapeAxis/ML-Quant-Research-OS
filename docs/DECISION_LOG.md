@@ -148,3 +148,10 @@
   - `C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\excel\feed\manifest.json`
   - `C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\excel\ResearchConsole_20260331T153849Z.xlsm`
   - `C:\Users\asus\Documents\Projects\BackTest\docs\EXCEL_CONSOLE_MVP.md`
+## 2026-04-01T00:22:00+08:00 - repo
+- Decision: refocus the Excel console `Control` sheet into a single-screen dashboard that emphasizes mainline, blocker, next action, safe actions, and one large mainline-vs-challenger preview.
+- Reason: the denser dashboard proved the export-first Excel path worked, but the first control page still mixed primary signals with too many secondary details and small charts. The home sheet now acts as a driving console, while lower-priority ledgers stay on secondary tabs.
+- Evidence:
+  - `C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\excel\ResearchConsole.xlsm`
+  - `C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\excel\feed\manifest.json`
+  - `C:\Users\asus\Documents\Projects\BackTest\docs\EXCEL_CONSOLE_MVP.md`
