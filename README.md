@@ -21,6 +21,7 @@ Implemented in this refactor:
 - a dry-run agent cycle that writes plan / execution / evaluation / reflection to disk
 - a subagent governance layer with `OFF/AUTO/FORCE` gate, lifecycle tracking, and tracked/runtime separation
 - contract tests for strategy consistency, Tuesday rebalance, leakage guards, and memory writeback
+- an export-first Excel console MVP for internal monitoring, while the local web UIs stay frozen until the Excel path is accepted
 
 Not implemented yet:
 - live trading or broker connectivity
@@ -72,10 +73,10 @@ Validate and clean data:
 python -m quant_mvp data_validate --project as_share_research_v1 --config configs/projects/as_share_research_v1.json --full-refresh
 ```
 
-Evaluate whether the validated snapshot is promotion-ready:
+Inspect the research-readiness artifacts written by `data_validate`:
 
 ```bash
-python -m quant_mvp research_readiness --project as_share_research_v1 --config configs/projects/as_share_research_v1.json
+type data\\projects\\as_share_research_v1\\meta\\RESEARCH_READINESS.md
 ```
 
 Run the audited repo audit:
@@ -88,6 +89,12 @@ Run one dry-run research cycle:
 
 ```bash
 python -m quant_mvp agent_cycle --project as_share_research_v1 --config configs/projects/as_share_research_v1.json --dry-run
+```
+
+Export the internal Excel console feed and workbook:
+
+```bash
+python -m quant_mvp excel_export --project as_share_research_v1
 ```
 
 Run one bounded higher-order automation loop:
@@ -154,6 +161,7 @@ Runtime/high-noise outputs:
 - `data/projects/<project>/meta/`
 - `artifacts/projects/<project>/`
 - `artifacts/projects/<project>/automation_runs/`
+- `artifacts/projects/<project>/excel/`
 - repo-local skill recipe: `skills/research_iteration_loop/SKILL.md`
 
 ## Verification

@@ -1,26 +1,29 @@
 # Baseline Reset Note
 
-## 为什么要重置 baseline
-- 当前研究对象已经从旧 715 标的池切换为 `cn_a_mainboard_all_v1`
-- 旧 universe 上的收益、回撤和分支优劣不能自动迁移到新 universe
-- 如果不先重建 baseline，后续任何分支比较都会失真
+## 现在该怎么理解 baseline
+- baseline reset 已经不再是 `pending`
+- 当前应把 `baseline_limit_up` 理解为：`baseline_validation_ready`，并且已经在 canonical universe 上完成了第一次 bounded verifier 尝试
+- 这次 verifier 没卡在缺 bars，而是卡在 `Rank dataframe is empty`
 
-## 哪些旧策略结论被降级
-- `risk_constrained_limit_up`: 降级为 `legacy comparison only`
-- `tighter_entry_limit_up`: 降级为 `legacy comparison only`
-- 旧 universe 上的所有比较结论: 降级为 `historical comparison`
+## 已经完成的事
+- canonical universe 已切换到 `cn_a_mainboard_all_v1`
+- 当前 canonical coverage 是 `3165 / 3193 = 0.9912`
+- 当前 core pool 是 `492` 只股票
+- `baseline_limit_up` 最近一次 branch pool 是 `42` 只股票
 
-## 当前 active baseline 如何重建
-1. 使用 `cn_a_mainboard_all_v1` 重建 security master 与 universe
-2. 确认基础数据可拉取、清洗、验证
-3. 先跑 `baseline_limit_up` 的最小重建验证
-4. 只有 baseline 在新 universe 上建立后，再决定是否重新拉回其他分支
+## 当前真正阻塞 baseline 的原因
+- verifier 评估 baseline 分支时，又按 `top_pct_limit_up=0.1` 对这 42 只 branch pool 股票再筛一轮
+- 这会把候选压到低于 `stock_num=6` 的可用门槛，最终 `rank dataframe` 为空
+- 这是 branch 评估接口的问题，不是 canonical universe 还没恢复
 
-## 当前状态
-- active baseline: `baseline_limit_up`
-- baseline 状态: `baseline_reset_pending`
-- 当前 blocker: coverage 仅 `51.11%`
+## 这条记录要防止的旧误解
+- 不要再把 baseline 写成 `baseline_reset_pending`
+- 不要再把当前阶段写成 `pilot`
+- 不要再用旧的 `51.11% coverage` 叙事描述当前 canonical 项目
+- `risk_constrained_limit_up` 和 `tighter_entry_limit_up` 现在是 canonical 项目里的 challenger，不再属于旧的 baseline reset 待处理列表
 
-## 当前结论边界
-- baseline 重建已启动
-- baseline 真值尚未建立
+## 下一步
+1. 先统一 tracked memory 和相关测试
+2. 修正 branch pool 进入正式 ranking 的契约
+3. 重跑 `baseline_limit_up` 的 bounded verifier
+4. baseline 重新跑通后，再比较两个 challenger 分支

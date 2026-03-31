@@ -179,10 +179,22 @@ def _apply_risk_overlay(
     return raw_portfolio_return * scale
 
 
+def _apply_exposure_scale(
+    ts: pd.Timestamp,
+    raw_portfolio_return: float,
+    exposure_scale_by_date: Mapping[pd.Timestamp, float] | None,
+) -> float:
+    if not exposure_scale_by_date:
+        return raw_portfolio_return
+    scale = float(exposure_scale_by_date.get(pd.Timestamp(ts), 1.0))
+    return raw_portfolio_return * scale
+
+
 def run_rebalance_backtest(
     close_panel: pd.DataFrame,
     targets_by_date: Mapping[pd.Timestamp, list[str]],
     cfg: BacktestConfig,
+    exposure_scale_by_date: Mapping[pd.Timestamp, float] | None = None,
 ) -> pd.Series:
     if close_panel.empty:
         raise RuntimeError("close panel is empty")
@@ -219,7 +231,8 @@ def run_rebalance_backtest(
         nxt = pd.Timestamp(dates[i + 1])
         day_returns = returns.loc[nxt].reindex(codes).fillna(0.0)
         raw_ret = float((weights * day_returns).sum())
-        applied_ret = _apply_risk_overlay(daily_ret_hist, raw_ret, cfg.risk_overlay)
+        scaled_ret = _apply_exposure_scale(nxt, raw_ret, exposure_scale_by_date)
+        applied_ret = _apply_risk_overlay(daily_ret_hist, scaled_ret, cfg.risk_overlay)
         value *= 1.0 + applied_ret
         daily_ret_hist.append(applied_ret)
         equity[nxt] = value
@@ -243,6 +256,7 @@ def run_rebalance_backtest_with_stoploss(
     cfg: BacktestConfig,
     stoploss_params: StoplossParams | None = None,
     index_daily_ratio: pd.Series | None = None,
+    exposure_scale_by_date: Mapping[pd.Timestamp, float] | None = None,
 ) -> pd.Series:
     """
     Rebalance backtest with per-position stop-loss, take-profit, market stop-loss,
@@ -342,7 +356,8 @@ def run_rebalance_backtest_with_stoploss(
         nxt = pd.Timestamp(dates[i + 1])
         day_returns = returns.loc[nxt].reindex(codes).fillna(0.0)
         raw_ret = float((weights * day_returns).sum())
-        applied_ret = _apply_risk_overlay(daily_ret_hist, raw_ret, cfg.risk_overlay)
+        scaled_ret = _apply_exposure_scale(nxt, raw_ret, exposure_scale_by_date)
+        applied_ret = _apply_risk_overlay(daily_ret_hist, scaled_ret, cfg.risk_overlay)
         value *= 1.0 + applied_ret
         daily_ret_hist.append(applied_ret)
         equity[nxt] = value
@@ -357,12 +372,18 @@ def run_topn_suite(
     rank_df: pd.DataFrame,
     cfg: BacktestConfig,
     topn_max: int,
+    exposure_scale_by_date: Mapping[pd.Timestamp, float] | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     equities: list[pd.Series] = []
     metrics_rows: list[dict[str, float]] = []
     for topn in range(1, topn_max + 1):
         targets = rank_targets(rank_df, topn=topn)
-        equity = run_rebalance_backtest(close_panel=close_panel, targets_by_date=targets, cfg=cfg)
+        equity = run_rebalance_backtest(
+            close_panel=close_panel,
+            targets_by_date=targets,
+            cfg=cfg,
+            exposure_scale_by_date=exposure_scale_by_date,
+        )
         equity.name = f"Top{topn}"
         equities.append(equity)
         row = summarize_equity(equity, cfg)

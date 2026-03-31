@@ -77,12 +77,14 @@ def build_strategy_failure_report(
         "research_ready": readiness.get("ready"),
         "research_stage": readiness.get("stage"),
         "max_drawdown": checks.get("max_drawdown"),
+        "regime_transition_drawdown": checks.get("regime_transition_drawdown"),
         "leakage_passed": checks.get("leakage_passed"),
         "walk_forward_windows_alive": checks.get("walk_forward_windows_alive"),
         "walk_forward_status": checks.get("walk_forward_status"),
         "baselines_status": checks.get("baselines_status"),
         "cost_return_retention_ratio": checks.get("cost_return_retention_ratio"),
         "parameter_robustness_status": checks.get("parameter_robustness_status"),
+        "adversarial_robustness": checks.get("adversarial_robustness"),
     }
 
     if promotable:
@@ -178,6 +180,8 @@ def run_strategy_diagnostics(
             "reasons": list(readiness.reasons),
             "checks": {
                 "research_readiness": readiness.to_dict(),
+                "regime_transition_drawdown": None,
+                "adversarial_robustness": {"status": "not_evaluated", "score": None},
             },
         }
     else:
@@ -235,6 +239,8 @@ def run_strategy_diagnostics(
             payload["checks"]["baselines_status"] = baselines.get("status", "unknown")
             payload["checks"]["walk_forward_status"] = walk_forward.get("status", "unknown")
             payload["checks"]["parameter_robustness_status"] = parameter_robustness.get("status", "unknown")
+            payload["checks"].setdefault("regime_transition_drawdown", None)
+            payload["checks"].setdefault("adversarial_robustness", {"status": "not_evaluated", "score": None})
             payload["leakage"] = leakage.to_dict()
             payload["walk_forward"] = walk_forward
             payload["baselines"] = baselines
@@ -246,6 +252,8 @@ def run_strategy_diagnostics(
                 "reasons": [f"missing_research_inputs: {exc}"],
                 "checks": {
                     "research_readiness": readiness.to_dict(),
+                    "regime_transition_drawdown": None,
+                    "adversarial_robustness": {"status": "not_evaluated", "score": None},
                 },
             }
 

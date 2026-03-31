@@ -1,20 +1,25 @@
 # 策略研究看板
 
-## 当前 active baseline
-| 策略 | 角色 | 状态 | 说明 |
-|---|---|---|---|
-| `baseline_limit_up` | active baseline | `baseline_validation_ready` | 已在 canonical universe 上完成最小重建与 readiness 复核，但仍不是 active truth。 |
+## 主线策略
+- 当前主线策略: f1_elasticnet_v1（F1 ElasticNet ????）
+- 当前轮次类型: 策略推进轮
+- 当前 blocker: 最大回撤 48.67% 高于 30.00%。
+- 当前策略推进判断: 本轮围绕 f1_elasticnet_v1（F1 ElasticNet ????） 继续收敛研究阻塞；当前最硬的限制仍是 最大回撤 48.67% 高于 30.00%。。
 
-## legacy comparison only
-| 策略 | 当前地位 | 说明 |
-|---|---|---|
-| `risk_constrained_limit_up` | legacy comparison only | baseline 还没进入显式 `research-ready` promotion gate，不能恢复为主线。 |
-| `tighter_entry_limit_up` | legacy comparison only | 同上，只保留后续对照资格。 |
-| `legacy_single_branch` | archived reference | 旧 `715-symbol` 叙事只保留为迁移说明，不再进入 active path。 |
+## 支线策略
+- 当前支线策略: f2_structured_latent_factor_v1（F2.1 Structured Latent Deep Factor）, baseline_limit_up（????????）, risk_constrained_limit_up（????????）
+- blocked 策略: risk_constrained_limit_up（????????）, tighter_entry_limit_up（??????????）
+- rejected 策略: r1_predictive_error_overlay_v1（R1.1 Predictive Error Overlay）, legacy_single_branch（????????）
+- promoted 策略: 当前为空
 
-## 当前 blocker
-- coverage stage: `validation-ready`
-- canonical coverage: `3165 / 3193 = 99.12%`
-- structural no-bars: `24`
-- provider failures: `4`
-- 当前不允许把 legacy 分支结论重新包装成 canonical universe 的真相
+## 系统判断
+- 系统推进判断: 本轮主要把当前研究结论、阻塞原因和后续验证顺序写清楚，没有新增宽泛系统扩张。
+- 说明: 这里只展示当前研究分支、阻塞项和下一步顺序，不再回退到旧重置模板。
+
+## 相关 tracked memory
+- strategy_board: C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\STRATEGY_BOARD.md
+- strategy_candidates_dir: C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\STRATEGY_CANDIDATES
+- strategy_action_log: C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\STRATEGY_ACTION_LOG.jsonl
+- research_activity: C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\RESEARCH_ACTIVITY.md
+- idea_backlog: C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\IDEA_BACKLOG.md
+- research_progress: C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\RESEARCH_PROGRESS.md

@@ -36,7 +36,14 @@ from .promotion import promote_candidate
 from .research_audit import run_research_audit
 from .config import load_config
 from .coverage_recovery import run_coverage_recovery
+from .f1_pipeline import run_f1_train
+from .f1_verify import run_f1_verify
+from .f2_pipeline import run_f2_train
+from .f2_verify import run_f2_verify
+from .excel_export import run_excel_export
+from .r1_pipeline import run_r1_verify
 from .strategy_campaign import run_baseline_strategy_diagnostic
+from .superagent import branch_review, mission_status, mission_tick
 
 
 TASK_TO_SCRIPT = {
@@ -102,6 +109,21 @@ def main() -> None:
     cycle_parser.add_argument("--project", type=str, required=True)
     cycle_parser.add_argument("--config", type=Path, default=None)
     cycle_parser.add_argument("--dry-run", action="store_true")
+
+    mission_tick_parser = sub.add_parser("mission_tick", help="Run the multi-branch mission orchestrator")
+    mission_tick_parser.add_argument("--project", type=str, required=True)
+    mission_tick_parser.add_argument("--config", type=Path, default=None)
+    mission_tick_parser.add_argument("--dry-run", action="store_true")
+    mission_tick_parser.add_argument("--max-branches", type=int, default=3)
+    mission_tick_parser.add_argument("--legacy-single-branch", action="store_true")
+
+    mission_status_parser = sub.add_parser("mission_status", help="Show the current mission and latest branch states")
+    mission_status_parser.add_argument("--project", type=str, required=True)
+
+    branch_review_parser = sub.add_parser("branch_review", help="Change one branch state before the next mission tick")
+    branch_review_parser.add_argument("--project", type=str, required=True)
+    branch_review_parser.add_argument("--branch", type=str, required=True)
+    branch_review_parser.add_argument("--action", type=str, choices=["keep", "hold", "retire", "promote"], required=True)
 
     iterative_parser = sub.add_parser("iterative_run", help="Run a bounded higher-order automation loop")
     iterative_parser.add_argument("--project", type=str, required=True)
@@ -199,6 +221,30 @@ def main() -> None:
     promote_parser.add_argument("--project", type=str, required=True)
     promote_parser.add_argument("--config", type=Path, default=None)
 
+    f1_parser = sub.add_parser("f1_train", help="Run the first ElasticNet factor-model MVP")
+    f1_parser.add_argument("--project", type=str, required=True)
+    f1_parser.add_argument("--config", type=Path, default=None)
+
+    f1_verify_parser = sub.add_parser("f1_verify", help="Run the bounded F1 vs control verifier on one shared TopN shell")
+    f1_verify_parser.add_argument("--project", type=str, required=True)
+    f1_verify_parser.add_argument("--config", type=Path, default=None)
+
+    f2_parser = sub.add_parser("f2_train", help="Run the bounded structured latent deep-factor challenger")
+    f2_parser.add_argument("--project", type=str, required=True)
+    f2_parser.add_argument("--config", type=Path, default=None)
+
+    f2_verify_parser = sub.add_parser("f2_verify", help="Run the bounded F2 vs F1 vs control verifier on one shared TopN shell")
+    f2_verify_parser.add_argument("--project", type=str, required=True)
+    f2_verify_parser.add_argument("--config", type=Path, default=None)
+
+    excel_export_parser = sub.add_parser("excel_export", help="Export the Excel console feed and workbook")
+    excel_export_parser.add_argument("--project", type=str, required=True)
+    excel_export_parser.add_argument("--config", type=Path, default=None)
+
+    r1_verify_parser = sub.add_parser("r1_verify", help="Run the bounded predictive-error regime-overlay verifier on one shared TopN shell")
+    r1_verify_parser.add_argument("--project", type=str, required=True)
+    r1_verify_parser.add_argument("--config", type=Path, default=None)
+
     diagnostic_parser = sub.add_parser(
         "baseline_strategy_diagnostic",
         help="Run the baseline strategy diagnostic campaign and write tracked research memory",
@@ -266,6 +312,33 @@ def main() -> None:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return
 
+    if args.command == "mission_tick":
+        result = mission_tick(
+            project=args.project,
+            dry_run=args.dry_run,
+            max_branches=args.max_branches,
+            repo_root=find_repo_root(),
+            config_path=args.config,
+            legacy_single_branch=args.legacy_single_branch,
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "mission_status":
+        result = mission_status(project=args.project, repo_root=find_repo_root())
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "branch_review":
+        result = branch_review(
+            project=args.project,
+            branch_id=args.branch,
+            action=args.action,
+            repo_root=find_repo_root(),
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
     if args.command == "iterative_run":
         result = run_iterative_loop(
             project=args.project,
@@ -301,10 +374,10 @@ def main() -> None:
         summary = {
             "current_task": state.get("current_task") or "Keep the Phase 1 Research OS reproducible with tracked memory and honest runtime artifacts.",
             "current_phase": state.get("current_phase") or "Phase 1 Research OS",
-            "current_blocker": state.get("current_blocker") or "Default project still lacks usable validated bars for the frozen universe.",
+            "current_blocker": state.get("current_blocker") or "none",
             "current_capability_boundary": state.get("current_capability_boundary")
-            or "Engineering guardrails work; real default-project research remains blocked on data coverage.",
-            "next_priority_action": state.get("next_priority_action") or "Restore a usable validated bar snapshot for the frozen default universe.",
+            or "Tracked memory sync only refreshed the current snapshot; it did not validate any new research claim.",
+            "next_priority_action": state.get("next_priority_action") or "Run handoff generation.",
             "last_verified_capability": state.get("last_verified_capability")
             or f"Tracked memory synced from config {resolved_paths.config_path.name}.",
         }
@@ -421,6 +494,60 @@ def main() -> None:
 
     if args.command == "promote_candidate":
         result = promote_candidate(args.project, config_path=args.config)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "f1_train":
+        result = run_f1_train(
+            args.project,
+            config_path=args.config,
+            repo_root=find_repo_root(),
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "f1_verify":
+        result = run_f1_verify(
+            args.project,
+            config_path=args.config,
+            repo_root=find_repo_root(),
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "f2_train":
+        result = run_f2_train(
+            args.project,
+            config_path=args.config,
+            repo_root=find_repo_root(),
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "f2_verify":
+        result = run_f2_verify(
+            args.project,
+            config_path=args.config,
+            repo_root=find_repo_root(),
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "excel_export":
+        result = run_excel_export(
+            args.project,
+            config_path=args.config,
+            repo_root=find_repo_root(),
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "r1_verify":
+        result = run_r1_verify(
+            args.project,
+            config_path=args.config,
+            repo_root=find_repo_root(),
+        )
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return
 

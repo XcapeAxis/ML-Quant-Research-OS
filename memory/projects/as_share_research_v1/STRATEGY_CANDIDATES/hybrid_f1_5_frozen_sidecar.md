@@ -1,0 +1,21 @@
+# Hybrid F1.5 Frozen Sidecar
+
+- strategy_id: hybrid_f1_5_frozen_sidecar
+- name: Hybrid F1.5 Frozen Sidecar
+- category: foundation_sidecar
+- core_hypothesis: A frozen foundation-model sidecar may eventually provide auxiliary features next to F1 without replacing the mainline.
+- economic_rationale: The idea is credible, but dependency, reproducibility, and governance costs are too high for the next immediate build.
+- required_data: Pinned frozen checkpoint, offline cached weights, sidecar output table, same F1 evaluation shell.
+- current_stage: deferred
+- latest_action: Completed LIGHT frontier reselection.
+- latest_result: Deferred; revisit only after a frozen-sidecar contract and offline reproducibility are proven.
+- decision: hold
+- next_validation: None in the near-term queue.
+- owner: main
+- subagents_assigned:
+  - none
+- artifact_refs:
+  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\FRONTIER_NEXT_STEP_DECISION.md
+- blocked_by:
+  - Would require a heavier dependency/runtime stack than the current repo carries.
+- kill_criteria: Do not promote until a frozen sidecar contract can run offline with pinned weights and no end-to-end fine-tuning.

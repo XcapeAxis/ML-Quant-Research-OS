@@ -1,7 +1,7 @@
 {
   "project": "as_share_research_v1",
-  "generated_at": "2026-03-27T18:58:53.110600",
-  "git_commit": "573f4a7f48b3e979367e24a52114ff0ba5243851",
+  "generated_at": "2026-03-31T20:42:25.844285",
+  "git_commit": "b2290ceddc3650617d453c86ad73643f40580deb",
   "paths": {
     "signals_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\signals",
     "features_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\features",
@@ -1373,5 +1373,96 @@
     "other_non_common_stock"
   ],
   "st_policy": "include_as_label_only",
-  "drawdown_path": ""
+  "drawdown_path": "",
+  "f1": {
+    "profile": "f1_elasticnet_v1",
+    "core_snapshot_id": "core-0536a20f13d1",
+    "feature_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\features\\f1_technical_liquidity_panel_v1.parquet",
+    "label_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\features\\f1_next5d_excess_label_v1.parquet",
+    "candidate_scores_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\signals\\f1_elasticnet_candidate_scores.parquet",
+    "rank_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\signals\\f1_elasticnet_rank_top6.parquet",
+    "summary_metrics_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f1\\summary_metrics.csv",
+    "plot_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f1\\topn_suite.png",
+    "experiment_record_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments\\as_share_research_v1__factor_elasticnet_core__20260330T095737Z.json",
+    "topk_metrics": {
+      "total_return": 22.002761458496565,
+      "annualized_return": 0.5530314581280513,
+      "annualized_volatility": 0.30854255959714727,
+      "max_drawdown": -0.3789227286873307,
+      "sharpe_ratio": 1.6951679496370107,
+      "calmar_ratio": 1.4594834678929673,
+      "sortino_ratio": 2.205778974588134,
+      "win_rate": 0.5727019498607242,
+      "max_drawdown_duration": 232.0,
+      "return_skewness": -0.6060917580823771,
+      "days": 1795.0,
+      "final_equity": 23002761.458496563,
+      "topn": 6.0
+    }
+  },
+  "f1_verifier": {
+    "core_snapshot_id": "core-0536a20f13d1",
+    "source_f1_experiment_id": "as_share_research_v1__factor_elasticnet_core__20260330T095737Z",
+    "control_rank_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\signals\\f1_control_rank_top6_common_shell.parquet",
+    "metrics_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f1\\f1_vs_control_common_shell_metrics.csv",
+    "plot_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f1\\f1_vs_control_common_shell.png",
+    "verifier_json_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f1\\F1_BOUNDED_VERIFIER.json",
+    "verifier_md_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f1\\F1_BOUNDED_VERIFIER.md",
+    "experiment_record_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments\\as_share_research_v1__factor_elasticnet_core_verify__20260331T124133Z.json",
+    "decision": "keep_f1_mainline",
+    "classification": "verifier_pass"
+  },
+  "r1_verifier": {
+    "profile": "r1_predictive_error_overlay_v2",
+    "core_snapshot_id": "core-0536a20f13d1",
+    "source_f1_experiment_id": "as_share_research_v1__factor_elasticnet_core__20260330T095737Z",
+    "signal_frame_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\r1\\r1_predictive_error_overlay_v2\\r1_signal_frame.parquet",
+    "state_timeline_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\r1\\r1_predictive_error_overlay_v2\\r1_state_timeline.csv",
+    "metrics_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\r1\\r1_predictive_error_overlay_v2\\r1_vs_f1_vs_control_metrics.csv",
+    "plot_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\r1\\r1_predictive_error_overlay_v2\\r1_vs_f1_vs_control.png",
+    "report_json_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\r1\\r1_predictive_error_overlay_v2\\R1_VERIFY_REPORT.json",
+    "report_md_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\r1\\r1_predictive_error_overlay_v2\\R1_VERIFY_REPORT.md",
+    "experiment_record_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments\\as_share_research_v1__factor_elasticnet_core__r1_predictive_error_overlay_v2__20260331T083703Z.json",
+    "decision": "reject_r1_v2_and_promote_f2_next",
+    "classification": "verifier_mixed"
+  },
+  "f2": {
+    "profile": "f2_structured_latent_factor_v1",
+    "core_snapshot_id": "core-0536a20f13d1",
+    "feature_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\features\\f2_structured_feature_panel_v1.parquet",
+    "label_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\features\\f2_next5d_excess_label_v1.parquet",
+    "latent_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\features\\f2_latent_factor_frame_v1.parquet",
+    "candidate_scores_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\signals\\f2_structured_latent_scores.parquet",
+    "rank_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\signals\\f2_structured_latent_rank_top6.parquet",
+    "summary_metrics_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f2\\summary_metrics.csv",
+    "plot_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f2\\topn_suite.png",
+    "experiment_record_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments\\as_share_research_v1__factor_elasticnet_core__f2_structured_latent_factor_v1__20260331T101136Z.json",
+    "topk_metrics": {
+      "total_return": 2.280970953803986,
+      "annualized_return": 0.18152131419063178,
+      "annualized_volatility": 0.354155358447002,
+      "max_drawdown": -0.46043173008035065,
+      "sharpe_ratio": 0.42783854762233214,
+      "calmar_ratio": 0.3942415396935268,
+      "sortino_ratio": 0.6344491886141118,
+      "win_rate": 0.5186629526462395,
+      "max_drawdown_duration": 528.0,
+      "return_skewness": -0.10450904778497669,
+      "days": 1795.0,
+      "final_equity": 3280970.953803986,
+      "topn": 6.0
+    }
+  },
+  "f2_verifier": {
+    "core_snapshot_id": "core-0536a20f13d1",
+    "source_f1_experiment_id": "as_share_research_v1__factor_elasticnet_core__20260330T095737Z",
+    "source_f2_experiment_id": "as_share_research_v1__factor_elasticnet_core__f2_structured_latent_factor_v1__20260331T101136Z",
+    "metrics_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f2\\f2_vs_f1_vs_control_metrics.csv",
+    "plot_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f2\\f2_vs_f1_vs_control.png",
+    "report_json_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f2\\F2_BOUNDED_VERIFIER.json",
+    "report_md_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f2\\F2_BOUNDED_VERIFIER.md",
+    "experiment_record_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\as_share_research_v1\\meta\\experiments\\as_share_research_v1__factor_elasticnet_core__f2_verify__20260331T124202Z.json",
+    "decision": "keep_f2_challenger",
+    "classification": "verifier_mixed"
+  }
 }

@@ -1,0 +1,24 @@
+# R1.2 ?????????
+
+- strategy_id: r1_predictive_error_overlay_v2
+- name: R1.2 ?????????
+- category: risk_control
+- core_hypothesis: ???????????????????????????????? F1 ??????????????
+- economic_rationale: ?? blocker ? drawdown???? alpha ???R1.2 ?????? blocker ????????
+- required_data: F1 candidate scores?next_5d_excess_return ????? core pool??? TopN shell?
+- current_stage: validation
+- latest_action: Completed one bounded predictive-error regime-overlay verifier.
+- latest_result: F1+R1.2 shared-shell Top6: annualized_return=39.08%, max_drawdown=25.47%, sharpe=1.5151; decision=reject_r1_v2_and_promote_f2_next.
+- decision: hold
+- next_validation: Reject this bounded overlay and promote F2.1 to the next implementation slot.
+- owner: main
+- subagents_assigned:
+  - none
+- artifact_refs:
+  - C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\r1\R1_VERIFY_REPORT.json
+  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\FRONTIER_NEXT_STEP_DECISION.md
+  - C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\r1\r1_predictive_error_overlay_v2\R1_VERIFY_REPORT.json
+  - C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\r1\r1_predictive_error_overlay_v2\R1_VERIFY_REPORT.md
+- blocked_by:
+  - r1_annualized_return_delta -13.65% is below the allowed -3.00% floor.
+- kill_criteria: Reject R1.2 if it still misses the return floor, fails to improve Calmar, or requires online weight updates.

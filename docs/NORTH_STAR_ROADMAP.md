@@ -2,6 +2,7 @@
 
 ## North Star
 - Build an autonomous quant-research superagent that can research, iterate, reflect, discover missing tools, use tools, mine factors and opportunities, and adaptively coordinate subagents.
+- Prioritize a factor-first and controllable-ML-first research core instead of treating a single hand-crafted strategy family as the long-term center.
 - Keep near-term implementation scoped to China A-share daily and weekly research.
 - Reserve clean seams for future multi-market and multi-frequency expansion.
 - Keep live trading out of scope; only plan for isolated shadow and paper interfaces.
@@ -15,6 +16,7 @@
 ## Dual-Track Strategy
 - Track 1: keep Phase 1 Research OS acceptance honest around readiness, auditability, reproducibility, and guarded promotion.
 - Track 2: build the superagent incrementally, but treat later-stage autonomy as roadmap work until earlier gates pass.
+- Keep hand-crafted strategy branches as control paths and smoke tests, not as the final product shape; the main alpha roadmap should move toward factors, searchable signals, and controllable ML.
 - Do not mix the success criteria: a stronger roadmap does not mean current capability exists, and pilot research results do not prove the north-star end state.
 - Profitability claims are staged: first honest readiness plus baseline outperformance, then cross-window and cost robustness, then shadow and paper stability.
 - Use tracked memory under `memory/projects/<project>/` plus this roadmap as the only durable macro-goal store; do not create a second parallel memory system.

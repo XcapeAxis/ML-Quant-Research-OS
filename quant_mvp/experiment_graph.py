@@ -18,6 +18,10 @@ def _normalize_codes(codes: Iterable[str]) -> list[str]:
     return sorted({str(code).zfill(6) for code in codes if str(code).strip()})
 
 
+def _object_id(prefix: str, payload: Mapping[str, Any]) -> str:
+    return f"{prefix}-{stable_hash(dict(payload))[:12]}"
+
+
 @dataclass
 class UniverseSnapshot:
     size: int
@@ -47,6 +51,75 @@ class DatasetSnapshot:
 class FactorSpec:
     name: str
     params: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class FactorCandidate:
+    factor_id: str
+    name: str
+    family: str
+    description: str = ""
+    params: dict[str, Any] = field(default_factory=dict)
+    source: str = "manual"
+    status: str = "seed"
+    tags: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class FeatureView:
+    feature_view_id: str
+    name: str
+    inputs: list[str] = field(default_factory=list)
+    transforms: list[str] = field(default_factory=list)
+    sampling: str = ""
+    notes: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class LabelSpec:
+    label_spec_id: str
+    target_name: str
+    horizon: str
+    objective: str
+    definition: str = ""
+    notes: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class ModelCandidate:
+    model_id: str
+    name: str
+    family: str
+    params: dict[str, Any] = field(default_factory=dict)
+    is_online_adaptive: bool = False
+    update_frequency: str = "offline"
+    training_mode: str = "batch"
+    notes: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class RegimeSpec:
+    regime_id: str
+    detector_name: str
+    transition_signal: str
+    regime_transition_latency: float | None = None
+    adaptive_policy: str = "static"
+    notes: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -94,6 +167,8 @@ class EvaluationRecord:
     strategy_failure_report_json: str | None = None
     strategy_failure_report_md: str | None = None
     next_experiment_themes: list[str] = field(default_factory=list)
+    adversarial_robustness: dict[str, Any] = field(default_factory=dict)
+    regime_transition_drawdown: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -112,6 +187,11 @@ class Experiment:
     success_criteria: list[str]
     universe_snapshot: UniverseSnapshot
     dataset_snapshot: DatasetSnapshot
+    factor_candidates: list[FactorCandidate] = field(default_factory=list)
+    feature_view: FeatureView | None = None
+    label_spec: LabelSpec | None = None
+    model_candidate: ModelCandidate | None = None
+    regime_spec: RegimeSpec | None = None
     factor_specs: list[FactorSpec] = field(default_factory=list)
     opportunity_spec: OpportunitySpec | None = None
     tool_specs: list[ToolSpec] = field(default_factory=list)
@@ -131,6 +211,11 @@ class Experiment:
         payload = asdict(self)
         payload["universe_snapshot"] = self.universe_snapshot.to_dict()
         payload["dataset_snapshot"] = self.dataset_snapshot.to_dict()
+        payload["factor_candidates"] = [item.to_dict() for item in self.factor_candidates]
+        payload["feature_view"] = self.feature_view.to_dict() if self.feature_view else None
+        payload["label_spec"] = self.label_spec.to_dict() if self.label_spec else None
+        payload["model_candidate"] = self.model_candidate.to_dict() if self.model_candidate else None
+        payload["regime_spec"] = self.regime_spec.to_dict() if self.regime_spec else None
         payload["factor_specs"] = [item.to_dict() for item in self.factor_specs]
         payload["opportunity_spec"] = self.opportunity_spec.to_dict() if self.opportunity_spec else None
         payload["tool_specs"] = [item.to_dict() for item in self.tool_specs]
@@ -175,6 +260,117 @@ def build_dataset_snapshot(
         universe_hash=universe_snapshot.hash,
         report=dict(report),
         hash=stable_hash(hash_payload),
+    )
+
+
+def build_factor_candidates(
+    *,
+    cfg: Mapping[str, Any],
+    branch_id: str | None = None,
+    strategy_params: Mapping[str, Any] | None = None,
+) -> list[FactorCandidate]:
+    strategy_mode = str(cfg.get("strategy_mode", "limit_up_screening"))
+    compact_params = {
+        key: value
+        for key, value in {
+            "strategy_mode": strategy_mode,
+            "branch_id": branch_id,
+            "top_pct_limit_up": cfg.get("top_pct_limit_up"),
+            "limit_days_window": cfg.get("limit_days_window"),
+            "variant": dict(strategy_params or {}).get("variant"),
+        }.items()
+        if value is not None
+    }
+    return [
+        FactorCandidate(
+            factor_id=_object_id("factor", compact_params),
+            name=f"{strategy_mode}_event_seed",
+            family="event_seed",
+            description="Bridge a legacy event rule into the factor-first object layer before F1 factor models arrive.",
+            params=compact_params,
+            source="legacy_control_branch",
+            status="seed",
+            tags=["stage_f0", "control_branch"],
+        ),
+    ]
+
+
+def build_feature_view(
+    *,
+    cfg: Mapping[str, Any],
+    branch_id: str | None = None,
+    branch_pool_snapshot_id: str | None = None,
+) -> FeatureView:
+    payload = {
+        "strategy_mode": str(cfg.get("strategy_mode", "limit_up_screening")),
+        "freq": str(cfg.get("freq", "1d")),
+        "branch_id": branch_id,
+        "branch_pool_snapshot_id": branch_pool_snapshot_id,
+    }
+    return FeatureView(
+        feature_view_id=_object_id("feature-view", payload),
+        name="legacy_event_panel_v1",
+        inputs=["daily_ohlcv", "branch_pool_membership", "limit_up_event_flags"],
+        transforms=["panel_align", "branch_pool_mask", "tradability_guard"],
+        sampling=f"{payload['freq']} cross_sectional_panel",
+        notes="F0 placeholder feature view for control branches; F1 will replace it with explicit factor features.",
+    )
+
+
+def build_label_spec(*, cfg: Mapping[str, Any]) -> LabelSpec:
+    horizon = str(cfg.get("rebalance_every", cfg.get("freq", "1d")))
+    payload = {
+        "target_name": "next_rebalance_excess_return",
+        "horizon": horizon,
+        "objective": "cross_sectional_ranking",
+    }
+    return LabelSpec(
+        label_spec_id=_object_id("label", payload),
+        target_name="next_rebalance_excess_return",
+        horizon=horizon,
+        objective="cross_sectional_ranking",
+        definition="Relative forward return over the next rebalance window versus a simple market baseline.",
+        notes="F0 keeps the label explicit so F1 factor models and later adaptive models share one target contract.",
+    )
+
+
+def build_model_candidate(
+    *,
+    cfg: Mapping[str, Any],
+    branch_id: str | None = None,
+    strategy_params: Mapping[str, Any] | None = None,
+) -> ModelCandidate:
+    strategy_mode = str(cfg.get("strategy_mode", "limit_up_screening"))
+    payload = {
+        "strategy_mode": strategy_mode,
+        "branch_id": branch_id,
+        "variant": dict(strategy_params or {}).get("variant"),
+    }
+    return ModelCandidate(
+        model_id=_object_id("model", payload),
+        name=f"{strategy_mode}_control_harness",
+        family="rule_based_control",
+        params={key: value for key, value in payload.items() if value is not None},
+        is_online_adaptive=False,
+        update_frequency="offline",
+        training_mode="deterministic",
+        notes="Control-harness model used before the first explicit factor model lands in F1.",
+    )
+
+
+def build_regime_spec(*, cfg: Mapping[str, Any], branch_id: str | None = None) -> RegimeSpec:
+    payload = {
+        "branch_id": branch_id,
+        "freq": str(cfg.get("freq", "1d")),
+        "adaptive_policy": "static",
+    }
+    return RegimeSpec(
+        regime_id=_object_id("regime", payload),
+        detector_name="static_baseline",
+        transition_signal="not_enabled",
+        regime_transition_latency=None,
+        adaptive_policy="static",
+        notes="F0 reserves the regime interface; R1 will later replace it with predictive-error and TTA-driven logic.",
     )
 
 
@@ -260,6 +456,11 @@ def new_experiment(
     dataset_snapshot: DatasetSnapshot,
     opportunity_spec: OpportunitySpec,
     subagent_tasks: list[SubagentTask],
+    factor_candidates: list[FactorCandidate] | None = None,
+    feature_view: FeatureView | None = None,
+    label_spec: LabelSpec | None = None,
+    model_candidate: ModelCandidate | None = None,
+    regime_spec: RegimeSpec | None = None,
     mission_id: str | None = None,
     branch_id: str | None = None,
     core_universe_snapshot_id: str | None = None,
@@ -280,6 +481,11 @@ def new_experiment(
         success_criteria=list(success_criteria),
         universe_snapshot=universe_snapshot,
         dataset_snapshot=dataset_snapshot,
+        factor_candidates=list(factor_candidates or []),
+        feature_view=feature_view,
+        label_spec=label_spec,
+        model_candidate=model_candidate,
+        regime_spec=regime_spec,
         factor_specs=[],
         opportunity_spec=opportunity_spec,
         tool_specs=build_tool_specs(planned_steps=plan_steps),
@@ -316,6 +522,11 @@ def update_experiment(
         success_criteria=list(experiment.success_criteria),
         universe_snapshot=experiment.universe_snapshot,
         dataset_snapshot=experiment.dataset_snapshot,
+        factor_candidates=list(experiment.factor_candidates),
+        feature_view=experiment.feature_view,
+        label_spec=experiment.label_spec,
+        model_candidate=experiment.model_candidate,
+        regime_spec=experiment.regime_spec,
         factor_specs=list(experiment.factor_specs),
         opportunity_spec=experiment.opportunity_spec,
         tool_specs=build_tool_specs(planned_steps=experiment.plan_steps, execution=execution or experiment.execution),
@@ -352,6 +563,11 @@ def read_experiment_record(project: str, experiment_id: str, *, repo_root: Path 
     payload = json.loads(path.read_text(encoding="utf-8"))
     universe_snapshot = UniverseSnapshot(**payload["universe_snapshot"])
     dataset_snapshot = DatasetSnapshot(**payload["dataset_snapshot"])
+    factor_candidates = [FactorCandidate(**item) for item in payload.get("factor_candidates", [])]
+    feature_view = FeatureView(**payload["feature_view"]) if payload.get("feature_view") else None
+    label_spec = LabelSpec(**payload["label_spec"]) if payload.get("label_spec") else None
+    model_candidate = ModelCandidate(**payload["model_candidate"]) if payload.get("model_candidate") else None
+    regime_spec = RegimeSpec(**payload["regime_spec"]) if payload.get("regime_spec") else None
     factor_specs = [FactorSpec(**item) for item in payload.get("factor_specs", [])]
     opportunity = OpportunitySpec(**payload["opportunity_spec"]) if payload.get("opportunity_spec") else None
     tool_specs = [ToolSpec(**item) for item in payload.get("tool_specs", [])]
@@ -369,6 +585,11 @@ def read_experiment_record(project: str, experiment_id: str, *, repo_root: Path 
         success_criteria=list(payload.get("success_criteria", [])),
         universe_snapshot=universe_snapshot,
         dataset_snapshot=dataset_snapshot,
+        factor_candidates=factor_candidates,
+        feature_view=feature_view,
+        label_spec=label_spec,
+        model_candidate=model_candidate,
+        regime_spec=regime_spec,
         factor_specs=factor_specs,
         opportunity_spec=opportunity,
         tool_specs=tool_specs,

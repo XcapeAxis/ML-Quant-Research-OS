@@ -35,22 +35,23 @@ def test_universe_audit_and_legacy_note_match_reset_story() -> None:
     assert "legacy comparison only" in legacy
 
 
-def test_strategy_board_and_baseline_reset_note_demote_old_conclusions() -> None:
+def test_strategy_board_and_baseline_reset_note_reflect_current_blocker() -> None:
     board = (MEMORY / "STRATEGY_BOARD.md").read_text(encoding="utf-8")
     reset = (MEMORY / "BASELINE_RESET_NOTE.md").read_text(encoding="utf-8")
 
-    assert "baseline_reset_pending" in board
-    assert "legacy comparison only" in board
+    assert "baseline_limit_up" in board
+    assert "risk_constrained_limit_up" in board
     assert "risk_constrained_limit_up" in reset
     assert "tighter_entry_limit_up" in reset
-    assert "legacy comparison only" in reset
+    assert "baseline_validation_ready" in reset
+    assert "Rank dataframe is empty" in reset
 
 
-def test_session_state_records_baseline_reset_pending() -> None:
+def test_session_state_records_current_canonical_truth() -> None:
     session = json.loads((MEMORY / "SESSION_STATE.json").read_text(encoding="utf-8"))
 
     assert session["canonical_universe_id"] == "cn_a_mainboard_all_v1"
-    assert session["baseline_status"] == "baseline_reset_pending"
-    assert session["readiness"]["stage"] == "pilot"
-    assert session["readiness"]["ready"] is False
+    assert session["baseline_status"] == "baseline_validation_ready"
+    assert session["readiness"]["stage"] == "validation-ready"
+    assert session["readiness"]["ready"] is True
     assert session["effective_subagent_gate_mode"] == "OFF"

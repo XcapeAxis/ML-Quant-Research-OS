@@ -99,6 +99,22 @@ class DataQualityPayload(BaseModel):
     warn_volume_spike_mult: float | None = None
 
 
+class RegimeControlPayload(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    profile: str | None = None
+    ic_window_rebalances: int | None = None
+    shortfall_window_rebalances: int | None = None
+    min_history_rebalances: int | None = None
+    caution_ic_threshold: float | None = None
+    defensive_ic_threshold: float | None = None
+    caution_shortfall_threshold: float | None = None
+    defensive_shortfall_threshold: float | None = None
+    caution_exposure: float | None = None
+    defensive_exposure: float | None = None
+    cooldown_rebalances: int | None = None
+
+
 class ProjectConfigPayload(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -139,6 +155,7 @@ class ProjectConfigPayload(BaseModel):
     tradability: TradabilityPayload | None = None
     risk_overlay: RiskOverlayPayload | None = None
     data_quality: DataQualityPayload | None = None
+    regime_control: RegimeControlPayload | None = None
 
 
 class JobCreateRequest(BaseModel):

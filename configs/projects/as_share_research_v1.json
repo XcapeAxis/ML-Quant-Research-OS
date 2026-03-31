@@ -124,6 +124,73 @@
     "require_promotion_gate": true,
     "default_tool_allowlist_path": "configs/tool_allowlist.yaml"
   },
+  "factor_model": {
+    "profile": "f1_elasticnet_v1",
+    "feature_names": [
+      "mom20",
+      "rev5",
+      "vol20",
+      "range",
+      "vol_surge",
+      "ma_gap",
+      "adv20",
+      "amihud20"
+    ],
+    "label_horizon_days": 5,
+    "refit_frequency": "monthly",
+    "training_window_days": 756,
+    "min_train_days": 504,
+    "winsorize_quantile": 0.01,
+    "standardization": "cross_sectional_zscore",
+    "alpha": 0.001,
+    "l1_ratio": 0.2,
+    "max_iter": 5000
+  },
+  "deep_factor_model": {
+    "profile": "f2_structured_latent_factor_v1",
+    "base_feature_names": [
+      "mom20",
+      "rev5",
+      "vol20",
+      "range",
+      "vol_surge",
+      "ma_gap",
+      "adv20",
+      "amihud20"
+    ],
+    "group_features": true,
+    "latent_dim": 4,
+    "hidden_sizes": [
+      12,
+      4
+    ],
+    "activation": "relu",
+    "alpha": 0.0001,
+    "learning_rate_init": 0.001,
+    "max_iter": 300,
+    "early_stopping": true,
+    "validation_fraction": 0.1,
+    "random_state": 42,
+    "label_horizon_days": 5,
+    "refit_frequency": "monthly",
+    "training_window_days": 756,
+    "min_train_days": 504,
+    "winsorize_quantile": 0.01,
+    "standardization": "cross_sectional_zscore"
+  },
+  "regime_control": {
+    "profile": "r1_predictive_error_overlay_v2",
+    "ic_window_rebalances": 6,
+    "shortfall_window_rebalances": 6,
+    "min_history_rebalances": 6,
+    "caution_ic_threshold": 0.0,
+    "defensive_ic_threshold": -0.03,
+    "caution_shortfall_threshold": -0.005,
+    "defensive_shortfall_threshold": -0.015,
+    "caution_exposure": 0.75,
+    "defensive_exposure": 0.5,
+    "cooldown_rebalances": 2
+  },
   "risk_overlay": {
     "enabled": false,
     "vol_target": 0.18,

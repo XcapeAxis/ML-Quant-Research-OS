@@ -1,0 +1,22 @@
+# R1.1 Predictive Error Overlay
+
+- strategy_id: r1_predictive_error_overlay_v1
+- name: R1.1 Predictive Error Overlay
+- category: risk_control
+- core_hypothesis: A lagged predictive-error regime overlay should reduce F1 drawdown on the same core universe without destroying return.
+- economic_rationale: The family remains relevant, but the v1 throttle was too aggressive for the economics gate.
+- required_data: F1 candidate scores?next_5d_excess_return ???core pool??? TopN shell?
+- current_stage: rejected
+- latest_action: Completed one bounded R1.1 verifier.
+- latest_result: Drawdown improved materially but annualized return delta was -21.68% and Calmar worsened, so v1 was rejected.
+- decision: reject
+- next_validation: Keep only as a failed path reference while R1.2 tests a gentler throttle.
+- owner: main
+- subagents_assigned:
+  - none
+- artifact_refs:
+  - C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\r1\R1_VERIFY_REPORT.json
+- blocked_by:
+  - r1_annualized_return_delta -21.68% is below the allowed -3.00% floor.
+  - r1_calmar_ratio_delta -0.1066 is not positive.
+- kill_criteria: Do not revive this exact v1 overlay family configuration.

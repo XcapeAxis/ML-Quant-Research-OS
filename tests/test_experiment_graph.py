@@ -4,7 +4,12 @@ import json
 
 from quant_mvp.experiment_graph import (
     build_dataset_snapshot,
+    build_factor_candidates,
+    build_feature_view,
+    build_label_spec,
+    build_model_candidate,
     build_opportunity_spec,
+    build_regime_spec,
     build_universe_snapshot,
     new_experiment,
     update_experiment,
@@ -50,6 +55,23 @@ def test_experiment_record_round_trip_writes_project_level_json(synthetic_projec
         dataset_snapshot=dataset,
         opportunity_spec=build_opportunity_spec(cfg={"strategy_mode": "limit_up_screening"}, hypothesis="demo hypothesis"),
         subagent_tasks=[],
+        factor_candidates=build_factor_candidates(
+            cfg={"strategy_mode": "limit_up_screening", "top_pct_limit_up": 0.5, "limit_days_window": 60},
+            branch_id="branch-demo",
+            strategy_params={"variant": "baseline"},
+        ),
+        feature_view=build_feature_view(
+            cfg={"strategy_mode": "limit_up_screening", "freq": "1d"},
+            branch_id="branch-demo",
+            branch_pool_snapshot_id="branch-pool-123",
+        ),
+        label_spec=build_label_spec(cfg={"rebalance_every": 5, "freq": "1d"}),
+        model_candidate=build_model_candidate(
+            cfg={"strategy_mode": "limit_up_screening"},
+            branch_id="branch-demo",
+            strategy_params={"variant": "baseline"},
+        ),
+        regime_spec=build_regime_spec(cfg={"freq": "1d"}, branch_id="branch-demo"),
         mission_id="mission-demo",
         branch_id="branch-demo",
         core_universe_snapshot_id="core-123",
@@ -68,6 +90,11 @@ def test_experiment_record_round_trip_writes_project_level_json(synthetic_projec
     assert payload["mission_id"] == "mission-demo"
     assert payload["branch_id"] == "branch-demo"
     assert payload["strategy_candidate_id"] == "candidate-demo"
+    assert payload["factor_candidates"][0]["family"] == "event_seed"
+    assert payload["feature_view"]["name"] == "legacy_event_panel_v1"
+    assert payload["label_spec"]["target_name"] == "next_rebalance_excess_return"
+    assert payload["model_candidate"]["is_online_adaptive"] is False
+    assert payload["regime_spec"]["regime_transition_latency"] is None
 
 
 def test_strategy_failure_report_prioritizes_drawdown_and_risk_themes() -> None:
@@ -88,3 +115,5 @@ def test_strategy_failure_report_prioritizes_drawdown_and_risk_themes() -> None:
     assert report["classification"] == "strategy_quality_failure"
     assert report["primary_blockers"][0].startswith("Max drawdown")
     assert any("drawdown" in item.lower() for item in report["next_experiment_themes"])
+    assert report["key_evidence"]["adversarial_robustness"] is None
+    assert report["key_evidence"]["regime_transition_drawdown"] is None

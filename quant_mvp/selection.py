@@ -150,6 +150,7 @@ def filter_top_limit_up(
     codes: list[str],
     limit_up_counts: pd.Series,
     top_pct: float = 0.10,
+    min_keep: int = 1,
 ) -> list[str]:
     """Keep top *top_pct* of *codes* ranked by limit-up count (descending).
 
@@ -159,7 +160,7 @@ def filter_top_limit_up(
     sub = sub[sub > 0].sort_values(ascending=False)
     if sub.empty:
         return []
-    n_keep = max(1, int(len(sub) * top_pct))
+    n_keep = max(1, int(len(sub) * top_pct), int(min_keep))
     return sub.head(n_keep).index.tolist()
 
 
@@ -350,7 +351,14 @@ def build_limit_up_screening_rank(
             window=cfg.limit_days_window,
             threshold=cfg.limit_up_threshold,
         )
-        screened = filter_top_limit_up(pool, lu_counts, top_pct=cfg.top_pct_limit_up)
+        # The branch pool is already a narrowed opportunity set; keep at least
+        # stock_num names so the downstream ranking contract can still emit rows.
+        screened = filter_top_limit_up(
+            pool,
+            lu_counts,
+            top_pct=cfg.top_pct_limit_up,
+            min_keep=cfg.stock_num,
+        )
         if len(screened) < cfg.stock_num:
             continue
 

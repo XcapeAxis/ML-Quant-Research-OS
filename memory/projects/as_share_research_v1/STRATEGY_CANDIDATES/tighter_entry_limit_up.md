@@ -1,24 +1,21 @@
-# 涨停主线收紧入场分支
+# ??????????
 
 - strategy_id: tighter_entry_limit_up
-- name: 涨停主线收紧入场分支
-- category: entry timing
-- core_hypothesis: 把入选阈值收紧，只保留更接近再次启动位置的个股，可以减少过早买入带来的假突破和大回撤。
-- economic_rationale: 如果真正的二次启动往往发生在更接近突破起点、筹码更集中的位置，那么收紧入场条件应该先减少质量差的提前埋伏。
-- required_data: 主板 A 股日频 OHLCV、上市天数、ST/板块过滤、涨停代理、下个交易日收益、基准与等权基线。
-- current_stage: data-blocked
-- latest_action: 最近一次记录里，tighter_entry_limit_up 已完成 scout/implementer 资料整理；verifier 仍未真正开始有界验证。
-- latest_result: tighter_entry_limit_up 目前只有候选池与实验记录，真正的 verifier 结论仍缺失。
+- name: ??????????
+- category: legacy_branch
+- core_hypothesis: ????????????????????? factor-first ???
+- economic_rationale: ?????????? blocker?
+- required_data: ??????????????
+- current_stage: legacy_blocked
+- latest_action: Kept as a blocked historical branch.
+- latest_result: Not selected for the current frontier round.
 - decision: blocked
-- next_validation: 先恢复主线可用输入；输入没恢复前，这条分支不值得单独开跑。
+- next_validation: None until the current F1/R1.2/F2.1 queue clears.
 - owner: main
 - subagents_assigned:
   - none
 - artifact_refs:
-  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\EVIDENCE_LEDGER.jsonl
-  - C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments\as_share_research_v1__tighter_entry_limit_up__20260325T152141Z.json
-  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\BRANCH_LEDGER.jsonl
-  - tighter_entry_limit_up-f5113e17c1b2
+  - none
 - blocked_by:
-  - Coverage ratio 51.11% is below the promotion-readiness threshold 95.00% for cn_a_mainboard_all_v1.
-- kill_criteria: 如果收紧入场后只是在减少交易次数，却没有改善回撤或收益质量，就停止继续扩展这条分支。
+  - Not part of the current factor-first frontier queue.
+- kill_criteria: Do not reactivate unless the factor-first queue is explicitly deprioritized.

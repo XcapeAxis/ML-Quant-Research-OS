@@ -33,6 +33,9 @@
   "mission_id": "mission-as_share_research_v1",
   "objective": "Run multi-branch research from a frozen core universe plus branch pools instead of a linear single-cycle control plane.",
   "project": "as_share_research_v1",
+  "selected_verifier_branch_id": null,
+  "selected_verifier_consumed_at": "2026-03-30T02:36:23+00:00",
+  "selected_verifier_requested_at": "2026-03-30T02:35:19+00:00",
   "state": "active",
-  "updated_at": "2026-03-25T15:22:41+00:00"
+  "updated_at": "2026-03-30T08:53:54+00:00"
 }

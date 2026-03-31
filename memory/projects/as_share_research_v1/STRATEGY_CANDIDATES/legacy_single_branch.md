@@ -1,24 +1,21 @@
-# 旧单分支兼容路径
+# ????????
 
 - strategy_id: legacy_single_branch
-- name: 旧单分支兼容路径
-- category: other
-- core_hypothesis: 先把旧 `agent_cycle` 兼容跑通，再谈更复杂的多分支研究。
-- economic_rationale: 这不是市场行为假设，只是为了兼容旧控制面而保留的一条过渡路径。
-- required_data: 无额外市场数据要求；它主要依赖旧控制面的兼容行为。
+- name: ????????
+- category: legacy_branch
+- core_hypothesis: ??????????????????????????
+- economic_rationale: It has no near-term alpha roadmap value.
+- required_data: None beyond the old compatibility path.
 - current_stage: rejected
-- latest_action: 最近一次记录里，legacy_single_branch 已完成 scout/implementer 资料整理；verifier 仍未真正开始有界验证。
-- latest_result: legacy_single_branch 目前只有候选池与实验记录，真正的 verifier 结论仍缺失。
+- latest_action: Left unchanged during frontier reselection.
+- latest_result: Remains rejected as a historical compatibility path only.
 - decision: reject
-- next_validation: 无；除非再次需要排查旧单分支兼容行为。
+- next_validation: None.
 - owner: main
 - subagents_assigned:
   - none
 - artifact_refs:
-  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\EVIDENCE_LEDGER.jsonl
-  - C:\Users\asus\Documents\Projects\BackTest\data\projects\as_share_research_v1\meta\experiments\as_share_research_v1__legacy_single_branch__20260325T152213Z.json
-  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\BRANCH_LEDGER.jsonl
-  - legacy_single_branch-79952d61ffa6
+  - none
 - blocked_by:
-  - 它只是旧控制面兼容路径，不再作为策略研究主线。
-- kill_criteria: 只要旧单分支兼容不再是必须前提，就不要再把它当作策略研究候选。
+  - Historical compatibility path only.
+- kill_criteria: Keep rejected unless an explicit legacy-debug need reopens it.

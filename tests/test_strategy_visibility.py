@@ -4,7 +4,7 @@ import json
 
 from quant_mvp.agent.subagent_controller import reconcile_loop_subagents, register_worker_subagent
 from quant_mvp.memory.writeback import bootstrap_memory_files, generate_handoff, load_machine_state
-from quant_mvp.memory.strategy_visibility import REQUIRED_CANDIDATE_FIELDS
+from quant_mvp.memory.strategy_visibility import REQUIRED_CANDIDATE_FIELDS, summarize_strategy_visibility
 
 
 def test_strategy_board_and_seed_candidate_are_written(limit_up_project) -> None:
@@ -23,11 +23,13 @@ def test_strategy_board_and_seed_candidate_are_written(limit_up_project) -> None
     assert state["strategy_candidates"]
 
     board = paths.strategy_board_path.read_text(encoding="utf-8")
-    assert "Primary track" in board
-    assert "Secondary track" in board
-    assert "Blocked" in board
-    assert "Rejected / Killed" in board
-    assert "Promoted" in board
+    assert "# 策略研究看板" in board
+    assert "## 主线策略" in board
+    assert "## 支线策略" in board
+    assert "## 系统判断" in board
+    assert "limit_up_screening_mainline" in board
+    assert "universe-reset" not in board
+    assert "51.11% coverage" not in board
     assert "strategy_action_log" in board
     assert "idea_backlog" in board
 
@@ -82,8 +84,8 @@ def test_strategy_subagents_are_bound_and_infra_subagents_are_not(limit_up_proje
     registry = paths.subagent_registry_path.read_text(encoding="utf-8")
     assert "configured gate:" in registry
     assert "effective gate this run:" in registry
-    assert "策略研究型" in registry
-    assert "基础设施型" in registry
+    assert "baseline_limit_up candidate evidence refresh" in registry
+    assert "recover prerequisite daily-bar visibility" in registry
     assert "strategy_id: baseline_limit_up" in registry
     assert "服务 blocker / 前提:" in registry
     assert "这不是直接研究策略:" in registry
@@ -98,3 +100,25 @@ def test_strategy_subagents_are_bound_and_infra_subagents_are_not(limit_up_proje
 
     assert any(item.get("strategy_id") == "baseline_limit_up" for item in research_events)
     assert all(not item.get("strategy_id") for item in infra_events if item.get("action") != "plan")
+
+
+def test_strategy_visibility_keeps_rank_contract_issues_out_of_data_blocked_round() -> None:
+    summary = summarize_strategy_visibility(
+        {
+            "current_blocker": "Rank dataframe is empty",
+            "data_ready": True,
+            "verify_last": {
+                "default_project_data_status": "validation-ready",
+            },
+            "strategy_candidates": [
+                {
+                    "strategy_id": "baseline_limit_up",
+                    "track": "primary",
+                    "name": "涨停主线基线分支",
+                    "decision": "blocked",
+                },
+            ],
+        },
+    )
+
+    assert summary["round_type"] == "策略推进轮"

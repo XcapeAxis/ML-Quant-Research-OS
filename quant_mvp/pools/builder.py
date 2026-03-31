@@ -130,6 +130,8 @@ def build_core_universe_snapshot(
 ) -> PoolBuildResult:
     if cfg is None or paths is None:
         cfg, paths = load_config(project, config_path=config_path)
+    if repo_root is not None:
+        paths = resolve_project_paths(project, root=repo_root)
     spec = _default_core_spec(cfg)
     source_codes = _load_source_codes(paths)
     symbols_frame, metadata_path = _load_symbols_metadata(paths)
@@ -331,6 +333,8 @@ def build_branch_pool_snapshot(
 ) -> PoolBuildResult:
     if cfg is None or paths is None:
         cfg, paths = load_config(project, config_path=config_path)
+    if repo_root is not None:
+        paths = resolve_project_paths(project, root=repo_root)
     core = core_snapshot or load_latest_core_pool_snapshot(project, repo_root=repo_root, build_if_missing=True, config_path=config_path)
     if core is None:
         raise RuntimeError("Core universe snapshot is unavailable.")

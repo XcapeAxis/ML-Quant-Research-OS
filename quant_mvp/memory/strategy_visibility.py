@@ -106,12 +106,90 @@ def _blocker_text(state: dict[str, Any]) -> str:
     return str(state.get("current_blocker", "")).strip()
 
 
+def _looks_ready_data_status(text: str) -> bool:
+    lowered = str(text or "").strip().lower()
+    return any(
+        token in lowered
+        for token in [
+            "ready coverage",
+            "validated snapshot",
+            "promotion-grade",
+            "validation-ready",
+            "research-readiness",
+            "已就绪覆盖",
+            "可进入 promotion-grade",
+        ]
+    )
+
+
+def _looks_explicit_data_blocker_text(text: str) -> bool:
+    lowered = str(text or "").strip().lower()
+    return any(
+        token in lowered
+        for token in [
+            "usable validated bars",
+            "validated bars for the frozen universe",
+            "missing research inputs",
+            "missing validated inputs",
+            "no validated bars",
+            "coverage gap",
+            "partial coverage",
+            "readiness gate",
+            "research-readiness gate",
+            "data readiness",
+            "可用日频",
+            "缺少研究输入",
+            "缺少可用的 validated",
+            "缺少可用的已验证",
+            "无可用",
+            "覆盖缺口",
+            "覆盖率不足",
+            "数据就绪",
+        ]
+    )
+
+
+def _looks_non_data_blocker_text(text: str) -> bool:
+    lowered = str(text or "").strip().lower()
+    return any(
+        token in lowered
+        for token in [
+            "drawdown",
+            "回撤",
+            "leakage",
+            "walk-forward",
+            "walk forward",
+            "baseline",
+            "benchmark",
+            "rank dataframe is empty",
+            "empty rank",
+            "branch pool",
+            "ranking contract",
+            "selection contract",
+            "策略质量",
+            "契约",
+            "verifier",
+            "factor",
+            "feature",
+            "label",
+            "model",
+        ]
+    )
+
+
 def _is_data_blocked(state: dict[str, Any]) -> bool:
-    blocker = _blocker_text(state).lower()
-    if any(token in blocker for token in ["validated bars", "missing", "coverage", "readiness", "data input", "bars", "可用日频", "缺", "数据"]):
+    blocker = _blocker_text(state)
+    readiness = str((state.get("verify_last", {}) or {}).get("default_project_data_status", "")).strip()
+    if _looks_non_data_blocker_text(blocker):
+        return False
+    if _looks_ready_data_status(readiness):
+        return False
+    if state.get("data_ready") is True:
+        return False
+    if _looks_explicit_data_blocker_text(blocker):
         return True
-    readiness = str((state.get("verify_last", {}) or {}).get("default_project_data_status", "")).lower()
-    if any(token in readiness for token in ["missing", "partial", "pilot", "blocked", "unavailable"]):
+    readiness_lower = readiness.lower()
+    if any(token in readiness_lower for token in ["missing", "partial", "pilot", "blocked", "unavailable", "coverage gap", "not ready"]):
         return True
     data_ready = state.get("data_ready")
     return data_ready is False
@@ -415,6 +493,29 @@ def _normalize_candidate(candidate: dict[str, Any], *, state: dict[str, Any], pa
     return merged
 
 
+def _resolved_strategy_focus(state: dict[str, Any], *, summary: dict[str, Any]) -> list[str]:
+    valid_ids = {
+        str(item.get("strategy_id", "")).strip()
+        for item in state.get("strategy_candidates", [])
+        if isinstance(item, dict) and str(item.get("strategy_id", "")).strip()
+    }
+    requested_focus = [
+        str(item).strip()
+        for item in list(state.get("current_strategy_focus", []) or [])
+        if str(item).strip() and str(item).strip() in valid_ids
+    ]
+    if requested_focus:
+        seen: set[str] = set()
+        deduped: list[str] = []
+        for strategy_id in requested_focus:
+            if strategy_id in seen:
+                continue
+            seen.add(strategy_id)
+            deduped.append(strategy_id)
+        return deduped[:3]
+    return summary["primary_ids"][:3]
+
+
 def ensure_strategy_visibility_state(state: dict[str, Any], *, paths) -> dict[str, Any]:
     updated = dict(state)
     current_candidates = list(updated.get("strategy_candidates", []) or [])
@@ -430,7 +531,7 @@ def ensure_strategy_visibility_state(state: dict[str, Any], *, paths) -> dict[st
     updated["current_blocked_strategy_ids"] = summary["blocked_ids"]
     updated["current_rejected_strategy_ids"] = summary["rejected_ids"]
     updated["current_promoted_strategy_ids"] = summary["promoted_ids"]
-    updated["current_strategy_focus"] = summary["primary_ids"][:3]
+    updated["current_strategy_focus"] = _resolved_strategy_focus(updated, summary=summary)
     updated["current_strategy_summary"] = summary["strategy_line"]
     return updated
 
@@ -478,62 +579,42 @@ def summarize_strategy_visibility(state: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _candidate_line(candidate: dict[str, Any]) -> str:
-    return (
-        f"- `{candidate['strategy_id']}` | {candidate['name']} | stage={_STAGE_ZH.get(candidate['current_stage'], candidate['current_stage'])} "
-        f"| decision={_DECISION_ZH.get(candidate['decision'], candidate['decision'])} | 假设：{candidate['core_hypothesis']}"
-    )
-
-
 def render_strategy_board(state: dict[str, Any], *, paths) -> str:
     summary = summarize_strategy_visibility(state)
+    blocker = _clean_text(_blocker_text(state))
+    primary = summary.get("primary_names") or ["尚未记录"]
+    secondary = summary.get("secondary_names") or ["当前为空"]
+    blocked = summary.get("blocked_names") or ["当前为空"]
+    rejected = summary.get("rejected_names") or ["当前为空"]
+    promoted = summary.get("promoted_names") or ["当前为空"]
     lines = [
         "# 策略研究看板",
         "",
-        "## 0. 候选准入规则",
-        "- 原始想法先进入 IDEA_BACKLOG.md；只有写清楚假设、经济含义、所需数据和下一步验证后，才允许升为候选策略卡片。",
+        "## 主线策略",
+        f"- 当前主线策略: {', '.join(primary)}",
+        f"- 当前轮次类型: {summary['round_type']}",
+        f"- 当前 blocker: {blocker}",
+        f"- 当前策略推进判断: {summary['strategy_line']}",
         "",
-        "## 1. 主线策略（Primary track）",
+        "## 支线策略",
+        f"- 当前支线策略: {', '.join(secondary)}",
+        f"- blocked 策略: {', '.join(blocked)}",
+        f"- rejected 策略: {', '.join(rejected)}",
+        f"- promoted 策略: {', '.join(promoted)}",
+        "",
+        "## 系统判断",
+        f"- 系统推进判断: {summary['system_line']}",
+        "- 说明: 这里只展示当前研究分支、阻塞项和下一步顺序，不再回退到旧重置模板。",
+        "",
+        "## 相关 tracked memory",
+        f"- strategy_board: {paths.strategy_board_path}",
+        f"- strategy_candidates_dir: {paths.strategy_candidates_dir}",
+        f"- strategy_action_log: {paths.strategy_action_log_path}",
+        f"- research_activity: {paths.research_activity_path}",
+        f"- idea_backlog: {paths.idea_backlog_path}",
+        f"- research_progress: {paths.research_progress_path}",
     ]
-    lines.extend([_candidate_line(item) for item in summary["primary"]] or ["- 当前为空"])
-    lines.extend(["", "## 2. 次级策略（Secondary track）"])
-    lines.extend([_candidate_line(item) for item in summary["secondary"]] or ["- 当前为空"])
-    lines.extend(["", "## 3. Blocked 策略"])
-    lines.extend([_candidate_line(item) for item in summary["blocked"]] or ["- 当前为空"])
-    lines.extend(["", "## 4. Rejected / Killed 策略"])
-    if summary["rejected"]:
-        for item in summary["rejected"]:
-            lines.append(f"- `{item['strategy_id']}` | {item['name']} | 原因：{item['latest_result']}")
-    else:
-        lines.append("- 当前为空")
-    lines.extend(["", "## 5. Promoted 策略"])
-    if summary["promoted"]:
-        for item in summary["promoted"]:
-            lines.append(f"- `{item['strategy_id']}` | {item['name']} | 说明：{item['latest_result']}")
-    else:
-        lines.append("- 当前为空")
-    lines.extend(
-        [
-            "",
-            "## 6. 当前研究总判断",
-            f"- 当前研究主线: {', '.join(summary['primary_names']) or '尚未记录'}",
-            f"- 当前支线策略: {', '.join(summary['secondary_names']) or '当前为空'}",
-            f"- 当前最硬 blocker: {_clean_text(_blocker_text(state))}",
-            f"- 当前轮次类型: {summary['round_type']}",
-            f"- 研究策略本身的工作: {summary['strategy_line']}",
-            f"- 恢复基础设施的工作: {summary['system_line']}",
-            "",
-            "## 相关 tracked memory",
-            f"- strategy_board: {paths.strategy_board_path}",
-            f"- strategy_candidates_dir: {paths.strategy_candidates_dir}",
-            f"- strategy_action_log: {paths.strategy_action_log_path}",
-            f"- research_activity: {paths.research_activity_path}",
-            f"- idea_backlog: {paths.idea_backlog_path}",
-            f"- research_progress: {paths.research_progress_path}",
-        ],
-    )
     return "\n".join(lines)
-
 
 def render_strategy_candidate_card(candidate: dict[str, Any]) -> str:
     lines = [

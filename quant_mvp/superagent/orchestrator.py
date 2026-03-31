@@ -8,12 +8,26 @@ from ..config import load_config
 from ..data.validation import validate_project_data
 from ..experiment_graph import (
     build_dataset_snapshot,
+    build_factor_candidates,
+    build_feature_view,
+    build_label_spec,
+    build_model_candidate,
     build_opportunity_spec,
+    build_regime_spec,
     build_universe_snapshot,
     new_experiment,
     write_experiment_record,
 )
-from ..memory.writeback import bootstrap_memory_files, load_machine_state, record_strategy_action, save_machine_state, update_hypothesis_queue
+from ..memory.ledger import stable_hash
+from ..memory.writeback import (
+    bootstrap_memory_files,
+    load_machine_state,
+    record_experiment_result,
+    record_failure,
+    record_strategy_action,
+    save_machine_state,
+    update_hypothesis_queue,
+)
 from ..pools import build_branch_pool_snapshot, build_core_universe_snapshot, load_latest_core_pool_snapshot
 from ..project import resolve_project_paths
 from ..project_identity import canonical_project_id
@@ -111,6 +125,21 @@ def _strategy_candidate(branch_id: str, cfg: dict[str, Any], params: dict[str, A
     )
 
 
+def _selected_verifier_branch_id(
+    *,
+    branch_templates: list[dict[str, Any]],
+    mission_state: dict[str, Any],
+    legacy_single_branch: bool,
+) -> str | None:
+    if legacy_single_branch:
+        return None
+    selected = str(mission_state.get("selected_verifier_branch_id", "")).strip()
+    if not selected:
+        return None
+    branch_ids = {item["branch_id"] for item in branch_templates}
+    return selected if selected in branch_ids else None
+
+
 def _worker_tasks(mission_id: str, branch_id: str, candidate_id: str, experiment_id: str) -> list[WorkerTask]:
     roles = [
         ("scout", ["branch_pool_snapshot", "candidate_notes"], "Stop after the candidate pool and evidence map are written."),
@@ -150,6 +179,7 @@ def mission_tick(
     cfg, paths = load_config(project, config_path=config_path)
     paths.ensure_dirs()
     _, mission_state = load_or_create_mission_state(project, max_branches=max_branches, repo_root=repo_root)
+    persisted_branch_states = latest_branch_states(project, repo_root=repo_root)
     mission_id = str(mission_state.get("mission_id", "")).strip() or f"mission-{project}"
     if mission_id == "unknown":
         mission_id = f"mission-{project}"
@@ -181,6 +211,11 @@ def mission_tick(
     dataset_snapshot = build_dataset_snapshot(report=validation_report.to_dict(), cfg=cfg, universe_snapshot=universe_snapshot)
 
     branch_templates = _branch_templates(max_branches, legacy_single_branch=legacy_single_branch)
+    selected_verifier_branch_id = _selected_verifier_branch_id(
+        branch_templates=branch_templates,
+        mission_state=mission_state,
+        legacy_single_branch=legacy_single_branch,
+    )
     branches: list[ResearchBranch] = []
     proposals: list[dict[str, Any]] = []
     experiment_paths: list[str] = []
@@ -188,6 +223,10 @@ def mission_tick(
     evidence_records: list[dict[str, Any]] = []
 
     for rank, template in enumerate(branch_templates, start=1):
+        persisted_payload = dict(persisted_branch_states.get(template["branch_id"], {}) or {})
+        persisted_state = str(persisted_payload.get("state", "")).strip()
+        if persisted_state == "archived":
+            continue
         branch_result = build_branch_pool_snapshot(
             project=project,
             branch_id=template["branch_id"],
@@ -205,7 +244,7 @@ def mission_tick(
         branch = ResearchBranch(
             branch_id=template["branch_id"],
             mission_id=mission_id,
-            state="selected" if dry_run else "active",
+            state=persisted_state or ("selected" if dry_run else "active"),
             title=template["title"],
             objective=template["objective"],
             hypothesis=seed_hypothesis or template["hypothesis"],
@@ -235,6 +274,23 @@ def mission_tick(
             dataset_snapshot=dataset_snapshot,
             opportunity_spec=build_opportunity_spec(cfg=cfg, hypothesis=branch.hypothesis),
             subagent_tasks=[],
+            factor_candidates=build_factor_candidates(
+                cfg=cfg,
+                branch_id=branch.branch_id,
+                strategy_params=candidate.params,
+            ),
+            feature_view=build_feature_view(
+                cfg=cfg,
+                branch_id=branch.branch_id,
+                branch_pool_snapshot_id=branch_snapshot.snapshot_id,
+            ),
+            label_spec=build_label_spec(cfg=cfg),
+            model_candidate=build_model_candidate(
+                cfg=cfg,
+                branch_id=branch.branch_id,
+                strategy_params=candidate.params,
+            ),
+            regime_spec=build_regime_spec(cfg=cfg, branch_id=branch.branch_id),
             mission_id=mission_id,
             branch_id=branch.branch_id,
             core_universe_snapshot_id=core_snapshot.snapshot_id,
@@ -245,17 +301,22 @@ def mission_tick(
         experiment_path = write_experiment_record(experiment, repo_root=repo_root)
         worker_result = execute_worker_mesh(
             project=project,
+            cfg=cfg,
+            paths=paths,
             branch=branch,
             worker_tasks=worker_tasks,
             branch_snapshot_path=branch_snapshot_path,
             branch_pool_size=len(branch_snapshot.codes),
+            branch_codes=list(branch_snapshot.codes),
             experiment=experiment,
             experiment_path=experiment_path,
             dry_run=dry_run,
+            enable_verifier=branch.branch_id == selected_verifier_branch_id,
             repo_root=repo_root,
         )
         worker_tasks = list(worker_result["worker_tasks"])
         experiment_path = Path(str(worker_result["experiment_path"]))
+        evaluation = dict(worker_result.get("evaluation") or {})
 
         worker_task_count += len(worker_tasks)
         branches.append(branch)
@@ -291,8 +352,41 @@ def mission_tick(
                 "worker_tasks": [task.to_dict() for task in worker_tasks],
                 "executed_roles": list(worker_result["executed_roles"]),
                 "queued_roles": list(worker_result["queued_roles"]),
+                "evaluation": evaluation or None,
             },
         )
+        if evaluation:
+            blockers = list(evaluation.get("primary_blockers", []))
+            artifact_refs = [str(experiment_path), *[ref for task in worker_tasks for ref in task.artifact_refs]]
+            record_experiment_result(
+                project,
+                {
+                    "timestamp": _utc_now(),
+                    "experiment_id": experiment_id,
+                    "hypothesis": branch.hypothesis,
+                    "config_hash": stable_hash(cfg),
+                    "result": "passed" if evaluation.get("status") == "passed" else "blocked",
+                    "blockers": blockers,
+                    "artifact_refs": artifact_refs,
+                },
+                repo_root=repo_root,
+            )
+            if evaluation.get("status") != "passed":
+                next_themes = list(evaluation.get("next_experiment_themes", []))
+                record_failure(
+                    project,
+                    {
+                        "timestamp": _utc_now(),
+                        "experiment_id": experiment_id,
+                        "summary": str(evaluation.get("summary", "Bounded verifier experiment blocked.")),
+                        "root_cause": "; ".join(blockers),
+                        "corrective_action": next_themes[0]
+                        if next_themes
+                        else "Review the bounded verifier evidence and decide whether to keep, hold, or retire the branch.",
+                        "resolution_status": "not_fixed",
+                    },
+                    repo_root=repo_root,
+                )
         for task in worker_tasks:
             if task.state != "verified":
                 continue
@@ -314,6 +408,14 @@ def mission_tick(
                 repo_root=repo_root,
             )
 
+    selected_verifier_bundle = next(
+        (
+            item
+            for item in evidence_records
+            if item["branch_id"] == selected_verifier_branch_id and item.get("evaluation")
+        ),
+        None,
+    )
     mission_payload = {
         "mission_id": mission_id,
         "project": project,
@@ -334,21 +436,55 @@ def mission_tick(
         "core_universe_snapshot_path": str(core_snapshot_path),
         "core_pool_snapshot_id": core_snapshot.snapshot_id,
         "core_pool_snapshot_path": str(core_snapshot_path),
+        "selected_verifier_branch_id": None if selected_verifier_bundle else mission_state.get("selected_verifier_branch_id"),
+        "selected_verifier_requested_at": mission_state.get("selected_verifier_requested_at"),
+        "selected_verifier_consumed_at": _utc_now() if selected_verifier_bundle else mission_state.get("selected_verifier_consumed_at"),
     }
     save_mission_state(project, mission_payload, repo_root=repo_root)
     append_branch_states(project, branches, repo_root=repo_root)
     write_portfolio_status(project, mission=mission_payload, branches=branches, repo_root=repo_root)
 
     _, machine_state = load_machine_state(project, repo_root=repo_root)
+    if selected_verifier_bundle:
+        selected_evaluation = dict(selected_verifier_bundle["evaluation"])
+        selected_summary = str(selected_evaluation.get("summary", "")).strip()
+        selected_blockers = "; ".join(selected_evaluation.get("primary_blockers", []))
+        current_task = (
+            f"Use mission_tick as the system center, keep scout and implementer real, and review the first bounded verifier result on {selected_verifier_branch_id}."
+        )
+        current_phase = "Architecture Slice 2 - first bounded verifier experiment"
+        current_blocker = selected_blockers or machine_state.get("current_blocker", "none")
+        current_capability_boundary = (
+            f"The repo can now run one bounded verifier-backed branch experiment on {selected_verifier_branch_id}; broader multi-branch verification and tool autonomy are still missing."
+        )
+        next_priority_action = (
+            list(selected_evaluation.get("next_experiment_themes", []))[0]
+            if list(selected_evaluation.get("next_experiment_themes", []))
+            else "Review the verifier evidence and decide whether the selected branch should stay active."
+        )
+        last_verified_capability = (
+            f"mission_tick executed scout, implementer, and one bounded verifier run on {selected_verifier_branch_id}."
+        )
+        last_failed_capability = (
+            selected_summary if selected_evaluation.get("status") != "passed" else machine_state.get("last_failed_capability", "none")
+        )
+    else:
+        current_task = "Use mission_tick as the system center, run branch-bound scout and implementer workers with auditable artifacts, and keep verifier work gated until one bounded branch is selected."
+        current_phase = "Architecture Slice 2 - worker mesh partial execution"
+        current_blocker = "Verifier work is still gated, benchmark or equal-weight baselines are still degraded, and the current strategy still fails on drawdown."
+        current_capability_boundary = "The repo can now build a core research pool, branch-specific opportunity pools, formal experiment records, and real scout or implementer worker runs with auditable subagent artifacts; verifier execution, tool autonomy, and passing strategy selection are still missing."
+        next_priority_action = "Repair degraded baselines, then choose one branch and run the first bounded verifier-backed experiment instead of broad parameter search."
+        last_verified_capability = "mission_tick executed scout and implementer worker tasks, wrote auditable subagent artifacts, and kept verifier queued on purpose."
+        last_failed_capability = machine_state.get("last_failed_capability", "none")
     machine_state.update(
         {
-            "current_task": "Use mission_tick as the system center, run branch-bound scout and implementer workers with auditable artifacts, and keep verifier work gated until one bounded branch is selected.",
-            "current_phase": "Architecture Slice 2 - worker mesh partial execution",
-            "current_blocker": "Verifier work is still gated, benchmark or equal-weight baselines are still degraded, and the current strategy still fails on drawdown.",
-            "current_capability_boundary": "The repo can now build a core research pool, branch-specific opportunity pools, formal experiment records, and real scout or implementer worker runs with auditable subagent artifacts; verifier execution, tool autonomy, and passing strategy selection are still missing.",
-            "next_priority_action": "Repair degraded baselines, then choose one branch and run the first bounded verifier-backed experiment instead of broad parameter search.",
-            "last_verified_capability": "mission_tick executed scout and implementer worker tasks, wrote auditable subagent artifacts, and kept verifier queued on purpose.",
-            "last_failed_capability": machine_state.get("last_failed_capability", "none"),
+            "current_task": current_task,
+            "current_phase": current_phase,
+            "current_blocker": current_blocker,
+            "current_capability_boundary": current_capability_boundary,
+            "next_priority_action": next_priority_action,
+            "last_verified_capability": last_verified_capability,
+            "last_failed_capability": last_failed_capability,
             "current_mission_id": mission_id,
             "active_branch_ids": [branch.branch_id for branch in branches],
             "core_universe_snapshot_id": core_snapshot.snapshot_id,
@@ -390,6 +526,7 @@ def mission_tick(
         "experiment_record_paths": experiment_paths,
         "worker_task_count": worker_task_count,
         "legacy_single_branch": legacy_single_branch,
+        "selected_verifier_branch_id": selected_verifier_branch_id,
         "evidence_records": evidence_records,
         "primary_branch_id": branches[0].branch_id if branches else "",
         "primary_experiment_id": branches[0].experiment_id if branches else "",
@@ -438,10 +575,22 @@ def branch_review(
     from ..memory.ledger import append_jsonl
 
     paths = resolve_project_paths(project, root=repo_root)
+    _, mission_state = load_or_create_mission_state(project, max_branches=3, repo_root=repo_root)
+    mission_state = dict(mission_state)
+    if action == "promote":
+        mission_state["selected_verifier_branch_id"] = branch_id
+        mission_state["selected_verifier_requested_at"] = _utc_now()
+        mission_state["selected_verifier_consumed_at"] = None
+    elif str(mission_state.get("selected_verifier_branch_id", "")).strip() == branch_id:
+        mission_state["selected_verifier_branch_id"] = None
+        mission_state["selected_verifier_requested_at"] = None
+        mission_state["selected_verifier_consumed_at"] = None
+    save_mission_state(project, mission_state, repo_root=repo_root)
     append_jsonl(paths.branch_ledger_path, payload)
     return {
         "branch_id": branch_id,
         "action": action,
         "state": payload["state"],
+        "selected_verifier_branch_id": mission_state.get("selected_verifier_branch_id"),
         "branch_ledger_path": str(paths.branch_ledger_path),
     }

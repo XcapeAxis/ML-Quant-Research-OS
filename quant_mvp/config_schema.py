@@ -149,6 +149,76 @@ class AgentConfig:
 
 
 @dataclass(frozen=True)
+class FactorModelConfig:
+    profile: str = "f1_elasticnet_v1"
+    feature_names: tuple[str, ...] = (
+        "mom20",
+        "rev5",
+        "vol20",
+        "range",
+        "vol_surge",
+        "ma_gap",
+        "adv20",
+        "amihud20",
+    )
+    label_horizon_days: int = 5
+    refit_frequency: str = "monthly"
+    training_window_days: int = 756
+    min_train_days: int = 504
+    winsorize_quantile: float = 0.01
+    standardization: str = "cross_sectional_zscore"
+    alpha: float = 0.001
+    l1_ratio: float = 0.2
+    max_iter: int = 5000
+
+
+@dataclass(frozen=True)
+class RegimeControlConfig:
+    profile: str = "r1_predictive_error_overlay_v1"
+    ic_window_rebalances: int = 6
+    shortfall_window_rebalances: int = 6
+    min_history_rebalances: int = 6
+    caution_ic_threshold: float = 0.00
+    defensive_ic_threshold: float = -0.03
+    caution_shortfall_threshold: float = -0.005
+    defensive_shortfall_threshold: float = -0.015
+    caution_exposure: float = 0.5
+    defensive_exposure: float = 0.25
+    cooldown_rebalances: int = 2
+
+
+@dataclass(frozen=True)
+class DeepFactorModelConfig:
+    profile: str = "f2_structured_latent_factor_v1"
+    base_feature_names: tuple[str, ...] = (
+        "mom20",
+        "rev5",
+        "vol20",
+        "range",
+        "vol_surge",
+        "ma_gap",
+        "adv20",
+        "amihud20",
+    )
+    group_features: bool = True
+    latent_dim: int = 4
+    hidden_sizes: tuple[int, ...] = (12, 4)
+    activation: str = "relu"
+    alpha: float = 0.0001
+    learning_rate_init: float = 0.001
+    max_iter: int = 300
+    early_stopping: bool = True
+    validation_fraction: float = 0.1
+    random_state: int = 42
+    label_horizon_days: int = 5
+    refit_frequency: str = "monthly"
+    training_window_days: int = 756
+    min_train_days: int = 504
+    winsorize_quantile: float = 0.01
+    standardization: str = "cross_sectional_zscore"
+
+
+@dataclass(frozen=True)
 class ProjectConfig:
     db_path: str | None = None
     freq: str = "1d"
@@ -192,6 +262,9 @@ class ProjectConfig:
     research_validation: ResearchValidationConfig = field(default_factory=ResearchValidationConfig)
     memory_writeback: MemoryWritebackConfig = field(default_factory=MemoryWritebackConfig)
     agent: AgentConfig = field(default_factory=AgentConfig)
+    factor_model: FactorModelConfig = field(default_factory=FactorModelConfig)
+    regime_control: RegimeControlConfig = field(default_factory=RegimeControlConfig)
+    deep_factor_model: DeepFactorModelConfig = field(default_factory=DeepFactorModelConfig)
 
     @classmethod
     def default(cls) -> "ProjectConfig":

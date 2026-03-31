@@ -13,6 +13,7 @@ from ..agent.subagent_registry import (
     render_subagent_registry,
     summarize_subagent_state,
 )
+from ..config import load_config
 from ..project import resolve_project_paths
 from ..project_identity import (
     CANONICAL_PROJECT_ID,
@@ -56,6 +57,10 @@ def _utc_now() -> str:
 
 def _write_if_missing(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists() and path.is_dir():
+        if any(path.iterdir()):
+            raise IsADirectoryError(f"Expected file path but found non-empty directory: {path}")
+        path.rmdir()
     if not path.exists():
         path.write_text(content, encoding="utf-8")
 
@@ -63,12 +68,18 @@ def _write_if_missing(path: Path, content: str) -> None:
 def _read_text(path: Path) -> str:
     if not path.exists():
         return ""
+    if path.is_dir():
+        raise IsADirectoryError(f"Expected file path but found directory: {path}")
     return path.read_text(encoding="utf-8").strip()
 
 
 def _write_text(path: Path, text: str) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     normalized = text.rstrip() + "\n"
+    if path.exists() and path.is_dir():
+        if any(path.iterdir()):
+            raise IsADirectoryError(f"Expected file path but found non-empty directory: {path}")
+        path.rmdir()
     if path.exists() and path.read_text(encoding="utf-8") == normalized:
         return path
     path.write_text(normalized, encoding="utf-8")
@@ -118,14 +129,47 @@ def _looks_data_blocked_text(text: str) -> bool:
         token in lowered
         for token in [
             "usable validated bars",
-            "validated bars",
-            "missing",
-            "coverage",
-            "readiness",
-            "bars",
+            "validated bars for the frozen universe",
+            "missing research inputs",
+            "missing validated inputs",
+            "no validated bars",
+            "coverage gap",
+            "partial coverage",
+            "readiness gate",
+            "research-readiness gate",
+            "data readiness",
             "可用日频",
-            "缺",
-            "数据",
+            "缺少研究输入",
+            "缺少可用的 validated",
+            "缺少可用的已验证",
+            "无可用",
+            "覆盖缺口",
+            "覆盖率不足",
+            "数据就绪",
+        ]
+    )
+
+
+def _looks_non_data_blocked_text(text: str) -> bool:
+    lowered = str(text or "").strip().lower()
+    return any(
+        token in lowered
+        for token in [
+            "drawdown",
+            "回撤",
+            "leakage",
+            "walk-forward",
+            "walk forward",
+            "baseline",
+            "benchmark",
+            "rank dataframe is empty",
+            "empty rank",
+            "branch pool",
+            "ranking contract",
+            "selection contract",
+            "策略质量",
+            "契约",
+            "verifier",
         ]
     )
 
@@ -136,20 +180,27 @@ def _infer_blocker_key_from_state(state: dict[str, Any]) -> str:
     verify = dict(state.get("verify_last", {}) or {})
     data_status = str(verify.get("default_project_data_status", "")).strip()
     last_failed = str(state.get("last_failed_capability", "")).strip().lower()
+    data_ready = state.get("data_ready")
     if "drawdown" in blocker_lower or "回撤" in blocker:
         return "max_drawdown"
-    if _looks_data_blocked_text(blocker):
-        return "data_inputs"
-    if _looks_ready_data_status(data_status) and "drawdown" in last_failed:
-        return "max_drawdown"
-    if _looks_data_blocked_text(data_status):
-        return "data_inputs"
     if "leakage" in blocker_lower:
         return "leakage"
     if "walk" in blocker_lower:
         return "walk_forward"
     if "baseline" in blocker_lower or "benchmark" in blocker_lower:
         return "baseline_integrity"
+    if _looks_non_data_blocked_text(blocker):
+        return "strategy_contract"
+    if (_looks_ready_data_status(data_status) or data_ready is True) and "drawdown" in last_failed:
+        return "max_drawdown"
+    if (_looks_ready_data_status(data_status) or data_ready is True) and _looks_non_data_blocked_text(last_failed):
+        return "strategy_contract"
+    if _looks_data_blocked_text(blocker):
+        return "data_inputs"
+    if _looks_data_blocked_text(data_status):
+        return "data_inputs"
+    if data_ready is False:
+        return "data_inputs"
     return "none" if not blocker or blocker_lower in {"none", "unknown"} else blocker_lower.replace(" ", "_")[:80]
 
 
@@ -157,6 +208,8 @@ def _current_research_stage(state: dict[str, Any]) -> str:
     blocker_key = _infer_blocker_key_from_state(state)
     if blocker_key == "data_inputs":
         return "基础设施恢复"
+    if blocker_key == "strategy_contract":
+        return "策略契约修复"
     if blocker_key in {"max_drawdown", "leakage", "walk_forward", "baseline_integrity"}:
         return "晋级受阻"
     strategy = summarize_strategy_visibility(state)
@@ -187,6 +240,26 @@ def _canonicalize_active_project_state(paths, state: dict[str, Any]) -> dict[str
     updated["canonical_project_id"] = canonical
     updated["legacy_project_aliases"] = legacy_project_ids(canonical)
     updated["project_identity_notice"] = alias_notice(canonical)
+    try:
+        cfg, _ = load_config(paths.project, config_path=paths.config_path)
+        universe_policy = dict(cfg.get("universe_policy", {}) or {})
+        canonical_universe_id = str(
+            universe_policy.get("canonical_universe_id")
+            or universe_policy.get("research_profile")
+            or updated.get("canonical_universe_id")
+            or "",
+        ).strip()
+        if canonical_universe_id:
+            updated["canonical_universe_id"] = canonical_universe_id
+    except Exception:
+        if updated.get("canonical_universe_id"):
+            updated["canonical_universe_id"] = str(updated["canonical_universe_id"]).strip()
+    if is_active_canonical_project(paths.project):
+        updated["baseline_status"] = str(updated.get("baseline_status") or "baseline_validation_ready")
+        readiness = dict(updated.get("readiness", {}) or {})
+        readiness.setdefault("stage", "validation-ready")
+        readiness.setdefault("ready", True)
+        updated["readiness"] = readiness
     updated["current_research_stage"] = _current_research_stage(updated)
     updated["canonical_truth_summary"] = _canonical_truth_summary(updated)
     updated["configured_subagent_gate_mode"] = str(updated.get("subagent_gate_mode", "AUTO"))
@@ -216,6 +289,13 @@ def _canonicalize_active_project_state(paths, state: dict[str, Any]) -> dict[str
         updated["current_capability_boundary"] = "当前只能确认研究前提与数据恢复；还不能把任何候选当成已验证策略结论。"
         if "回撤" in str(updated.get("next_priority_action", "")):
             updated["next_priority_action"] = "先恢复规范项目可直接复用的 validated bars 与数据快照。"
+    elif blocker_key == "strategy_contract":
+        updated["current_capability_boundary"] = "当前主阻塞不是缺数据，而是控制面写回真相或策略分支契约还没有完全对齐。"
+        next_action = str(updated.get("next_priority_action", "")).strip()
+        if not next_action or _looks_data_blocked_text(next_action):
+            updated["next_priority_action"] = "先修 tracked memory 写回真相和 branch pool -> ranking 契约，再进入因子对象层。"
+        next_steps = [item for item in _normalize_list(updated.get("next_step_memory")) if not _looks_data_blocked_text(item)]
+        updated["next_step_memory"] = [updated["next_priority_action"], *[item for item in next_steps if item != updated["next_priority_action"]]][:5]
     elif blocker_key == "max_drawdown":
         updated["current_capability_boundary"] = "研究输入与验证入口已就绪，当前已进入策略验证 / 晋级受阻阶段；真正卡住的是最大回撤仍高于 30%。"
         next_action = str(updated.get("next_priority_action", "")).strip()
@@ -1091,11 +1171,28 @@ def _render_research_progress_lines(state: dict[str, Any], *, heading: str = "##
 
 
 def _default_session_state(project: str, *, root: Path, paths) -> dict[str, Any]:
+    canonical_universe_id = ""
+    try:
+        cfg, _ = load_config(project, config_path=paths.config_path)
+        universe_policy = dict(cfg.get("universe_policy", {}) or {})
+        canonical_universe_id = str(
+            universe_policy.get("canonical_universe_id")
+            or universe_policy.get("research_profile")
+            or "",
+        ).strip()
+    except Exception:
+        canonical_universe_id = ""
     base = {
         "project": project,
         "canonical_project_id": canonical_project_id(project),
         "legacy_project_aliases": legacy_project_ids(project),
         "project_identity_notice": alias_notice(project),
+        "canonical_universe_id": canonical_universe_id,
+        "baseline_status": "baseline_validation_ready",
+        "readiness": {
+            "stage": "validation-ready",
+            "ready": True,
+        },
         "current_task": "Keep the Phase 1 Research OS reproducible with tracked long-term memory and honest runtime artifacts.",
         "current_phase": "Phase 1 Research OS",
         "current_blocker": "Default project still lacks usable validated bars for the frozen universe.",

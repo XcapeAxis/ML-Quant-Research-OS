@@ -7,7 +7,17 @@ name = "quant-ml-mvp"
 version = "0.1.0"
 description = "Reproducible quant ML + backtesting MVP"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+    "akshare",
+    "matplotlib",
+    "numpy",
+    "openpyxl>=3.1,<4",
+    "pandas",
+    "pyarrow",
+    "pydantic>=2,<3",
+    "scikit-learn>=1.5,<2",
+    "tqdm",
+]
 
 [project.scripts]
 quant-mvp = "quant_mvp.cli:main"

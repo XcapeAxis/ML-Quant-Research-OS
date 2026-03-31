@@ -81,6 +81,7 @@ This document is a target-architecture proposal, not a claim that the current re
 - Why this matters:
   - A superagent needs a search engine first and a promotion gate second.
   - The current architecture is better at saying "this one failed" than at finding what should replace it.
+  - If the long-term target is factor mining plus controllable ML, then single-strategy branches should become control harnesses rather than the architectural center.
 
 ## Target Architecture
 
@@ -115,6 +116,9 @@ Represents the searchable space as first-class objects.
   - `MarketStateSnapshot`
   - `OpportunityCandidate`
   - `FactorCandidate`
+  - `FeatureView`
+  - `LabelSpec`
+  - `ModelCandidate`
   - `StrategyCandidate`
   - `Experiment`
   - `EvaluationRecord`
