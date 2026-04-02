@@ -1,5 +1,15 @@
 # Decision Log
 
+## 2026-04-02T12:10:00+08:00 - repo
+- Decision: land the first backend-execution metadata slice by introducing `BackendAdapter`, `BackendRun`, `DecisionRecord`, and `FailureRecord`, and attach them to the local verifier paths before any real external Flow Engine transport is attempted.
+- Reason: the repo needed a shared execution vocabulary first. Wiring the existing local verifier flows into a common backend/run/decision/failure object model is the smallest auditable step toward a real `FlowBridgeAdapter`, while avoiding a premature external-provider integration.
+- Evidence:
+  - `C:\Users\asus\Documents\Projects\BackTest\quant_mvp\experiment_graph.py`
+  - `C:\Users\asus\Documents\Projects\BackTest\quant_mvp\backend_adapters.py`
+  - `C:\Users\asus\Documents\Projects\BackTest\quant_mvp\f1_verify.py`
+  - `C:\Users\asus\Documents\Projects\BackTest\quant_mvp\f2_verify.py`
+  - `C:\Users\asus\Documents\Projects\BackTest\quant_mvp\r1_pipeline.py`
+
 ## 2026-03-24
 - Keep `quant_mvp/db.py`, `quant_mvp/backtest_engine.py`, `quant_mvp/selection.py`, and `quant_mvp/project.py` as the reusable low-level core because they already expose deterministic, testable primitives.
 - Rewrite `scripts/run_limit_up_screening.py` so it cannot drift away from the modular pipeline.
@@ -176,3 +186,17 @@
   - `C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\excel\ResearchConsole.xlsx`
   - `C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\excel\feed\manifest.json`
   - `C:\Users\asus\Documents\Projects\BackTest\docs\EXCEL_CONSOLE_MVP.md`
+## 2026-04-02T00:00:00+08:00 - repo
+- Decision: reposition the project away from a generic visual quant workflow platform and toward a visual autonomous quant-research operating system.
+- Reason: mature external workflow platforms already cover much of the low-level node/workflow layer. The repo's higher-value direction is the research control plane: mission orchestration, branch management, experiment lineage, failure analysis, memory, verification, and adapter-based execution.
+- Evidence:
+  - `C:\Users\asus\Documents\Projects\BackTest\docs\VISUAL_AUTONOMOUS_RESEARCH_OS.md`
+  - `C:\Users\asus\Documents\Projects\BackTest\docs\NORTH_STAR_ROADMAP.md`
+  - `C:\Users\asus\Documents\Projects\BackTest\docs\SUPERAGENT_ARCHITECTURE_REDESIGN.md`
+## 2026-04-02T09:20:00+08:00 - repo
+- Decision: remove provider-branded architecture naming and standardize external execution integration around `Flow Engine` plus `FlowBridgeAdapter`, with real vendor names kept only in provider metadata and factual references.
+- Reason: product-layer naming should not orbit a single external platform. A neutral-but-productive naming system is clearer, less fragile, and keeps the Research OS positioned above interchangeable execution backends.
+- Evidence:
+  - `C:\Users\asus\Documents\Projects\BackTest\docs\VISUAL_AUTONOMOUS_RESEARCH_OS.md`
+  - `C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\NEXT_ROUND_RESEARCH_PLAN.md`
+  - `C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\PROJECT_STATE.md`

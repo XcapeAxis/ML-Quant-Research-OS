@@ -12,6 +12,12 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from .backend_adapters import (
+    build_decision_record,
+    build_failure_record,
+    build_local_backend_run,
+    build_local_pipeline_adapter,
+)
 from .backtest_engine import rank_targets, run_topn_suite
 from .config import load_config
 from .experiment_graph import EvaluationRecord, Experiment, RegimeSpec, new_experiment, update_experiment, write_experiment_record
@@ -1130,6 +1136,21 @@ def run_r1_verify(project: str, *, config_path: Path | None = None, repo_root: P
             branch_pool_snapshot_id=f1_experiment.branch_pool_snapshot_id,
             opportunity_generator_id=f1_experiment.opportunity_generator_id,
             strategy_candidate_id=variant.strategy_candidate_id,
+            backend_adapter=build_local_pipeline_adapter(),
+            backend_run=build_local_backend_run(
+                workflow_template_id="r1_verify",
+                status="running",
+                parameter_overrides={
+                    "topk": topk,
+                    "core_snapshot_id": core_snapshot.snapshot_id,
+                    "profile": regime_cfg.profile,
+                },
+                lineage_metadata={
+                    "source_f1_experiment_id": f1_experiment.experiment_id,
+                    "mode": "r1_verify",
+                    "variant": variant.profile,
+                },
+            ),
         )
         write_experiment_record(experiment, repo_root=repo_root)
 
@@ -1301,6 +1322,41 @@ def run_r1_verify(project: str, *, config_path: Path | None = None, repo_root: P
             status="evaluated",
             execution=execution,
             evaluation=evaluation,
+            backend_run=build_local_backend_run(
+                workflow_template_id="r1_verify",
+                status="succeeded",
+                parameter_overrides={
+                    "topk": topk,
+                    "core_snapshot_id": core_snapshot.snapshot_id,
+                    "profile": regime_cfg.profile,
+                },
+                metrics={
+                    "f1_metrics": f1_metrics,
+                    "r1_metrics": r1_metrics,
+                    "control_metrics": control_metrics,
+                    "delta_metrics_vs_f1": decision_payload["delta_metrics_vs_f1"],
+                },
+                artifact_refs=[
+                    str(signal_frame_path),
+                    str(state_timeline_path),
+                    str(metrics_output),
+                    str(plot_output),
+                    str(report_json_path),
+                    str(report_md_path),
+                ],
+                lineage_metadata={
+                    "source_f1_experiment_id": f1_experiment.experiment_id,
+                    "mode": "r1_verify",
+                    "variant": variant.profile,
+                },
+                finished_at=_utc_now(),
+            ),
+            decision_record=build_decision_record(
+                decision=decision_payload["decision"],
+                summary=summary,
+                reasons=decision_payload["primary_blockers"],
+                next_action=decision_text["next_action"],
+            ),
             artifact_refs=[
                 str(signal_frame_path),
                 str(state_timeline_path),
@@ -1398,6 +1454,26 @@ def run_r1_verify(project: str, *, config_path: Path | None = None, repo_root: P
                 status="failed",
                 execution={"executed_steps": ["freshness_check"]},
                 evaluation=evaluation,
+                backend_run=build_local_backend_run(
+                    workflow_template_id="r1_verify",
+                    status="failed",
+                    parameter_overrides={
+                        "core_snapshot_id": core_snapshot.snapshot_id if core_snapshot is not None else "",
+                        "profile": regime_cfg.profile if regime_cfg is not None else "",
+                    },
+                    failure_reason=str(exc),
+                    lineage_metadata={
+                        "source_f1_experiment_id": f1_experiment.experiment_id if f1_experiment is not None else "",
+                        "mode": "r1_verify",
+                        "variant": variant.profile if variant is not None else "",
+                    },
+                    finished_at=_utc_now(),
+                ),
+                failure_record=build_failure_record(
+                    summary=f"{variant.display_label if variant is not None else 'R1'} bounded verifier failed.",
+                    root_cause=str(exc),
+                    corrective_action="Repair the freshness, signal, or shared-shell contract before rerunning r1_verify.",
+                ),
             )
             experiment_path = write_experiment_record(experiment, repo_root=repo_root)
             artifact_refs.append(str(experiment_path))

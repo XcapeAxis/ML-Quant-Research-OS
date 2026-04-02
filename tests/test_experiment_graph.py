@@ -2,6 +2,12 @@ from __future__ import annotations
 
 import json
 
+from quant_mvp.backend_adapters import (
+    build_decision_record,
+    build_failure_record,
+    build_flow_bridge_adapter,
+    build_local_backend_run,
+)
 from quant_mvp.experiment_graph import (
     build_dataset_snapshot,
     build_factor_candidates,
@@ -12,6 +18,7 @@ from quant_mvp.experiment_graph import (
     build_regime_spec,
     build_universe_snapshot,
     new_experiment,
+    read_experiment_record,
     update_experiment,
     write_experiment_record,
 )
@@ -95,6 +102,69 @@ def test_experiment_record_round_trip_writes_project_level_json(synthetic_projec
     assert payload["label_spec"]["target_name"] == "next_rebalance_excess_return"
     assert payload["model_candidate"]["is_online_adaptive"] is False
     assert payload["regime_spec"]["regime_transition_latency"] is None
+
+
+def test_experiment_record_round_trip_preserves_backend_and_decision_objects(synthetic_project) -> None:
+    ctx = synthetic_project
+    universe = build_universe_snapshot(codes=ctx["universe_codes"], source_path=ctx["paths"].universe_path)
+    dataset = build_dataset_snapshot(
+        report={"coverage_ratio": 1.0, "covered_symbols": 6, "universe_symbols": 6, "validated_rows": 100},
+        cfg={"freq": "1d", "data_provider": {"provider": "akshare"}, "strategy_mode": "limit_up_screening"},
+        universe_snapshot=universe,
+    )
+    experiment = new_experiment(
+        project=ctx["project"],
+        experiment_id="backend-experiment",
+        hypothesis="backend metadata should round-trip",
+        mode="adapter_smoke",
+        plan_steps=["submit_run"],
+        success_criteria=["preserve backend and decision metadata"],
+        universe_snapshot=universe,
+        dataset_snapshot=dataset,
+        opportunity_spec=build_opportunity_spec(cfg={"strategy_mode": "limit_up_screening"}, hypothesis="backend metadata should round-trip"),
+        subagent_tasks=[],
+        backend_adapter=build_flow_bridge_adapter(),
+        backend_run=build_local_backend_run(
+            workflow_template_id="adapter_smoke",
+            status="running",
+            parameter_overrides={"topk": 3},
+            lineage_metadata={"source_experiment_id": "parent-experiment"},
+        ),
+    )
+    experiment = update_experiment(
+        experiment,
+        status="failed",
+        execution={"executed_steps": ["submit_run"]},
+        decision_record=build_decision_record(
+            decision="retry",
+            summary="bridge import needs one more attempt",
+            reasons=["synthetic bridge timeout"],
+            next_action="retry after transport wiring",
+        ),
+        failure_record=build_failure_record(
+            summary="bridge run failed",
+            root_cause="adapter timeout while polling status",
+            corrective_action="repair bridge transport",
+        ),
+    )
+
+    path = write_experiment_record(experiment)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    round_trip = read_experiment_record(ctx["project"], "backend-experiment", repo_root=ctx["paths"].root)
+
+    assert payload["backend_adapter"]["adapter_id"] == "flow_bridge"
+    assert payload["backend_adapter"]["provider"] == "pandaai.quantflow"
+    assert payload["backend_run"]["workflow_template_id"] == "adapter_smoke"
+    assert payload["decision_record"]["decision"] == "retry"
+    assert payload["failure_record"]["failure_class"] == "adapter_failure"
+    assert round_trip.backend_adapter is not None
+    assert round_trip.backend_adapter.adapter_name == "Flow Bridge"
+    assert round_trip.backend_run is not None
+    assert round_trip.backend_run.lineage_metadata["source_experiment_id"] == "parent-experiment"
+    assert round_trip.decision_record is not None
+    assert round_trip.decision_record.next_action == "retry after transport wiring"
+    assert round_trip.failure_record is not None
+    assert round_trip.failure_record.corrective_action == "repair bridge transport"
 
 
 def test_strategy_failure_report_prioritizes_drawdown_and_risk_themes() -> None:

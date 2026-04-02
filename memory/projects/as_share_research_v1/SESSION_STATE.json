@@ -1,18 +1,20 @@
 {
+  "adapter_contract_status": "grounded",
+  "backend_metadata_status": "local_verifier_paths_attached",
   "baseline_status": "baseline_validation_ready",
   "branch": "main",
   "canonical_project_id": "as_share_research_v1",
-  "canonical_truth_summary": "规范项目当前处于晋级受阻阶段，真实主阻塞是 F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.；旧的“缺 bars”叙事已转为历史路径。",
+  "canonical_truth_summary": "规范项目当前处于晋级受阻阶段，真实主阻塞是 最大回撤 48.67% 高于 30.00%。；旧的“缺 bars”叙事已转为历史路径。",
   "canonical_universe_id": "cn_a_mainboard_all_v1",
   "configured_subagent_gate_mode": "OFF",
   "current_blocked_strategy_ids": [
     "risk_constrained_limit_up",
     "tighter_entry_limit_up"
   ],
-  "current_blocker": "F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.",
+  "current_blocker": "Max drawdown 48.67% exceeds 30.00%.",
   "current_capability_boundary": "研究输入与验证入口已就绪，当前已进入策略验证 / 晋级受阻阶段；真正卡住的是最大回撤仍高于 30%。",
   "current_conclusion": "F2.1 completed one bounded verifier and improved the tradeoff, but it has not displaced F1.",
-  "current_phase": "F2 bounded challenger + Excel safe dashboard",
+  "current_phase": "Phase 1 Research OS",
   "current_primary_strategy_ids": [
     "f1_elasticnet_v1"
   ],
@@ -33,8 +35,8 @@
     "f1_elasticnet_v1",
     "f2_structured_latent_factor_v1"
   ],
-  "current_strategy_summary": "本轮围绕 f1_elasticnet_v1（F1 mainline） 继续收敛研究阻塞；当前最硬的限制仍是 F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.。",
-  "current_task": "Keep F1 as the verified mainline, keep F2.1 as a bounded challenger, and use the Excel workbook as the default internal monitor.",
+  "current_strategy_summary": "本轮围绕 f1_elasticnet_v1（F1 mainline） 继续收敛研究阻塞；当前最硬的限制仍是 最大回撤 48.67% 高于 30.00%。。",
+  "current_task": "Keep the Phase 1 Research OS reproducible with tracked memory and honest runtime artifacts.",
   "current_validation_scope": "Same core universe + same shared shell + Top6.",
   "durable_facts": [
     "F1 remains the current mainline and F2.1 remains a bounded challenger under the shared shell.",
@@ -48,7 +50,8 @@
     "F2.1 writes a latent-factor audit artifact instead of keeping only final scores.",
     "The Excel console home sheet is now a Chinese-first cockpit driven by tracked research truth feeds instead of a generic dump layout.",
     "The Excel console now ships as a safe read-only .xlsx dashboard with copyable terminal commands instead of launcher scripts.",
-    "The local web monitoring surfaces remain frozen until the Excel console is accepted and clearly covers the core internal scenarios."
+    "The local web monitoring surfaces remain frozen until the Excel console is accepted and clearly covers the core internal scenarios.",
+    "External execution platforms are now named as Flow Engines at the product layer, with FlowBridgeAdapter as the concrete bridge implementation and provider metadata carrying the real source."
   ],
   "effective_subagent_gate_mode": "OFF",
   "effective_subagent_gate_reason": "F2.1 stayed in OFF mode because this round was a tightly coupled serial implementation.",
@@ -136,7 +139,10 @@
   "f2_verify_classification": "verifier_mixed",
   "f2_verify_decision": "keep_f2_challenger",
   "f2_verify_report_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f2\\F2_BOUNDED_VERIFIER.json",
-  "head": "c9eb9a2f0e232ee98bae961f3db1782688c963c9",
+  "flow_bridge_adapter_id": "flow_bridge",
+  "flow_bridge_provider": "pandaai.quantflow",
+  "flow_engine_role_name": "Flow Engine",
+  "head": "6ca785f874b0537ebbab6015cef5be3e4fa7fb01",
   "iterative_loop": {
     "alternative_subagents": [],
     "archived_subagent_count": 0,
@@ -179,17 +185,17 @@
     "target_substantive_actions": 3,
     "workflow_mode": "campaign"
   },
-  "last_failed_capability": "F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.",
+  "last_failed_capability": "Promotion gate blocked: Max drawdown 48.67% exceeds 30.00%.",
   "last_failure": {
     "corrective_action": "Restore a usable frozen universe plus local bars before rerunning the dry-run cycle.",
-    "experiment_id": "as_share_research_v1-20260401T041143",
+    "experiment_id": "as_share_research_v1-20260402T031858",
     "resolution_status": "not_fixed",
     "root_cause": "Max drawdown 48.67% exceeds 30.00%.",
     "summary": "Promotion gate blocked: Max drawdown 48.67% exceeds 30.00%.",
-    "timestamp": "2026-04-01T04:11:43"
+    "timestamp": "2026-04-02T03:18:58"
   },
-  "last_updated": "2026-04-02T01:58:59+00:00",
-  "last_verified_capability": "The Excel workbook now exports as a safe read-only dashboard with command text instead of launcher scripts.",
+  "last_updated": "2026-04-02T03:22:53+00:00",
+  "last_verified_capability": "Tracked memory sync refreshed for plan: as_share_research_v1: revalidate spec parity before any new alpha claim",
   "latest_hypotheses": [
     {
       "hypothesis": "as_share_research_v1: investigate the highest-severity failed gate before running a live experiment",
@@ -214,14 +220,19 @@
     "Do not generate .cmd launchers or VBA action modules from the Excel console again.",
     "Do not ask the user to whitelist the repo in antivirus just to keep the Excel console working."
   ],
+  "next_adapter_action": "Wrap f1_train/f2_train into the local adapter vocabulary before enabling any real Flow Engine transport.",
   "next_build_target": "f2_structured_latent_factor_v1",
-  "next_priority_action": "Run one more bounded F2 variant before widening the search.",
+  "next_priority_action": "Restore a usable validated bar snapshot for the frozen default universe.",
   "next_step_memory": [
+    "Restore a usable validated bar snapshot for the frozen default universe.",
     "Run one more bounded F2 variant before widening the search.",
     "Keep F1 as the mainline and F2.1 as the bounded challenger.",
     "Use the Excel workbook as the default internal monitor; keep the web UI frozen.",
     "Do not restore script-based Excel actions."
   ],
+  "platform_adapter_impl_name": "FlowBridgeAdapter",
+  "platform_adapter_provider_example": "pandaai.quantflow",
+  "platform_adapter_role_name": "Flow Engine",
   "project": "as_share_research_v1",
   "project_identity_notice": "历史项目名 2026Q1_limit_up 仅作为 legacy alias / 迁移记录保留，不再代表当前活跃项目。",
   "r1_verify_classification": "verifier_mixed",
@@ -233,7 +244,7 @@
   },
   "research_progress": {
     "confidence": "medium",
-    "current_blocker": "F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.",
+    "current_blocker": "Max drawdown 48.67% exceeds 30.00%.",
     "dimensions": [
       {
         "dimension": "Data inputs",
@@ -243,19 +254,19 @@
       },
       {
         "dimension": "Strategy integrity",
-        "evidence": "单一研究核心与契约护栏已存在；最近已验证能力：The Excel workbook now exports as a safe read-only dashboard with command text instead of launcher scripts.。",
+        "evidence": "单一研究核心与契约护栏已存在；最近已验证能力：Tracked memory 已按计划刷新： as_share_research_v1: revalidate spec parity before any new alpha claim。",
         "score": 2,
         "status": "partial"
       },
       {
         "dimension": "Validation stack",
-        "evidence": "审计/泄漏/晋级框架存在；最近已验证能力：The Excel workbook now exports as a safe read-only dashboard with command text instead of launcher scripts.。",
+        "evidence": "审计/泄漏/晋级框架存在；最近已验证能力：Tracked memory 已按计划刷新： as_share_research_v1: revalidate spec parity before any new alpha claim。",
         "score": 2,
         "status": "partial"
       },
       {
         "dimension": "Promotion readiness",
-        "evidence": "当前 blocker：F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.；研究输入仍不足以支撑晋级评估。",
+        "evidence": "当前 blocker：最大回撤 48.67% 高于 30.00%。；研究输入仍不足以支撑晋级评估。",
         "score": 1,
         "status": "blocked"
       },
@@ -267,7 +278,7 @@
       }
     ],
     "materially_changed": false,
-    "next_milestone": "Run one more bounded F2 variant before widening the search.",
+    "next_milestone": "Restore a usable validated bar snapshot for the frozen default universe.",
     "overall_trajectory": "blocked",
     "this_run_delta": "unchanged"
   },

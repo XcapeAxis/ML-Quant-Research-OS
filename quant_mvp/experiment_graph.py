@@ -158,6 +158,66 @@ class SubagentTask:
 
 
 @dataclass
+class BackendAdapter:
+    adapter_id: str
+    adapter_name: str
+    adapter_type: str
+    provider: str
+    provider_display_name: str = ""
+    capabilities: list[str] = field(default_factory=list)
+    notes: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class BackendRun:
+    backend_run_id: str
+    adapter_id: str
+    status: str
+    workflow_template_id: str
+    reproducibility_fingerprint: str
+    submitted_at: str | None = None
+    started_at: str | None = None
+    finished_at: str | None = None
+    parameter_overrides: dict[str, Any] = field(default_factory=dict)
+    metrics: dict[str, Any] = field(default_factory=dict)
+    artifact_refs: list[str] = field(default_factory=list)
+    log_refs: list[str] = field(default_factory=list)
+    lineage_metadata: dict[str, Any] = field(default_factory=dict)
+    failure_reason: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class DecisionRecord:
+    decision: str
+    summary: str
+    reasons: list[str] = field(default_factory=list)
+    next_action: str = ""
+    decision_at: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class FailureRecord:
+    failure_class: str
+    summary: str
+    root_cause: str
+    corrective_action: str = ""
+    resolution_status: str = "not_fixed"
+    recorded_at: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
 class EvaluationRecord:
     status: str
     summary: str
@@ -196,8 +256,12 @@ class Experiment:
     opportunity_spec: OpportunitySpec | None = None
     tool_specs: list[ToolSpec] = field(default_factory=list)
     subagent_tasks: list[SubagentTask] = field(default_factory=list)
+    backend_adapter: BackendAdapter | None = None
+    backend_run: BackendRun | None = None
     execution: dict[str, Any] = field(default_factory=dict)
     evaluation: EvaluationRecord | None = None
+    decision_record: DecisionRecord | None = None
+    failure_record: FailureRecord | None = None
     related_cycle_id: str | None = None
     mission_id: str | None = None
     branch_id: str | None = None
@@ -220,7 +284,11 @@ class Experiment:
         payload["opportunity_spec"] = self.opportunity_spec.to_dict() if self.opportunity_spec else None
         payload["tool_specs"] = [item.to_dict() for item in self.tool_specs]
         payload["subagent_tasks"] = [item.to_dict() for item in self.subagent_tasks]
+        payload["backend_adapter"] = self.backend_adapter.to_dict() if self.backend_adapter else None
+        payload["backend_run"] = self.backend_run.to_dict() if self.backend_run else None
         payload["evaluation"] = self.evaluation.to_dict() if self.evaluation else None
+        payload["decision_record"] = self.decision_record.to_dict() if self.decision_record else None
+        payload["failure_record"] = self.failure_record.to_dict() if self.failure_record else None
         return payload
 
 
@@ -461,6 +529,8 @@ def new_experiment(
     label_spec: LabelSpec | None = None,
     model_candidate: ModelCandidate | None = None,
     regime_spec: RegimeSpec | None = None,
+    backend_adapter: BackendAdapter | None = None,
+    backend_run: BackendRun | None = None,
     mission_id: str | None = None,
     branch_id: str | None = None,
     core_universe_snapshot_id: str | None = None,
@@ -490,6 +560,8 @@ def new_experiment(
         opportunity_spec=opportunity_spec,
         tool_specs=build_tool_specs(planned_steps=plan_steps),
         subagent_tasks=list(subagent_tasks),
+        backend_adapter=backend_adapter,
+        backend_run=backend_run,
         mission_id=mission_id,
         branch_id=branch_id,
         core_universe_snapshot_id=core_universe_snapshot_id,
@@ -508,6 +580,10 @@ def update_experiment(
     subagent_tasks: list[SubagentTask] | None = None,
     artifact_refs: Iterable[str] | None = None,
     related_cycle_id: str | None = None,
+    backend_adapter: BackendAdapter | None = None,
+    backend_run: BackendRun | None = None,
+    decision_record: DecisionRecord | None = None,
+    failure_record: FailureRecord | None = None,
 ) -> Experiment:
     refs = sorted(dict.fromkeys([*experiment.artifact_refs, *[str(item) for item in (artifact_refs or []) if str(item).strip()]]))
     return Experiment(
@@ -531,8 +607,12 @@ def update_experiment(
         opportunity_spec=experiment.opportunity_spec,
         tool_specs=build_tool_specs(planned_steps=experiment.plan_steps, execution=execution or experiment.execution),
         subagent_tasks=list(subagent_tasks) if subagent_tasks is not None else list(experiment.subagent_tasks),
+        backend_adapter=backend_adapter if backend_adapter is not None else experiment.backend_adapter,
+        backend_run=backend_run if backend_run is not None else experiment.backend_run,
         execution=dict(to_jsonable(execution or experiment.execution)),
         evaluation=evaluation or experiment.evaluation,
+        decision_record=decision_record if decision_record is not None else experiment.decision_record,
+        failure_record=failure_record if failure_record is not None else experiment.failure_record,
         related_cycle_id=related_cycle_id or experiment.related_cycle_id,
         mission_id=experiment.mission_id,
         branch_id=experiment.branch_id,
@@ -572,7 +652,11 @@ def read_experiment_record(project: str, experiment_id: str, *, repo_root: Path 
     opportunity = OpportunitySpec(**payload["opportunity_spec"]) if payload.get("opportunity_spec") else None
     tool_specs = [ToolSpec(**item) for item in payload.get("tool_specs", [])]
     subagent_tasks = [SubagentTask(**item) for item in payload.get("subagent_tasks", [])]
+    backend_adapter = BackendAdapter(**payload["backend_adapter"]) if payload.get("backend_adapter") else None
+    backend_run = BackendRun(**payload["backend_run"]) if payload.get("backend_run") else None
     evaluation = EvaluationRecord(**payload["evaluation"]) if payload.get("evaluation") else None
+    decision_record = DecisionRecord(**payload["decision_record"]) if payload.get("decision_record") else None
+    failure_record = FailureRecord(**payload["failure_record"]) if payload.get("failure_record") else None
     return Experiment(
         experiment_id=str(payload["experiment_id"]),
         project=str(payload["project"]),
@@ -594,8 +678,12 @@ def read_experiment_record(project: str, experiment_id: str, *, repo_root: Path 
         opportunity_spec=opportunity,
         tool_specs=tool_specs,
         subagent_tasks=subagent_tasks,
+        backend_adapter=backend_adapter,
+        backend_run=backend_run,
         execution=dict(payload.get("execution", {})),
         evaluation=evaluation,
+        decision_record=decision_record,
+        failure_record=failure_record,
         related_cycle_id=payload.get("related_cycle_id"),
         mission_id=payload.get("mission_id"),
         branch_id=payload.get("branch_id"),
@@ -629,6 +717,10 @@ def recent_experiment_summaries(project: str, *, repo_root: Path | None = None, 
                 "primary_blockers": evaluation.get("primary_blockers", []),
                 "mission_id": payload.get("mission_id", ""),
                 "branch_id": payload.get("branch_id", ""),
+                "backend_adapter_id": ((payload.get("backend_adapter") or {}).get("adapter_id", "")),
+                "backend_run_status": ((payload.get("backend_run") or {}).get("status", "")),
+                "decision": ((payload.get("decision_record") or {}).get("decision", "")),
+                "failure_class": ((payload.get("failure_record") or {}).get("failure_class", "")),
                 "path": str(path),
             },
         )

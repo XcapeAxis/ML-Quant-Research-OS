@@ -203,6 +203,12 @@ def test_f2_verify_writes_verifier_artifacts_and_experiment_record(limit_up_proj
     assert experiment.branch_id == "factor_elasticnet_core"
     assert experiment.strategy_candidate_id == "f2_structured_latent_factor_v1"
     assert experiment.evaluation is not None
+    assert experiment.backend_adapter is not None
+    assert experiment.backend_adapter.adapter_id == "local_pipeline"
+    assert experiment.backend_run is not None
+    assert experiment.backend_run.status == "succeeded"
+    assert experiment.decision_record is not None
+    assert experiment.decision_record.decision == payload["decision"]
     assert experiment.evaluation.classification in {"verifier_pass", "verifier_mixed", "verifier_fail"}
     assert payload["decision"] in {"keep_f2_challenger", "promote_f2_next", "reject_f2_v1_and_retain_f1_mainline"}
     assert report["compare_shell"] == "topn_suite_no_stoploss_v1"

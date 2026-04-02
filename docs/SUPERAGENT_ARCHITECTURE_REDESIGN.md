@@ -12,6 +12,30 @@ Redesign the current Phase 1 Research OS so it can evolve toward an autonomous q
 
 This document is a target-architecture proposal, not a claim that the current repo already has these capabilities.
 
+## Product Repositioning
+
+The repo should no longer aim to become a generic visual factor/ML workflow builder.
+
+That lower layer is increasingly well served by external workflow platforms and node-based quant systems. The higher-value direction for this repo is:
+
+- a visual autonomous research operating system
+- a mission/branch/experiment control plane
+- a reflection, audit, and failure-analysis layer
+- an adapter layer that can call local pipelines or external Flow Engines through `BackendAdapter` and `FlowBridgeAdapter` instead of rebuilding every low-level visual node in-house
+
+That means the visual center of the future product should be:
+
+- mission cockpit
+- branch board
+- experiment lineage
+- failure and postmortem board
+- worker/subagent board
+- backend adapter board
+
+not:
+
+- hundreds of low-level factor and ETL nodes as the product center
+
 ## Current Structural Problems
 
 ### 1. The system center is still memory and governance, not research search.

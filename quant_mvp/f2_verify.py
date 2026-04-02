@@ -11,6 +11,12 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from .backend_adapters import (
+    build_decision_record,
+    build_failure_record,
+    build_local_backend_run,
+    build_local_pipeline_adapter,
+)
 from .backtest_engine import run_topn_suite
 from .config import load_config
 from .experiment_graph import (
@@ -876,6 +882,21 @@ def run_f2_verify(project: str, *, config_path: Path | None = None, repo_root: P
             branch_pool_snapshot_id=f2_experiment.branch_pool_snapshot_id,
             opportunity_generator_id=f2_experiment.opportunity_generator_id,
             strategy_candidate_id="f2_structured_latent_factor_v1",
+            backend_adapter=build_local_pipeline_adapter(),
+            backend_run=build_local_backend_run(
+                workflow_template_id="f2_verify",
+                status="running",
+                parameter_overrides={
+                    "topk": topk,
+                    "core_snapshot_id": core_snapshot.snapshot_id,
+                    "profile": _deep_factor_model_config(cfg).profile,
+                },
+                lineage_metadata={
+                    "source_f1_experiment_id": f1_experiment.experiment_id,
+                    "source_f2_experiment_id": f2_experiment.experiment_id,
+                    "mode": "f2_verify",
+                },
+            ),
         )
         write_experiment_record(experiment, repo_root=repo_root)
 
@@ -1018,6 +1039,39 @@ def run_f2_verify(project: str, *, config_path: Path | None = None, repo_root: P
             status="evaluated",
             execution=execution,
             evaluation=evaluation,
+            backend_run=build_local_backend_run(
+                workflow_template_id="f2_verify",
+                status="succeeded",
+                parameter_overrides={
+                    "topk": topk,
+                    "core_snapshot_id": core_snapshot.snapshot_id,
+                    "profile": _deep_factor_model_config(cfg).profile,
+                },
+                metrics={
+                    "f1_metrics": f1_metrics,
+                    "f2_metrics": f2_metrics,
+                    "control_metrics": control_metrics,
+                    "delta_metrics_vs_f1": decision_payload["delta_metrics_vs_f1"],
+                },
+                artifact_refs=[
+                    str(metrics_output),
+                    str(plot_output),
+                    str(report_json_path),
+                    str(report_md_path),
+                ],
+                lineage_metadata={
+                    "source_f1_experiment_id": f1_experiment.experiment_id,
+                    "source_f2_experiment_id": f2_experiment.experiment_id,
+                    "mode": "f2_verify",
+                },
+                finished_at=_utc_now(),
+            ),
+            decision_record=build_decision_record(
+                decision=decision_payload["decision"],
+                summary=evaluation.summary,
+                reasons=decision_payload["primary_blockers"],
+                next_action=decision_payload["next_action"],
+            ),
             artifact_refs=[
                 str(metrics_output),
                 str(plot_output),
@@ -1105,6 +1159,25 @@ def run_f2_verify(project: str, *, config_path: Path | None = None, repo_root: P
                 status="failed",
                 execution={"executed_steps": ["freshness_check"]},
                 evaluation=evaluation,
+                backend_run=build_local_backend_run(
+                    workflow_template_id="f2_verify",
+                    status="failed",
+                    parameter_overrides={
+                        "core_snapshot_id": core_snapshot.snapshot_id if core_snapshot is not None else "",
+                    },
+                    failure_reason=str(exc),
+                    lineage_metadata={
+                        "source_f1_experiment_id": f1_experiment.experiment_id if f1_experiment is not None else "",
+                        "source_f2_experiment_id": f2_experiment.experiment_id if f2_experiment is not None else "",
+                        "mode": "f2_verify",
+                    },
+                    finished_at=_utc_now(),
+                ),
+                failure_record=build_failure_record(
+                    summary="F2 bounded verifier failed.",
+                    root_cause=str(exc),
+                    corrective_action="Repair the freshness or shared-shell contract before rerunning f2_verify.",
+                ),
             )
             experiment_path = write_experiment_record(experiment, repo_root=repo_root)
             artifact_refs.append(str(experiment_path))

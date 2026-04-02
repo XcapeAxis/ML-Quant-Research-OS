@@ -11,6 +11,12 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from .backend_adapters import (
+    build_decision_record,
+    build_failure_record,
+    build_local_backend_run,
+    build_local_pipeline_adapter,
+)
 from .backtest_engine import BacktestConfig, run_topn_suite
 from .config import load_config
 from .db import load_close_volume_panel
@@ -782,6 +788,19 @@ def run_f1_verify(project: str, *, config_path: Path | None = None, repo_root: P
             branch_pool_snapshot_id=f1_experiment.branch_pool_snapshot_id,
             opportunity_generator_id=f1_experiment.opportunity_generator_id,
             strategy_candidate_id="f1_elasticnet_v1",
+            backend_adapter=build_local_pipeline_adapter(),
+            backend_run=build_local_backend_run(
+                workflow_template_id="f1_verify",
+                status="running",
+                parameter_overrides={
+                    "topk": topk,
+                    "core_snapshot_id": core_snapshot.snapshot_id,
+                },
+                lineage_metadata={
+                    "source_experiment_id": f1_experiment.experiment_id,
+                    "mode": "f1_verify",
+                },
+            ),
         )
         write_experiment_record(experiment, repo_root=repo_root)
 
@@ -896,6 +915,37 @@ def run_f1_verify(project: str, *, config_path: Path | None = None, repo_root: P
             status="evaluated",
             execution=execution,
             evaluation=evaluation,
+            backend_run=build_local_backend_run(
+                workflow_template_id="f1_verify",
+                status="succeeded",
+                parameter_overrides={
+                    "topk": topk,
+                    "core_snapshot_id": core_snapshot.snapshot_id,
+                },
+                metrics={
+                    "f1_metrics": f1_metrics,
+                    "control_metrics": control_metrics,
+                    "delta_metrics": decision_payload["delta_metrics"],
+                },
+                artifact_refs=[
+                    str(control_rank_output),
+                    str(metrics_output),
+                    str(plot_output),
+                    str(verifier_json_path),
+                    str(verifier_md_path),
+                ],
+                lineage_metadata={
+                    "source_experiment_id": f1_experiment.experiment_id,
+                    "mode": "f1_verify",
+                },
+                finished_at=_utc_now(),
+            ),
+            decision_record=build_decision_record(
+                decision=decision_payload["decision"],
+                summary=summary,
+                reasons=decision_payload["primary_blockers"],
+                next_action=decision_payload["next_action"],
+            ),
             artifact_refs=[
                 str(control_rank_output),
                 str(metrics_output),
@@ -968,6 +1018,24 @@ def run_f1_verify(project: str, *, config_path: Path | None = None, repo_root: P
                 status="failed",
                 execution={"executed_steps": ["freshness_check"]},
                 evaluation=evaluation,
+                backend_run=build_local_backend_run(
+                    workflow_template_id="f1_verify",
+                    status="failed",
+                    parameter_overrides={
+                        "core_snapshot_id": core_snapshot.snapshot_id if core_snapshot is not None else "",
+                    },
+                    failure_reason=str(exc),
+                    lineage_metadata={
+                        "source_experiment_id": f1_experiment.experiment_id if f1_experiment is not None else "",
+                        "mode": "f1_verify",
+                    },
+                    finished_at=_utc_now(),
+                ),
+                failure_record=build_failure_record(
+                    summary="F1 bounded verifier failed.",
+                    root_cause=str(exc),
+                    corrective_action="Repair the freshness or shared-shell contract before rerunning f1_verify.",
+                ),
             )
             experiment_path = write_experiment_record(experiment, repo_root=repo_root)
             artifact_refs.append(str(experiment_path))

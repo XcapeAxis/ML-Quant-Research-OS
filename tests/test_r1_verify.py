@@ -230,6 +230,12 @@ def test_r1_verify_writes_artifacts_and_experiment_record(limit_up_project) -> N
     assert experiment.regime_spec is not None
     assert experiment.regime_spec.detector_name == "r1_predictive_error_overlay_v1"
     assert experiment.evaluation is not None
+    assert experiment.backend_adapter is not None
+    assert experiment.backend_adapter.adapter_id == "local_pipeline"
+    assert experiment.backend_run is not None
+    assert experiment.backend_run.status == "succeeded"
+    assert experiment.decision_record is not None
+    assert experiment.decision_record.decision == payload["decision"]
     assert experiment.evaluation.classification in {"verifier_pass", "verifier_mixed", "verifier_fail"}
     assert report["compare_shell"] == "topn_suite_no_stoploss_v1"
     assert {"control", "f1", "f1_plus_r1", "delta_vs_f1"} == set(metrics["series"].tolist())
@@ -272,6 +278,8 @@ def test_r1_verify_supports_v2_profile_and_updates_focus(limit_up_project) -> No
     assert experiment.strategy_candidate_id == "r1_predictive_error_overlay_v2"
     assert experiment.regime_spec is not None
     assert experiment.regime_spec.detector_name == "r1_predictive_error_overlay_v2"
+    assert experiment.backend_run is not None
+    assert experiment.backend_run.status == "succeeded"
     assert "r1_predictive_error_overlay_v2" in payload["report_json_path"]
     assert state["next_build_target"] == "f2_structured_latent_factor_v1"
     assert "f2_structured_latent_factor_v1" in state["current_strategy_focus"]
