@@ -1,22 +1,20 @@
-# F2.1 Structured Latent Deep Factor
+# F2 challenger
 
 - strategy_id: f2_structured_latent_factor_v1
-- name: F2.1 Structured Latent Deep Factor
+- name: F2 challenger
 - category: factor_model
 - core_hypothesis: ?? overlay ???????????? F1 ????? latent factor ?????????? challenger?
 - economic_rationale: F2.1 ?????? alpha ????????????????????? drawdown ?????
 - required_data: ?? F1 feature view??? label ????? walk-forward splits???????? firm characteristics?
-- current_stage: validation
-- latest_action: Completed one bounded structured-latent shared-shell verifier.
-- latest_result: F2.1 shared-shell Top6: annualized_return=53.47%, max_drawdown=33.58%, sharpe=1.5862; decision=keep_f2_challenger.
-- decision: continue
-- next_validation: Run one more bounded F2.1 variant before any wider model search.
+- current_stage: verifier_mixed
+- latest_action: Completed the first bounded structured latent deep-factor prototype training run.
+- latest_result: Shared-shell Top6: annualized 53.47%, max_drawdown -33.58%, Sharpe 1.586.
+- decision: keep_f2_challenger
+- next_validation: Run one more bounded F2 variant to test if the tradeoff can improve further.
 - owner: main
 - subagents_assigned:
   - none
 - artifact_refs:
-  - C:\Users\asus\Documents\Projects\BackTest\memory\projects\as_share_research_v1\FRONTIER_NEXT_STEP_DECISION.md
-  - C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\f2\F2_TRAIN_REPORT.json
   - C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\f2\F2_BOUNDED_VERIFIER.json
   - C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\f2\F2_BOUNDED_VERIFIER.md
 - blocked_by:

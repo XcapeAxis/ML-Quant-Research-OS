@@ -11,12 +11,14 @@
   ],
   "current_blocker": "F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.",
   "current_capability_boundary": "研究输入与验证入口已就绪，当前已进入策略验证 / 晋级受阻阶段；真正卡住的是最大回撤仍高于 30%。",
-  "current_phase": "F2 bounded challenger with Excel console refinement",
+  "current_conclusion": "F2.1 completed one bounded verifier and improved the tradeoff, but it has not displaced F1.",
+  "current_phase": "F2 bounded challenger + Excel safe dashboard",
   "current_primary_strategy_ids": [
     "f1_elasticnet_v1"
   ],
   "current_promoted_strategy_ids": [],
   "current_rejected_strategy_ids": [
+    "r1_predictive_error_overlay_v2",
     "r1_predictive_error_overlay_v1",
     "legacy_single_branch"
   ],
@@ -24,7 +26,6 @@
   "current_research_stage": "晋级受阻",
   "current_secondary_strategy_ids": [
     "f2_structured_latent_factor_v1",
-    "baseline_limit_up",
     "risk_constrained_limit_up",
     "tighter_entry_limit_up"
   ],
@@ -32,26 +33,32 @@
     "f1_elasticnet_v1",
     "f2_structured_latent_factor_v1"
   ],
-  "current_strategy_summary": "本轮围绕 f1_elasticnet_v1（F1 ElasticNet ????） 继续收敛研究阻塞；当前最硬的限制仍是 F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.。",
-  "current_task": "Use a focused Excel control sheet as the internal console while keeping F1 as mainline and F2.1 as the bounded challenger.",
+  "current_strategy_summary": "本轮围绕 f1_elasticnet_v1（F1 mainline） 继续收敛研究阻塞；当前最硬的限制仍是 F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.。",
+  "current_task": "Keep F1 as the verified mainline, keep F2.1 as a bounded challenger, and use the Excel workbook as the default internal monitor.",
+  "current_validation_scope": "Same core universe + same shared shell + Top6.",
   "durable_facts": [
     "F1 remains the current mainline and F2.1 remains a bounded challenger under the shared shell.",
     "The latest F2.1 verifier decision is keep_f2_challenger.",
     "An export-first Excel console now lives under `artifacts/projects/<project>/excel/` and reads only tracked truth sources.",
     "The local web monitoring surfaces are frozen until the Excel console covers the core internal scenarios and the user approves deletion.",
     "On this machine Excel COM is available but VBProject access is blocked, so the console currently uses launcher links instead of embedded VBA macros.",
-    "The Excel console Control sheet now acts as a single-screen dashboard instead of a multi-purpose dump sheet.",
-    "历史项目名 2026Q1_limit_up 仅作为 legacy alias / 迁移记录保留，不再代表当前活跃项目。"
+    "历史项目名 2026Q1_limit_up 仅作为 legacy alias / 迁移记录保留，不再代表当前活跃项目。",
+    "F2.1 is a bounded structured latent deep-factor challenger implemented inside the current scikit-learn stack.",
+    "F2.1 reuses the same core universe, label contract, and monthly retrain rhythm as F1.",
+    "F2.1 writes a latent-factor audit artifact instead of keeping only final scores.",
+    "The Excel console home sheet is now a Chinese-first cockpit driven by tracked research truth feeds instead of a generic dump layout.",
+    "The Excel console now ships as a safe read-only .xlsx dashboard with copyable terminal commands instead of launcher scripts.",
+    "The local web monitoring surfaces remain frozen until the Excel console is accepted and clearly covers the core internal scenarios."
   ],
   "effective_subagent_gate_mode": "OFF",
-  "effective_subagent_gate_reason": "F2.1 verifier stayed in OFF mode because this round was a tightly coupled serial implementation.",
-  "excel_console_last_validated_at": "2026-03-31T15:38:57+00:00",
-  "excel_console_mode": "dashboard_v3_launcher_links_fallback",
+  "effective_subagent_gate_reason": "F2.1 stayed in OFF mode because this round was a tightly coupled serial implementation.",
+  "excel_console_last_validated_at": "2026-04-01T03:20:00+08:00",
+  "excel_console_mode": "dashboard_v5_safe_xlsx_no_scripts",
   "excel_console_open_smoke_note": "The regenerated dashboard workbook opened successfully and exposed charts plus preview images.",
   "excel_console_open_smoke_status": "passed",
-  "excel_console_visual_density": "focused_control_sheet_with_single_comparison_preview",
-  "excel_macro_injection_status": "blocked_vbproject_access",
-  "excel_macro_runtime_mode": "launcher_links_fallback",
+  "excel_console_visual_density": "single_screen_cockpit_with_safe_command_palette",
+  "excel_macro_injection_status": "disabled_no_scripts",
+  "excel_macro_runtime_mode": "no_scripts_read_only_dashboard",
   "execution_queue": [
     {
       "action_name": "data_validate",
@@ -129,7 +136,7 @@
   "f2_verify_classification": "verifier_mixed",
   "f2_verify_decision": "keep_f2_challenger",
   "f2_verify_report_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f2\\F2_BOUNDED_VERIFIER.json",
-  "head": "f528bc7e5458f20c2713b2f74cd72197a45d0d38",
+  "head": "c9eb9a2f0e232ee98bae961f3db1782688c963c9",
   "iterative_loop": {
     "alternative_subagents": [],
     "archived_subagent_count": 0,
@@ -172,17 +179,17 @@
     "target_substantive_actions": 3,
     "workflow_mode": "campaign"
   },
-  "last_failed_capability": "Promotion gate blocked: Max drawdown 48.67% exceeds 30.00%.",
+  "last_failed_capability": "F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.",
   "last_failure": {
     "corrective_action": "Restore a usable frozen universe plus local bars before rerunning the dry-run cycle.",
-    "experiment_id": "as_share_research_v1-20260331T161519",
+    "experiment_id": "as_share_research_v1-20260401T041143",
     "resolution_status": "not_fixed",
     "root_cause": "Max drawdown 48.67% exceeds 30.00%.",
     "summary": "Promotion gate blocked: Max drawdown 48.67% exceeds 30.00%.",
-    "timestamp": "2026-03-31T16:15:19"
+    "timestamp": "2026-04-01T04:11:43"
   },
-  "last_updated": "2026-03-31T16:17:45+00:00",
-  "last_verified_capability": "Excel console Control sheet now emphasizes mainline, blocker, next action, safe actions, and one large mainline-vs-challenger preview without changing Python as the source of truth.",
+  "last_updated": "2026-04-02T01:58:59+00:00",
+  "last_verified_capability": "The Excel workbook now exports as a safe read-only dashboard with command text instead of launcher scripts.",
   "latest_hypotheses": [
     {
       "hypothesis": "as_share_research_v1: investigate the highest-severity failed gate before running a live experiment",
@@ -197,16 +204,23 @@
     "Do not let F2.1 displace F1 mainline until the bounded verifier result is explicitly accepted.",
     "Do not delete `apps/web` or `dashboard/app.py` before the Excel console is accepted by the user.",
     "Do not let Excel or launcher scripts become a second source of truth; Python and tracked memory remain canonical.",
-    "Do not overload the Control sheet with secondary ledgers, path dumps, or tiny low-signal charts; those belong on secondary tabs."
+    "Do not overload the Control sheet with secondary ledgers, path dumps, or tiny low-signal charts; those belong on secondary tabs.",
+    "Do not treat F2.1 prototype metrics as promotion evidence or profitability proof.",
+    "Do not silently replace F1 with F2.1 before the shared-shell verifier completes.",
+    "Do not widen F2.1 into heavy dependencies when the bounded scikit-learn prototype has not been verified yet.",
+    "?????????????????????????????",
+    "??? F2.1 verifier ??????????????????????",
+    "??? Excel ????????????????????",
+    "Do not generate .cmd launchers or VBA action modules from the Excel console again.",
+    "Do not ask the user to whitelist the repo in antivirus just to keep the Excel console working."
   ],
   "next_build_target": "f2_structured_latent_factor_v1",
-  "next_priority_action": "Review the focused Excel Control sheet; if accepted, retire the frozen web UI and continue one more bounded F2.1 variant.",
+  "next_priority_action": "Run one more bounded F2 variant before widening the search.",
   "next_step_memory": [
-    "Review the focused Excel Control sheet; if accepted, retire the frozen web UI and continue one more bounded F2.1 variant.",
-    "Review the focused Excel Control sheet and decide whether the frozen web UI can be retired.",
-    "If the Excel console is accepted, delete `apps/web` and `dashboard/app.py` next.",
-    "Keep F1 as the current mainline while F2.1 remains only a bounded challenger.",
-    "Run one more bounded F2.1 variant before widening the model search."
+    "Run one more bounded F2 variant before widening the search.",
+    "Keep F1 as the mainline and F2.1 as the bounded challenger.",
+    "Use the Excel workbook as the default internal monitor; keep the web UI frozen.",
+    "Do not restore script-based Excel actions."
   ],
   "project": "as_share_research_v1",
   "project_identity_notice": "历史项目名 2026Q1_limit_up 仅作为 legacy alias / 迁移记录保留，不再代表当前活跃项目。",
@@ -223,19 +237,19 @@
     "dimensions": [
       {
         "dimension": "Data inputs",
-        "evidence": "默认项目数据状态：latest core pool `core-0536a20f13d1` stayed consistent through F2 verifier and Excel export.；未发现足够证据支持更高评分。",
+        "evidence": "默认项目数据状态：latest core pool `core-0536a20f13d1` stayed consistent through F2 verifier, audit, and Excel export.；未发现足够证据支持更高评分。",
         "score": 1,
         "status": "bootstrap"
       },
       {
         "dimension": "Strategy integrity",
-        "evidence": "单一研究核心与契约护栏已存在；最近已验证能力：Excel console Control sheet now emphasizes mainline, blocker, next action, safe actions, and one large mainline-vs-challenger preview without changing Python as the source of truth.。",
+        "evidence": "单一研究核心与契约护栏已存在；最近已验证能力：The Excel workbook now exports as a safe read-only dashboard with command text instead of launcher scripts.。",
         "score": 2,
         "status": "partial"
       },
       {
         "dimension": "Validation stack",
-        "evidence": "审计/泄漏/晋级框架存在；最近已验证能力：Excel console Control sheet now emphasizes mainline, blocker, next action, safe actions, and one large mainline-vs-challenger preview without changing Python as the source of truth.。",
+        "evidence": "审计/泄漏/晋级框架存在；最近已验证能力：The Excel workbook now exports as a safe read-only dashboard with command text instead of launcher scripts.。",
         "score": 2,
         "status": "partial"
       },
@@ -253,7 +267,7 @@
       }
     ],
     "materially_changed": false,
-    "next_milestone": "Review the focused Excel Control sheet; if accepted, retire the frozen web UI and continue one more bounded F2.1 variant.",
+    "next_milestone": "Run one more bounded F2 variant before widening the search.",
     "overall_trajectory": "blocked",
     "this_run_delta": "unchanged"
   },
@@ -263,24 +277,19 @@
     {
       "artifact_refs": [
         "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f1\\F1_BOUNDED_VERIFIER.json",
-        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\r1\\R1_VERIFY_REPORT.json",
-        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f1\\F1_BOUNDED_VERIFIER.md",
-        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\r1\\r1_predictive_error_overlay_v2\\R1_VERIFY_REPORT.json",
-        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\r1\\r1_predictive_error_overlay_v2\\R1_VERIFY_REPORT.md",
-        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f2\\F2_BOUNDED_VERIFIER.json",
-        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f2\\F2_BOUNDED_VERIFIER.md"
+        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f1\\F1_BOUNDED_VERIFIER.md"
       ],
       "blocked_by": [],
       "category": "factor_model",
       "core_hypothesis": "????????? 5 ????????????????????????",
-      "current_stage": "validation",
-      "decision": "continue",
+      "current_stage": "verifier_pass",
+      "decision": "keep_f1_mainline",
       "economic_rationale": "F1 ???? core universe ????????? control?????????????????????",
       "kill_criteria": "If F1 cannot keep the mainline against bounded challengers or its drawdown cannot be controlled without destroying return, it should no longer define the near-term stack.",
       "latest_action": "Completed one shared-shell verifier against F2.1 and the control branch.",
-      "latest_result": "F1 shared-shell Top6: annualized_return=52.73%, max_drawdown=37.10%, sharpe=1.6802.",
-      "name": "F1 ElasticNet ????",
-      "next_validation": "Keep F1 as mainline while F2.1 stays a bounded challenger.",
+      "latest_result": "Shared-shell Top6: annualized 52.73%, max_drawdown -37.10%, Sharpe 1.680.",
+      "name": "F1 mainline",
+      "next_validation": "Run one more bounded F2 variant under the same shared shell.",
       "owner": "main",
       "required_data": "?? A ? core pool??? OHLCV?benchmark ?????next_5d_excess_return ???",
       "strategy_id": "f1_elasticnet_v1",
@@ -299,24 +308,22 @@
       ],
       "category": "risk_control",
       "core_hypothesis": "???????????????????????????????? F1 ??????????????",
-      "current_stage": "validation",
-      "decision": "hold",
+      "current_stage": "rejected",
+      "decision": "reject",
       "economic_rationale": "?? blocker ? drawdown???? alpha ???R1.2 ?????? blocker ????????",
       "kill_criteria": "Reject R1.2 if it still misses the return floor, fails to improve Calmar, or requires online weight updates.",
       "latest_action": "Completed one bounded predictive-error regime-overlay verifier.",
       "latest_result": "F1+R1.2 shared-shell Top6: annualized_return=39.08%, max_drawdown=25.47%, sharpe=1.5151; decision=reject_r1_v2_and_promote_f2_next.",
-      "name": "R1.2 ?????????",
+      "name": "R1.2 ??",
       "next_validation": "Reject this bounded overlay and promote F2.1 to the next implementation slot.",
       "owner": "main",
       "required_data": "F1 candidate scores?next_5d_excess_return ????? core pool??? TopN shell?",
       "strategy_id": "r1_predictive_error_overlay_v2",
       "subagents_assigned": [],
-      "track": "candidate"
+      "track": "rejected"
     },
     {
       "artifact_refs": [
-        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1\\FRONTIER_NEXT_STEP_DECISION.md",
-        "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f2\\F2_TRAIN_REPORT.json",
         "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f2\\F2_BOUNDED_VERIFIER.json",
         "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\f2\\F2_BOUNDED_VERIFIER.md"
       ],
@@ -325,14 +332,14 @@
       ],
       "category": "factor_model",
       "core_hypothesis": "?? overlay ???????????? F1 ????? latent factor ?????????? challenger?",
-      "current_stage": "validation",
-      "decision": "continue",
+      "current_stage": "verifier_mixed",
+      "decision": "keep_f2_challenger",
       "economic_rationale": "F2.1 ?????? alpha ????????????????????? drawdown ?????",
       "kill_criteria": "Do not proceed if the prototype needs richer data than the current OHLCV/core-pool contract or cannot beat F1 on the same walk-forward shell.",
-      "latest_action": "Completed one bounded structured-latent shared-shell verifier.",
-      "latest_result": "F2.1 shared-shell Top6: annualized_return=53.47%, max_drawdown=33.58%, sharpe=1.5862; decision=keep_f2_challenger.",
-      "name": "F2.1 Structured Latent Deep Factor",
-      "next_validation": "Run one more bounded F2.1 variant before any wider model search.",
+      "latest_action": "Completed the first bounded structured latent deep-factor prototype training run.",
+      "latest_result": "Shared-shell Top6: annualized 53.47%, max_drawdown -33.58%, Sharpe 1.586.",
+      "name": "F2 challenger",
+      "next_validation": "Run one more bounded F2 variant to test if the tradeoff can improve further.",
       "owner": "main",
       "required_data": "?? F1 feature view??? label ????? walk-forward splits???????? firm characteristics?",
       "strategy_id": "f2_structured_latent_factor_v1",
@@ -347,19 +354,19 @@
       "blocked_by": [],
       "category": "control",
       "core_hypothesis": "?? hand-crafted limit-up ????????????? F1 ?? challenger ???????",
-      "current_stage": "validation",
+      "current_stage": "control",
       "decision": "continue",
       "economic_rationale": "?????????????????????",
       "kill_criteria": "Retire only if a newer control harness replaces it with the same comparability value.",
       "latest_action": "Completed the shared-shell bounded verifier as the control branch.",
-      "latest_result": "Control branch shared-shell Top6: annualized_return=0.53%, max_drawdown=65.32%, sharpe=-0.0733.",
-      "name": "????????",
-      "next_validation": "Keep as the control branch while F2/R1 challengers are scoped.",
+      "latest_result": "Shared-shell Top6: annualized 0.53%, max_drawdown -65.32%; control only.",
+      "name": "Baseline control",
+      "next_validation": "??????????????????",
       "owner": "main",
       "required_data": "?? core pool??? TopN shell??? OHLCV?",
       "strategy_id": "baseline_limit_up",
       "subagents_assigned": [],
-      "track": "secondary"
+      "track": "control"
     },
     {
       "artifact_refs": [],
@@ -374,7 +381,7 @@
       "kill_criteria": "Do not reactivate unless the factor-first queue is explicitly deprioritized.",
       "latest_action": "Kept as a blocked historical branch.",
       "latest_result": "Not selected for the current frontier round.",
-      "name": "????????",
+      "name": "?????",
       "next_validation": "None until the current F1/R1.2/F2.1 queue clears.",
       "owner": "main",
       "required_data": "??????????????",
@@ -395,7 +402,7 @@
       "kill_criteria": "Do not reactivate unless the factor-first queue is explicitly deprioritized.",
       "latest_action": "Kept as a blocked historical branch.",
       "latest_result": "Not selected for the current frontier round.",
-      "name": "??????????",
+      "name": "???????",
       "next_validation": "None until the current F1/R1.2/F2.1 queue clears.",
       "owner": "main",
       "required_data": "??????????????",
@@ -419,13 +426,13 @@
       "kill_criteria": "Do not revive this exact v1 overlay family configuration.",
       "latest_action": "Completed one bounded R1.1 verifier.",
       "latest_result": "Drawdown improved materially but annualized return delta was -21.68% and Calmar worsened, so v1 was rejected.",
-      "name": "R1.1 Predictive Error Overlay",
+      "name": "R1.1 ??",
       "next_validation": "Keep only as a failed path reference while R1.2 tests a gentler throttle.",
       "owner": "main",
       "required_data": "F1 candidate scores?next_5d_excess_return ???core pool??? TopN shell?",
       "strategy_id": "r1_predictive_error_overlay_v1",
       "subagents_assigned": [],
-      "track": "candidate"
+      "track": "rejected"
     },
     {
       "artifact_refs": [
@@ -463,7 +470,7 @@
       "kill_criteria": "Keep rejected unless an explicit legacy-debug need reopens it.",
       "latest_action": "Left unchanged during frontier reselection.",
       "latest_result": "Remains rejected as a historical compatibility path only.",
-      "name": "????????",
+      "name": "?????",
       "next_validation": "None.",
       "owner": "main",
       "required_data": "None beyond the old compatibility path.",
@@ -472,7 +479,7 @@
       "track": "rejected"
     }
   ],
-  "subagent_continue_reason": "F2.1 verifier stayed in OFF mode because this round was a tightly coupled serial implementation.",
+  "subagent_continue_reason": "F2.1 stayed in OFF mode because this round was a tightly coupled serial implementation.",
   "subagent_continue_recommended": false,
   "subagent_gate_mode": "OFF",
   "subagent_last_event": {
@@ -566,12 +573,12 @@
   ],
   "tracked_memory_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\as_share_research_v1",
   "ui_console_manifest_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\excel\\feed\\manifest.json",
-  "ui_console_mode": "excel_dashboard_v3",
-  "ui_console_workbook_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\excel\\ResearchConsole_20260331T153849Z.xlsm",
+  "ui_console_mode": "excel_dashboard_v5",
+  "ui_console_workbook_path": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\as_share_research_v1\\excel\\ResearchConsole.xlsx",
   "verify_last": {
-    "conclusion_boundary_engineering": "Excel remains a viable internal console path, and the Control sheet is now refocused into a single-screen dashboard; web surfaces are still frozen, not deleted.",
-    "conclusion_boundary_research": "F1 remains mainline, F2.1 remains a bounded challenger, and the current shared-shell blocker is still max drawdown above the 30% line; profitability is not established.",
-    "default_project_data_status": "latest core pool `core-0536a20f13d1` stayed consistent through F2 verifier and Excel export.",
+    "conclusion_boundary_engineering": "The Excel console now exports as a safe read-only .xlsx dashboard with command text instead of launcher scripts; the web UI remains frozen.",
+    "conclusion_boundary_research": "F1 remains the mainline, F2.1 remains a bounded challenger, and the shared-shell drawdown blocker still sits above 30%.",
+    "default_project_data_status": "latest core pool `core-0536a20f13d1` stayed consistent through F2 verifier, audit, and Excel export.",
     "failed_commands": [],
     "passed_commands": [
       "pytest tests/test_excel_export.py -q",
@@ -581,5 +588,5 @@
       "python -m quant_mvp agent_cycle --project as_share_research_v1 --dry-run"
     ]
   },
-  "web_frontend_status": "frozen_pending_dashboard_acceptance"
+  "web_frontend_status": "frozen_pending_excel_acceptance"
 }

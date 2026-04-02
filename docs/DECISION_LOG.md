@@ -155,3 +155,24 @@
   - `C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\excel\ResearchConsole.xlsm`
   - `C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\excel\feed\manifest.json`
   - `C:\Users\asus\Documents\Projects\BackTest\docs\EXCEL_CONSOLE_MVP.md`
+## 2026-04-01T11:20:00+08:00 - repo
+- Decision: rebuild the Excel console into a Chinese-first cockpit that separates “research truth summary” from “home-page control cards” and keeps the home sheet as a single-screen dashboard.
+- Reason: the previous dashboard proved the Excel path was viable, but the home sheet still mixed stale research state, low-priority details, and undersized charts. The new contract moves durable summary truth into dedicated feeds, keeps the home page focused on primary signals, and pushes ledgers to secondary tabs.
+- Evidence:
+  - `C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\excel\feed\research_summary.csv`
+  - `C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\excel\feed\control_cards.csv`
+  - `C:\Users\asus\Documents\Projects\BackTest\docs\EXCEL_CONSOLE_MVP.md`
+## 2026-04-01T12:10:00+08:00 - repo
+- Decision: retire Excel launcher scripts and switch the console to a safe read-only `.xlsx` dashboard with copyable terminal commands.
+- Reason: the generated `.cmd` launchers were flagged and removed by local antivirus, so keeping script-based actions would make the console unreliable and unsafe-by-default. The dashboard now stays read-only, preserves Python as the sole execution path, and exposes commands as text instead of executable links.
+- Evidence:
+  - `C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\excel\ResearchConsole.xlsx`
+  - `C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\excel\feed\manifest.json`
+  - `C:\Users\asus\Documents\Projects\BackTest\docs\EXCEL_CONSOLE_MVP.md`
+## 2026-04-02T00:00:00+08:00 - repo
+- Decision: harden the Excel console into a script-free path and auto-clean legacy executable leftovers during export.
+- Reason: antivirus deletion proved that even dormant launcher remnants create operational risk and confusion. The console must now be plain `.xlsx`, command-text only, and self-cleaning with respect to old `.cmd/.bat/.ps1/.vbs/.xlsm` artifacts.
+- Evidence:
+  - `C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\excel\ResearchConsole.xlsx`
+  - `C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\excel\feed\manifest.json`
+  - `C:\Users\asus\Documents\Projects\BackTest\docs\EXCEL_CONSOLE_MVP.md`

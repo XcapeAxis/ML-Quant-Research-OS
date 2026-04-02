@@ -161,11 +161,11 @@
     "group_features": true,
     "latent_dim": 4,
     "hidden_sizes": [
-      10,
+      12,
       4
     ],
     "activation": "relu",
-    "alpha": 0.001,
+    "alpha": 0.0001,
     "learning_rate_init": 0.001,
     "max_iter": 300,
     "early_stopping": true,
@@ -178,7 +178,6 @@
     "winsorize_quantile": 0.01,
     "standardization": "cross_sectional_zscore"
   },
-  "_variant_comment": "Variant A2: alpha 0.0001->0.001, hidden [12,4]->[10,4]. Goal: mild regularization + smaller network.",
   "regime_control": {
     "profile": "r1_predictive_error_overlay_v2",
     "ic_window_rebalances": 6,

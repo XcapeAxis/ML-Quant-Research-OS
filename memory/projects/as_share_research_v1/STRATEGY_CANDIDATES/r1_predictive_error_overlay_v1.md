@@ -1,7 +1,7 @@
-# R1.1 Predictive Error Overlay
+# R1.1 ??
 
 - strategy_id: r1_predictive_error_overlay_v1
-- name: R1.1 Predictive Error Overlay
+- name: R1.1 ??
 - category: risk_control
 - core_hypothesis: A lagged predictive-error regime overlay should reduce F1 drawdown on the same core universe without destroying return.
 - economic_rationale: The family remains relevant, but the v1 throttle was too aggressive for the economics gate.

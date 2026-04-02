@@ -1,27 +1,22 @@
-# F1 ElasticNet ????
+# F1 mainline
 
 - strategy_id: f1_elasticnet_v1
-- name: F1 ElasticNet ????
+- name: F1 mainline
 - category: factor_model
 - core_hypothesis: ????????? 5 ????????????????????????
 - economic_rationale: F1 ???? core universe ????????? control?????????????????????
 - required_data: ?? A ? core pool??? OHLCV?benchmark ?????next_5d_excess_return ???
-- current_stage: validation
+- current_stage: verifier_pass
 - latest_action: Completed one shared-shell verifier against F2.1 and the control branch.
-- latest_result: F1 shared-shell Top6: annualized_return=52.73%, max_drawdown=37.10%, sharpe=1.6802.
-- decision: continue
-- next_validation: Keep F1 as mainline while F2.1 stays a bounded challenger.
+- latest_result: Shared-shell Top6: annualized 52.73%, max_drawdown -37.10%, Sharpe 1.680.
+- decision: keep_f1_mainline
+- next_validation: Run one more bounded F2 variant under the same shared shell.
 - owner: main
 - subagents_assigned:
   - none
 - artifact_refs:
   - C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\f1\F1_BOUNDED_VERIFIER.json
-  - C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\r1\R1_VERIFY_REPORT.json
   - C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\f1\F1_BOUNDED_VERIFIER.md
-  - C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\r1\r1_predictive_error_overlay_v2\R1_VERIFY_REPORT.json
-  - C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\r1\r1_predictive_error_overlay_v2\R1_VERIFY_REPORT.md
-  - C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\f2\F2_BOUNDED_VERIFIER.json
-  - C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\as_share_research_v1\f2\F2_BOUNDED_VERIFIER.md
 - blocked_by:
   - none
 - kill_criteria: If F1 cannot keep the mainline against bounded challengers or its drawdown cannot be controlled without destroying return, it should no longer define the near-term stack.

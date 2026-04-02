@@ -1,6 +1,6 @@
 # 最近验证快照
 
-- head: f528bc7e5458f20c2713b2f74cd72197a45d0d38
+- head: c9eb9a2f0e232ee98bae961f3db1782688c963c9
 - branch: main
 - 通过命令:
   - pytest tests/test_excel_export.py -q
@@ -12,17 +12,17 @@
   - 未记录
 - 当前规范项目ID: as_share_research_v1
 - 历史别名: 2026Q1_limit_up
-- 默认项目数据状态: latest core pool `core-0536a20f13d1` stayed consistent through F2 verifier and Excel export.
-- 工程边界结论: Excel remains a viable internal console path, and the Control sheet is now refocused into a single-screen dashboard；web surfaces are still frozen, not deleted.
-- 研究边界结论: F1 remains mainline, F2.1 remains a bounded challenger, and the current shared-shell blocker is still max drawdown above the 30% line；profitability is not established.
+- 默认项目数据状态: latest core pool `core-0536a20f13d1` stayed consistent through F2 verifier, audit, and Excel export.
+- 工程边界结论: The Excel console now exports as a safe read-only .xlsx dashboard with command text instead of launcher scripts；the web UI remains frozen.
+- 研究边界结论: F1 remains the mainline, F2.1 remains a bounded challenger, and the shared-shell drawdown blocker still sits above 30%.
 - 当前研究阶段: 晋级受阻
 - 当前轮次类型: 策略推进轮
-- 当前主线策略: f1_elasticnet_v1（F1 ElasticNet ????）
-- 当前 blocked 策略: risk_constrained_limit_up（????????）, tighter_entry_limit_up（??????????）
-- 策略推进判断: 本轮围绕 f1_elasticnet_v1（F1 ElasticNet ????） 继续收敛研究阻塞；当前最硬的限制仍是 F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.。
+- 当前主线策略: f1_elasticnet_v1（F1 mainline）
+- 当前 blocked 策略: risk_constrained_limit_up（?????）, tighter_entry_limit_up（???????）
+- 策略推进判断: 本轮围绕 f1_elasticnet_v1（F1 mainline） 继续收敛研究阻塞；当前最硬的限制仍是 F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.。
 - configured_gate: OFF
 - effective_gate_this_run: OFF
-- gate_reason: F2.1 verifier stayed in OFF mode because this round was a tightly coupled serial implementation.
+- gate_reason: F2.1 stayed in OFF mode because this round was a tightly coupled serial implementation.
 - active_subagents: none
 - blocked_subagents: none
 - 最近 subagent 事件: frontier_reselection_complete
@@ -32,25 +32,25 @@
 - 历史别名: 2026Q1_limit_up
 - 当前研究阶段: 晋级受阻
 - 当前轮次类型: 策略推进轮
-- 当前主线策略: f1_elasticnet_v1（F1 ElasticNet ????）
-- 当前支线策略: f2_structured_latent_factor_v1（F2.1 Structured Latent Deep Factor）, baseline_limit_up（????????）, risk_constrained_limit_up（????????）
-- 当前 blocked 策略: risk_constrained_limit_up（????????）, tighter_entry_limit_up（??????????）
-- 当前 rejected 策略: r1_predictive_error_overlay_v1（R1.1 Predictive Error Overlay）, legacy_single_branch（????????）
+- 当前主线策略: f1_elasticnet_v1（F1 mainline）
+- 当前支线策略: f2_structured_latent_factor_v1（F2 challenger）, risk_constrained_limit_up（?????）, tighter_entry_limit_up（???????）
+- 当前 blocked 策略: risk_constrained_limit_up（?????）, tighter_entry_limit_up（???????）
+- 当前 rejected 策略: r1_predictive_error_overlay_v2（R1.2 ??）, r1_predictive_error_overlay_v1（R1.1 ??）, legacy_single_branch（?????）
 - 当前 promoted 策略: 当前为空
 - 系统推进判断: 本轮主要把当前研究结论、阻塞原因和后续验证顺序写清楚，没有新增宽泛系统扩张。
-- 策略推进判断: 本轮围绕 f1_elasticnet_v1（F1 ElasticNet ????） 继续收敛研究阻塞；当前最硬的限制仍是 F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.。
+- 策略推进判断: 本轮围绕 f1_elasticnet_v1（F1 mainline） 继续收敛研究阻塞；当前最硬的限制仍是 F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.。
 - 规范叙事结论: 规范项目当前处于晋级受阻阶段，真实主阻塞是 F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.；旧的“缺 bars”叙事已转为历史路径。
 
 ## 研究进度
-- Data inputs: 起步，1/4。证据：默认项目数据状态：latest core pool `core-0536a20f13d1` stayed consistent through F2 verifier and Excel export.；未发现足够证据支持更高评分。
-- Strategy integrity: 部分可用，2/4。证据：单一研究核心与契约护栏已存在；最近已验证能力：Excel console Control sheet now emphasizes mainline, blocker, next action, safe actions, and one large mainline-vs-challenger preview without changing Python as the source of truth.。
-- Validation stack: 部分可用，2/4。证据：审计/泄漏/晋级框架存在；最近已验证能力：Excel console Control sheet now emphasizes mainline, blocker, next action, safe actions, and one large mainline-vs-challenger preview without changing Python as the source of truth.。
+- Data inputs: 起步，1/4。证据：默认项目数据状态：latest core pool `core-0536a20f13d1` stayed consistent through F2 verifier, audit, and Excel export.；未发现足够证据支持更高评分。
+- Strategy integrity: 部分可用，2/4。证据：单一研究核心与契约护栏已存在；最近已验证能力：The Excel workbook now exports as a safe read-only dashboard with command text instead of launcher scripts.。
+- Validation stack: 部分可用，2/4。证据：审计/泄漏/晋级框架存在；最近已验证能力：The Excel workbook now exports as a safe read-only dashboard with command text instead of launcher scripts.。
 - Promotion readiness: 阻塞，1/4。证据：当前 blocker：F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.；研究输入仍不足以支撑晋级评估。
 - Subagent effectiveness: 部分可用，2/4。证据：subagent 开关与收尾规则已可用，但本轮配置 gate=OFF、实际执行 gate=OFF；自动收尾 0 个。
 - 总体轨迹: 阻塞
 - 本轮增量: 无实质变化
 - 当前 blocker: F2.1 shared-shell Top6 max_drawdown 33.58% remains above 30.00%.
-- 下一里程碑: Review the focused Excel Control sheet；if accepted, retire the frozen web UI and continue one more bounded F2.1 variant.
+- 下一里程碑: Run one more bounded F2 variant before widening the search.
 - 置信度: 中
 
 ## 高阶迭代摘要

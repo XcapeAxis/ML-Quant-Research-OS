@@ -4,7 +4,7 @@
 - configured gate: OFF
 - effective gate this run: OFF
 - 是否继续使用 subagents: 否
-- 当前判断原因: F2.1 verifier stayed in OFF mode because this round was a tightly coupled serial implementation.
+- 当前判断原因: F2.1 stayed in OFF mode because this round was a tightly coupled serial implementation.
 - 最近事件: frontier_reselection_complete
 
 ## 当前集合
