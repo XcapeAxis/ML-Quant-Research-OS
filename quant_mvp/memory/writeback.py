@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
@@ -130,6 +131,8 @@ def _looks_data_blocked_text(text: str) -> bool:
         for token in [
             "usable validated bars",
             "validated bars for the frozen universe",
+            "validated rows",
+            "readiness floor",
             "missing research inputs",
             "missing validated inputs",
             "no validated bars",
@@ -138,6 +141,10 @@ def _looks_data_blocked_text(text: str) -> bool:
             "readiness gate",
             "research-readiness gate",
             "data readiness",
+            "validated bar snapshot",
+            "frozen universe plus local bars",
+            "local bars before rerunning",
+            "blocked on data coverage",
             "可用日频",
             "缺少研究输入",
             "缺少可用的 validated",
@@ -204,6 +211,58 @@ def _infer_blocker_key_from_state(state: dict[str, Any]) -> str:
     return "none" if not blocker or blocker_lower in {"none", "unknown"} else blocker_lower.replace(" ", "_")[:80]
 
 
+def _candidate_blocker_texts(state: dict[str, Any]) -> list[str]:
+    verify = dict(state.get("verify_last", {}) or {})
+    last_failure = dict(state.get("last_failure", {}) or {})
+    candidates = [
+        state.get("current_blocker"),
+        state.get("last_failed_capability"),
+        state.get("root_cause"),
+        last_failure.get("root_cause"),
+        last_failure.get("summary"),
+        verify.get("conclusion_boundary_research"),
+        verify.get("default_project_data_status"),
+    ]
+    out: list[str] = []
+    for value in candidates:
+        text = str(value or "").strip()
+        if text and text not in out:
+            out.append(text)
+    return out
+
+
+def _canonical_drawdown_blocker_text(state: dict[str, Any]) -> str | None:
+    for text in _candidate_blocker_texts(state):
+        lowered = text.lower()
+        if "drawdown" not in lowered and "最大回撤" not in text and "鍥炴挙" not in text:
+            continue
+        match = re.search(
+            r"(?i)max drawdown\s*([0-9]+(?:\.[0-9]+)?%)\s*(?:exceeds|above|remains above)\s*([0-9]+(?:\.[0-9]+)?%)",
+            text,
+        )
+        if match:
+            return f"Max drawdown {match.group(1)} exceeds {match.group(2)}."
+        cn_match = re.search(r"最大回撤\s*([0-9]+(?:\.[0-9]+)?%)\s*高于\s*([0-9]+(?:\.[0-9]+)?%)", text)
+        if cn_match:
+            return f"Max drawdown {cn_match.group(1)} exceeds {cn_match.group(2)}."
+        generic = re.search(r"(?i)(?:promotion gate blocked:\s*)?(max drawdown[^.;。]+)", text)
+        if generic:
+            return generic.group(1).strip().rstrip(".。") + "."
+    return None
+
+
+def _canonicalize_current_blocker_text(state: dict[str, Any]) -> str | None:
+    blocker_key = _infer_blocker_key_from_state(state)
+    if blocker_key == "max_drawdown":
+        drawdown_text = _canonical_drawdown_blocker_text(state)
+        if drawdown_text:
+            return drawdown_text
+    blocker = str(state.get("current_blocker", "")).strip()
+    if blocker and blocker.lower() not in {"none", "unknown"}:
+        return blocker
+    return None
+
+
 def _current_research_stage(state: dict[str, Any]) -> str:
     blocker_key = _infer_blocker_key_from_state(state)
     if blocker_key == "data_inputs":
@@ -219,7 +278,7 @@ def _current_research_stage(state: dict[str, Any]) -> str:
 
 
 def _canonical_truth_summary(state: dict[str, Any]) -> str:
-    blocker = humanize_text(state.get("current_blocker", "unknown"))
+    blocker = humanize_text(state.get("current_blocker", "unknown")).rstrip("。.")
     stage = _current_research_stage(state)
     if _infer_blocker_key_from_state(state) == "data_inputs":
         return f"规范项目当前仍在补研究输入，主阻塞是 {blocker}。"
@@ -260,6 +319,9 @@ def _canonicalize_active_project_state(paths, state: dict[str, Any]) -> dict[str
         readiness.setdefault("stage", "validation-ready")
         readiness.setdefault("ready", True)
         updated["readiness"] = readiness
+    canonical_blocker = _canonicalize_current_blocker_text(updated)
+    if canonical_blocker:
+        updated["current_blocker"] = canonical_blocker
     updated["current_research_stage"] = _current_research_stage(updated)
     updated["canonical_truth_summary"] = _canonical_truth_summary(updated)
     updated["configured_subagent_gate_mode"] = str(updated.get("subagent_gate_mode", "AUTO"))
@@ -1195,21 +1257,21 @@ def _default_session_state(project: str, *, root: Path, paths) -> dict[str, Any]
         },
         "current_task": "Keep the Phase 1 Research OS reproducible with tracked long-term memory and honest runtime artifacts.",
         "current_phase": "Phase 1 Research OS",
-        "current_blocker": "Default project still lacks usable validated bars for the frozen universe.",
-        "current_capability_boundary": "Engineering guardrails work; real default-project research remains blocked on data coverage.",
-        "next_priority_action": "Restore a usable validated bar snapshot for the frozen default universe.",
+        "current_blocker": "none",
+        "current_capability_boundary": "Tracked memory bootstrap does not establish the current business blocker; refresh verified research artifacts before changing the narrative.",
+        "next_priority_action": "Refresh the latest verified research artifacts before changing the blocker narrative.",
         "last_verified_capability": "Contract and dry-run orchestration tests passed in the repository virtual environment.",
-        "last_failed_capability": "Promotion on the default project is blocked by missing research inputs.",
+        "last_failed_capability": "none",
         "durable_facts": [
             "The limit-up screening path now shares one audited research core between the standalone script and the modular steps.",
             "Tracked long-term memory lives under `memory/projects/<project>/`; runtime artifacts stay under `data/` and `artifacts/`.",
         ],
         "negative_memory": [
-            "Default-project promotion is not trustworthy until validated bars exist for the frozen universe.",
+            "Do not change the current blocker narrative without fresh verified research evidence.",
             "Ignored runtime directories are not sufficient as the sole store for durable project memory.",
         ],
         "next_step_memory": [
-            "Restore validated default-project bars before trusting any research conclusion.",
+            "Refresh verified research artifacts before changing the blocker narrative.",
             "Keep compact tracked ledgers and handoff files in sync with runtime experiment payloads.",
         ],
         "latest_hypotheses": _parse_hypotheses(HYPOTHESIS_QUEUE_TEMPLATE),

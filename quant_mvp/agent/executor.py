@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from ..memory.writeback import sync_project_state
+from ..memory.writeback import load_machine_state, sync_project_state
 from ..project import resolve_project_paths
 from ..research_audit import run_research_audit
 from .schemas import ExecutionRecord, ExperimentPlan
@@ -30,14 +30,17 @@ def execute_plan(
             executed_steps.append(step)
         elif step == "agent_memory_sync":
             project_paths = resolve_project_paths(project, root=repo_root)
+            _, machine_state = load_machine_state(project, repo_root=repo_root)
             state_path = sync_project_state(
                 project,
                 {
                     "current_phase": "Phase 1 Research OS",
                     "current_task": "Keep the Phase 1 Research OS reproducible with tracked memory and honest runtime artifacts.",
-                    "current_blocker": "Default project still lacks usable validated bars for the frozen universe.",
-                    "current_capability_boundary": "Engineering guardrails work; real default-project research remains blocked on data coverage.",
-                    "next_priority_action": "Restore a usable validated bar snapshot for the frozen default universe.",
+                    "current_blocker": machine_state.get("current_blocker") or "none",
+                    "current_capability_boundary": machine_state.get("current_capability_boundary")
+                    or "Tracked memory sync refreshed the current state only; it did not change the canonical blocker.",
+                    "next_priority_action": machine_state.get("next_priority_action")
+                    or "Keep the current blocker diagnosis aligned across session_state and verifier artifacts.",
                     "last_verified_capability": f"Tracked memory sync refreshed for plan: {plan.primary_hypothesis}",
                 },
                 repo_root=repo_root,

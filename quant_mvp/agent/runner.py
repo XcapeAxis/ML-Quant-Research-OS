@@ -25,6 +25,15 @@ def _resolve_backend(name: str):
     return DryRunLLM()
 
 
+def _corrective_action_for_root_cause(root_cause: str) -> str:
+    lowered = str(root_cause or "").strip().lower()
+    if "drawdown" in lowered or "最大回撤" in root_cause:
+        return "Break down the current max-drawdown driver and compare one bounded challenger before rerunning the dry-run cycle."
+    if any(token in lowered for token in ["validated bars", "coverage", "readiness", "frozen universe", "local bars"]):
+        return "Restore the validated snapshot and rerun the dry-run cycle only after the data boundary is healthy again."
+    return "Refresh the blocker diagnosis and narrow one bounded next step before rerunning the dry-run cycle."
+
+
 def run_agent_cycle(
     *,
     project: str,
@@ -114,14 +123,15 @@ def run_agent_cycle(
     )
     record_paths = record_agent_cycle(project, cycle.to_dict(), repo_root=repo_root)
     if not evaluation.passed:
+        root_cause = "; ".join(cycle.evaluation.get("promotion_decision", {}).get("reasons", []))
         record_failure(
             project,
             {
                 "timestamp": timestamp,
                 "experiment_id": cycle.cycle_id,
                 "summary": evaluation.summary,
-                "root_cause": "; ".join(cycle.evaluation.get("promotion_decision", {}).get("reasons", [])),
-                "corrective_action": "Restore a usable frozen universe plus local bars before rerunning the dry-run cycle.",
+                "root_cause": root_cause,
+                "corrective_action": _corrective_action_for_root_cause(root_cause),
             },
             repo_root=repo_root,
         )
