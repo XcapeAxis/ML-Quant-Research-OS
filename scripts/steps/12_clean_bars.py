@@ -23,7 +23,7 @@ def _parse_codes(value: str | None) -> list[str]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Clean raw OHLCV bars into bars_clean.")
-    parser.add_argument("--project", type=str, default="as_share_research_v1")
+    parser.add_argument("--project", type=str, default="crypto_okx_research_v1")
     parser.add_argument("--config", type=Path, default=None)
     parser.add_argument("--freq", type=str, default=None)
     parser.add_argument("--full-refresh", action="store_true")

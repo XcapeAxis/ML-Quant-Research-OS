@@ -319,7 +319,7 @@ def run_update(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Update project bars into SQLite.")
-    parser.add_argument("--project", type=str, default="as_share_research_v1")
+    parser.add_argument("--project", type=str, default="crypto_okx_research_v1")
     parser.add_argument("--config", type=Path, default=None, help="Optional config path override.")
     parser.add_argument("--mode", type=str, default="incremental", choices=["incremental", "backfill"])
     parser.add_argument("--freq", type=str, default=None)

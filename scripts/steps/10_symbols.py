@@ -15,7 +15,7 @@ from quant_mvp.security_master import CANONICAL_UNIVERSE_ID, build_security_mast
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Rebuild the canonical project universe from the security master.")
-    parser.add_argument("--project", type=str, default="as_share_research_v1")
+    parser.add_argument("--project", type=str, default="crypto_okx_research_v1")
     parser.add_argument("--config", type=Path, default=None)
     parser.add_argument("--no-archive", action="store_true", help="Skip archiving the previous runtime universe inputs.")
     args = parser.parse_args()

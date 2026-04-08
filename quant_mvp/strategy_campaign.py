@@ -1060,7 +1060,7 @@ def run_baseline_strategy_diagnostic(
             "effective_subagent_gate_reason": "This run was a tightly coupled diagnostic path; serial work produced cleaner evidence than parallel subagents.",
             "default_project_data_status": f"ready coverage on current frozen snapshot; research profile `{research_profile_id}` source_st_count={profile_map[research_profile_id]['source_st_count']}.",
             "durable_facts": [
-                "Canonical active project id: as_share_research_v1.",
+                "Canonical active project id: crypto_okx_research_v1.",
                 f"Canonical universe policy: research={research_profile_id}, deployment_control={deployment_profile_id}.",
                 "Benchmark wiring is fixed: direct baseline diagnostics now receive explicit benchmark_series.",
                 "Current frozen symbols snapshot has zero ST exposure, so the new dual-universe comparison is policy-valid but empirically degenerate this round.",

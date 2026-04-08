@@ -105,7 +105,7 @@ def _load_strategy_universe(project: str, config_path: Path | None) -> list[str]
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build project-scoped stock ranking.")
-    parser.add_argument("--project", type=str, default="as_share_research_v1")
+    parser.add_argument("--project", type=str, default="crypto_okx_research_v1")
     parser.add_argument("--config", type=Path, default=None)
     parser.add_argument("--freq", type=str, default=None)
     parser.add_argument("--lookback", type=int, default=None)

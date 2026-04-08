@@ -135,6 +135,56 @@ UPSTREAMS: dict[str, UpstreamSpec] = {
             "end": "20240131",
         },
     ),
+    "okx_instruments": UpstreamSpec(
+        key="okx_instruments",
+        label="OKX public instruments",
+        url="https://www.okx.com/api/v5/public/instruments",
+        method="GET",
+        headers={
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/122.0.0.0 Safari/537.36"
+            ),
+        },
+        params={
+            "instType": "SWAP",
+        },
+    ),
+    "okx_candles": UpstreamSpec(
+        key="okx_candles",
+        label="OKX history candles",
+        url="https://www.okx.com/api/v5/market/history-candles",
+        method="GET",
+        headers={
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/122.0.0.0 Safari/537.36"
+            ),
+        },
+        params={
+            "instId": "BTC-USDT-SWAP",
+            "bar": "1D",
+            "limit": "5",
+        },
+    ),
+    "okx_funding": UpstreamSpec(
+        key="okx_funding",
+        label="OKX funding rate",
+        url="https://www.okx.com/api/v5/public/funding-rate",
+        method="GET",
+        headers={
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/122.0.0.0 Safari/537.36"
+            ),
+        },
+        params={
+            "instId": "BTC-USDT-SWAP",
+        },
+    ),
 }
 
 DOCTOR_FILENAME = "platform_doctor.json"
@@ -453,7 +503,20 @@ def _required_upstreams(
     decision_key: str | None,
     universe_missing: bool,
     db_status: dict[str, Any],
+    raw_config: dict[str, Any],
+    effective_config: dict[str, Any] | None,
 ) -> list[str]:
+    provider = str((raw_config.get("data_provider", {}) or {}).get("provider") or "").strip().lower()
+    market = str((raw_config.get("data_provider", {}) or {}).get("market") or "").strip().lower()
+    exchange = str((raw_config.get("market_data_contract", {}) or {}).get("exchange") or "").strip().lower()
+    if effective_config:
+        provider = provider or str((effective_config.get("data_provider", {}) or {}).get("provider") or "").strip().lower()
+        market = market or str((effective_config.get("data_provider", {}) or {}).get("market") or "").strip().lower()
+        exchange = exchange or str((effective_config.get("market_data_contract", {}) or {}).get("exchange") or "").strip().lower()
+
+    if provider == "okx" or exchange == "okx" or market == "crypto":
+        return ["okx_instruments", "okx_candles", "okx_funding"]
+
     required: list[str] = []
     if universe_missing and db_status.get("raw_codes", 0) <= 0 and db_status.get("clean_codes", 0) <= 0:
         required.extend(["sse", "szse"])
@@ -553,12 +616,33 @@ def _diagnose_project(
         decision_key=preparation["decision_key"],
         universe_missing=not universe_exists,
         db_status=db_status,
+        raw_config=raw_config,
+        effective_config=effective_config,
     )
     network_status = run_network_diagnostics(
         settings,
-        upstream_keys=None if check_all_upstreams else required_upstreams,
+        upstream_keys=required_upstreams,
     )
     blocking_issue_details.extend(network_status["blocking_issue_details"])
+
+    if not universe_exists:
+        blocking_issue_details.append(
+            make_issue(
+                "research_universe_missing",
+                f"Research universe is missing: {paths.universe_path}",
+                suggestion="Run `python -m quant_mvp materialize_universe --project crypto_okx_research_v1` before treating the project as ready.",
+            )
+        )
+
+    window_coverage = dict(db_status.get("window_coverage", {}) or {})
+    if window_coverage.get("enabled") and int(window_coverage.get("raw_codes_with_data", 0) or 0) <= 0:
+        blocking_issue_details.append(
+            make_issue(
+                "validated_universe_without_local_bars",
+                "The frozen research universe exists, but the configured market database has no usable raw bars for it.",
+                suggestion="Load OKX market data for the frozen universe before promotion or dry-run execution.",
+            )
+        )
 
     checks_by_key = {item["key"]: item for item in network_status["checks"]}
     for key in required_upstreams:

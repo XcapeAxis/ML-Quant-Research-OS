@@ -1,0 +1,320 @@
+{
+  "baseline_status": "phase0_prerequisites_blocked",
+  "branch": "main",
+  "canonical_project_id": "crypto_okx_research_v1",
+  "canonical_truth_summary": "The canonical project is still rebuilding research prerequisites. Current blocker: The frozen research universe exists, but the configured market database has no usable raw bars for it.",
+  "canonical_universe_id": "okx_crypto_linear_swap_v1",
+  "configured_subagent_gate_mode": "AUTO",
+  "current_blocked_strategy_ids": [
+    "okx_phase0_research_mainline",
+    "okx_cost_funding_guardrail"
+  ],
+  "current_blocker": "The frozen research universe exists, but the configured market database has no usable raw bars for it.",
+  "current_capability_boundary": "Current work is limited to rebuilding research inputs and truthful contracts. No strategy branch should be treated as validated until OKX inputs are usable.",
+  "current_phase": "Phase 0 Backtest First",
+  "current_primary_strategy_ids": [
+    "okx_phase0_research_mainline"
+  ],
+  "current_promoted_strategy_ids": [],
+  "current_rejected_strategy_ids": [
+    "legacy_a_share_archive"
+  ],
+  "current_research_cycle_type": "prerequisite_recovery",
+  "current_research_stage": "prerequisite recovery",
+  "current_secondary_strategy_ids": [
+    "okx_cost_funding_guardrail"
+  ],
+  "current_strategy_focus": [
+    "okx_phase0_research_mainline"
+  ],
+  "current_strategy_summary": "Research is still blocked on prerequisites. Current blocker: The frozen research universe exists, but the configured market database has no usable raw bars for it.. Restore truthful OKX inputs before treating any strategy path as validated.",
+  "current_task": "Prove the crypto plus OKX research loop before any demo or live work.",
+  "durable_facts": [
+    "This repo now treats crypto_okx_research_v1 as the canonical research project.",
+    "The active market focus is crypto and the active exchange focus is OKX.",
+    "A-share work is legacy reference only and must not drive the live research narrative.",
+    "Current project has no legacy aliases."
+  ],
+  "effective_subagent_gate_mode": "OFF",
+  "effective_subagent_gate_reason": "Keep subagents OFF until the frozen OKX universe has usable local bars.",
+  "execution_queue": [
+    {
+      "action_name": "",
+      "current_status": "done",
+      "impact": "high",
+      "last_classification": "",
+      "last_iteration": 0,
+      "last_summary": "",
+      "owner": "main",
+      "prerequisite": "The universe contract exists.",
+      "requires_data_ready": false,
+      "risk": "low",
+      "selected_count": 0,
+      "stop_condition": "The universe contract is missing or invalid.",
+      "success_condition": "universe_codes.txt matches the frozen contract.",
+      "task_id": "materialize_phase0_universe",
+      "title": "Materialize the OKX phase-0 universe file"
+    },
+    {
+      "action_name": "",
+      "current_status": "ready",
+      "impact": "high",
+      "last_classification": "",
+      "last_iteration": 0,
+      "last_summary": "",
+      "owner": "main",
+      "prerequisite": "Universe file exists and the exchange endpoints are reachable.",
+      "requires_data_ready": false,
+      "risk": "medium",
+      "selected_count": 0,
+      "stop_condition": "Data import still produces zero usable bars for the frozen universe.",
+      "success_condition": "doctor reports usable local bars for the frozen OKX universe.",
+      "task_id": "recover_okx_bars",
+      "title": "Load OKX bars for the frozen universe"
+    },
+    {
+      "action_name": "",
+      "current_status": "queued",
+      "impact": "medium",
+      "last_classification": "",
+      "last_iteration": 0,
+      "last_summary": "",
+      "owner": "main",
+      "prerequisite": "Universe and doctor truth are up to date.",
+      "requires_data_ready": false,
+      "risk": "low",
+      "selected_count": 0,
+      "stop_condition": "audit adds no new boundary information.",
+      "success_condition": "audit restates the bounded next step without legacy leakage.",
+      "task_id": "refresh_research_audit",
+      "title": "Refresh research audit after data truth changes"
+    },
+    {
+      "action_name": "",
+      "current_status": "blocked",
+      "impact": "medium",
+      "last_classification": "",
+      "last_iteration": 0,
+      "last_summary": "",
+      "owner": "main",
+      "prerequisite": "Doctor and audit no longer block on missing research inputs.",
+      "requires_data_ready": true,
+      "risk": "medium",
+      "selected_count": 0,
+      "stop_condition": "dry-run only repeats the same blocker.",
+      "success_condition": "dry-run adds bounded evidence instead of repeating setup work.",
+      "task_id": "bounded_agent_cycle",
+      "title": "Run one dry-run research cycle"
+    }
+  ],
+  "head": "cd3c17d79b66e1b002e06e0f8c1e7750793c2aa5",
+  "iterative_loop": {
+    "alternative_subagents": [],
+    "archived_subagent_count": 0,
+    "artifact_path": "",
+    "auto_closed_subagents": [],
+    "blocked_subagent_count": 0,
+    "blocker_escalation": false,
+    "blocker_history": {},
+    "blocker_key": "unknown",
+    "blocker_repeat_count": 0,
+    "canceled_subagent_count": 0,
+    "clarify_only_iterations": 0,
+    "clarify_only_limit": 1,
+    "consecutive_no_new_info_runs": 0,
+    "controlled_refresh_count": 0,
+    "direction_change": false,
+    "effective_progress_count": 0,
+    "historical_blocker_count": 0,
+    "iteration_count": 0,
+    "last_classification": "not_run",
+    "last_completed": "none recorded",
+    "last_not_done": "none recorded",
+    "last_run_id": "",
+    "max_active_subagents": 0,
+    "max_iterations": 0,
+    "max_runtime_mode": "bounded",
+    "merged_subagent_count": 0,
+    "min_substantive_actions": 2,
+    "next_recommendation": "none recorded",
+    "refactored_subagent_count": 0,
+    "retired_subagent_count": 0,
+    "run_start_read_count": 0,
+    "stop_reason": "not_run",
+    "subagent_gate_mode": "AUTO",
+    "subagent_reason": "No iterative loop run has been recorded yet.",
+    "subagents_used": [],
+    "substantive_action_count": 0,
+    "target_iterations": 0,
+    "target_productive_minutes": 40,
+    "target_substantive_actions": 3,
+    "workflow_mode": "campaign"
+  },
+  "last_failed_capability": "none",
+  "last_failure": {},
+  "last_updated": "2026-04-08T14:50:39+00:00",
+  "last_verified_capability": "Doctor confirmed OKX upstream access and the frozen universe, but blocked promotion because local OKX bars are still missing.",
+  "latest_hypotheses": [
+    {
+      "hypothesis": "The first useful milestone is truthful OKX data coverage for a small frozen universe.",
+      "status": "blocked"
+    },
+    {
+      "hypothesis": "One small explicit OKX universe is enough to prove the research loop before broader expansion.",
+      "status": "pending"
+    },
+    {
+      "hypothesis": "No candidate should be promoted until cost, fee, funding, and walk-forward checks all agree.",
+      "status": "pending"
+    }
+  ],
+  "legacy_project_aliases": [],
+  "negative_memory": [
+    "Do not claim crypto readiness from A-share artifacts.",
+    "Do not widen to demo or live before the phase-0 research loop is honest.",
+    "Do not promote any strategy result until fees, funding, and walk-forward checks are visible."
+  ],
+  "next_priority_action": "Load usable OKX bars for the frozen universe, then rerun doctor, memory sync, and research audit.",
+  "next_step_memory": [
+    "Load usable OKX bars for the frozen universe.",
+    "Rerun doctor after the data load and record the real blocker.",
+    "Only after doctor turns honest-green should the next dry-run cycle resume."
+  ],
+  "project": "crypto_okx_research_v1",
+  "project_identity_notice": "Current project has no legacy aliases.",
+  "readiness": {
+    "ready": false,
+    "stage": "bootstrap"
+  },
+  "research_progress": {
+    "confidence": "low",
+    "current_blocker": "The frozen research universe exists, but the configured market database has no usable raw bars for it.",
+    "dimensions": [
+      {
+        "dimension": "Data inputs",
+        "evidence": "Data status is prerequisites-blocked. Current blocker: The frozen research universe exists, but the configured market database has no usable raw bars for it.",
+        "score": 1,
+        "status": "blocked"
+      },
+      {
+        "dimension": "Strategy integrity",
+        "evidence": "Primary strategies are okx_phase0_research_mainline (OKX phase-0 research mainline). Last verified capability: Doctor confirmed OKX upstream access and the frozen universe, but blocked promotion because local OKX bars are still missing.",
+        "score": 2,
+        "status": "partial"
+      },
+      {
+        "dimension": "Validation stack",
+        "evidence": "Only baseline verification entry points exist. No passing verification command has been recorded for the active crypto project yet.",
+        "score": 1,
+        "status": "bootstrap"
+      },
+      {
+        "dimension": "Promotion readiness",
+        "evidence": "Promotion is blocked because the active blocker is still: The frozen research universe exists, but the configured market database has no usable raw bars for it.",
+        "score": 1,
+        "status": "blocked"
+      },
+      {
+        "dimension": "Subagent effectiveness",
+        "evidence": "Configured gate=AUTO, effective gate=OFF. Active subagents: 0. Reason: Keep subagents OFF until the frozen OKX universe has usable local bars.",
+        "score": 2,
+        "status": "partial"
+      }
+    ],
+    "materially_changed": false,
+    "next_milestone": "Load usable OKX bars for the frozen universe, then rerun doctor, memory sync, and research audit.",
+    "overall_trajectory": "blocked",
+    "this_run_delta": "unchanged"
+  },
+  "runtime_artifacts_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\artifacts\\projects\\crypto_okx_research_v1",
+  "runtime_meta_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\data\\projects\\crypto_okx_research_v1\\meta",
+  "strategy_candidates": [
+    {
+      "artifact_refs": [],
+      "blocked_by": [
+        "The frozen research universe exists, but the configured market database has no usable raw bars for it."
+      ],
+      "category": "market-structure",
+      "core_hypothesis": "A small, validated OKX universe plus explicit fee and funding modeling is enough to prove whether the research loop can produce honest, repeatable evidence.",
+      "current_stage": "data-blocked",
+      "decision": "blocked",
+      "economic_rationale": "The first job is not alpha maximization. It is to show that the crypto research process can survive data quality checks, cost modeling, walk-forward review, and postmortem discipline.",
+      "kill_criteria": "Stop treating this as the mainline if repeatable phase-0 experiments still cannot produce a trustworthy evaluation bundle after data, fee, and funding inputs are restored.",
+      "latest_action": "Keep the crypto phase-0 hypothesis queue narrow and rebuild missing OKX inputs first.",
+      "latest_result": "No passing conclusion yet. Current blocker: The frozen research universe exists, but the configured market database has no usable raw bars for it.",
+      "name": "OKX phase-0 research mainline",
+      "next_validation": "Restore usable OKX inputs and materialize the frozen universe before rerunning research checks.",
+      "owner": "main",
+      "required_data": "OKX instrument metadata, OHLCV, funding rate, fee model, contract specs, and a validated universe snapshot for the frozen research set.",
+      "strategy_id": "okx_phase0_research_mainline",
+      "subagents_assigned": [],
+      "track": "primary"
+    },
+    {
+      "artifact_refs": [],
+      "blocked_by": [
+        "The frozen research universe exists, but the configured market database has no usable raw bars for it."
+      ],
+      "category": "risk-control",
+      "core_hypothesis": "Many early crypto research wins disappear once fees, funding, and contract details are modeled honestly. This branch exists to prove or reject that risk early.",
+      "current_stage": "data-blocked",
+      "decision": "blocked",
+      "economic_rationale": "Crypto backtests are easy to overstate when funding or fee drag is missing. This branch prevents false confidence from leaking into promotion decisions.",
+      "kill_criteria": "Drop this branch only after fees and funding are fully modeled in the mainline and no longer need a separate guardrail.",
+      "latest_action": "Keep this branch as a standing check on all promising OKX experiments.",
+      "latest_result": "No passing conclusion yet. Current blocker: The frozen research universe exists, but the configured market database has no usable raw bars for it.",
+      "name": "OKX cost and funding guardrail",
+      "next_validation": "Do not run this branch until funding and fee inputs are available for the frozen OKX universe.",
+      "owner": "main",
+      "required_data": "OKX instrument metadata, OHLCV, funding rate, fee model, contract specs, and a validated universe snapshot for the frozen research set.",
+      "strategy_id": "okx_cost_funding_guardrail",
+      "subagents_assigned": [],
+      "track": "secondary"
+    },
+    {
+      "artifact_refs": [],
+      "blocked_by": [
+        "Legacy reference only."
+      ],
+      "category": "legacy",
+      "core_hypothesis": "This is a historical reference only. It is not an active research branch.",
+      "current_stage": "archived",
+      "decision": "reject",
+      "economic_rationale": "Keep the old work visible for reference, but do not let it steer the active crypto program.",
+      "kill_criteria": "Never promote this branch back into the active crypto workflow without an explicit strategic reset.",
+      "latest_action": "Leave this branch archived and keep it out of the active research queue.",
+      "latest_result": "This branch is archived and should not steer the active research loop.",
+      "name": "Legacy A-share archive",
+      "next_validation": "None. This branch should stay archived.",
+      "owner": "main",
+      "required_data": "Legacy A-share data only. This branch is archived and should not drive the active research loop.",
+      "strategy_id": "legacy_a_share_archive",
+      "subagents_assigned": [],
+      "track": "rejected"
+    }
+  ],
+  "subagent_continue_reason": "默认项目的数据 blocker 还没清掉，现在扩展多个 subagent 只会增加协作成本。",
+  "subagent_continue_recommended": false,
+  "subagent_gate_mode": "AUTO",
+  "subagent_last_event": {},
+  "subagent_plan": {
+    "gate_mode": "AUTO",
+    "no_split_reason": "当前默认项目的 blocker 还不值得为它再加一层协作开销。",
+    "rationale": "在可用 validated bars 恢复前，subagent 保持有效 OFF，先不要拆分。",
+    "recommended_count": 0,
+    "recommended_gate": "OFF",
+    "recommended_roles": [],
+    "score": 0.0,
+    "should_expand": false,
+    "work_packages": []
+  },
+  "subagents": [],
+  "tracked_memory_dir": "C:\\Users\\asus\\Documents\\Projects\\BackTest\\memory\\projects\\crypto_okx_research_v1",
+  "verify_last": {
+    "conclusion_boundary_engineering": "OKX upstream reachability is healthy, but local market bars are still missing for the frozen universe.",
+    "conclusion_boundary_research": "Do not treat any candidate as validated until the frozen OKX universe has usable local bars.",
+    "default_project_data_status": "prerequisites-blocked",
+    "failed_commands": [],
+    "passed_commands": []
+  }
+}

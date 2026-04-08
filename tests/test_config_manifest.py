@@ -7,6 +7,7 @@ import pandas as pd
 
 from quant_mvp.config import load_config
 from quant_mvp.manifest import update_run_manifest
+from quant_mvp.project_identity import CANONICAL_PROJECT_ID
 from quant_mvp.ranking import build_momentum_rank
 
 
@@ -24,7 +25,7 @@ def test_config_merge_priority(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     cfg, _ = load_config(
-        project="as_share_research_v1",
+        project=CANONICAL_PROJECT_ID,
         config_path=config_path,
         overrides={"lookback": 30, "baselines": {"random_trials": 10}},
     )

@@ -1,0 +1,76 @@
+{
+  "freq": "1d",
+  "strategy_mode": "research_kernel",
+  "db_path": "C:/Users/asus/Documents/Projects/BackTest/data/market.db",
+  "start_date": "2020-01-01",
+  "end_date": "2026-04-01",
+  "cash": 1000000.0,
+  "commission": 0.0005,
+  "stamp_duty": 0.0,
+  "slippage": 0.001,
+  "calendar_code": "BTC-USDT",
+  "research_hypothesis": "Use OKX crypto market data to prove a durable research loop before any live execution work. Focus on reproducible experiments, clear risk gates, and honest postmortems.",
+  "universe_policy": {
+    "canonical_universe_id": "okx_crypto_linear_swap_v1",
+    "definitions_dir": "configs/universes",
+    "research_profile": "okx_crypto_linear_swap_v1",
+    "comparison_profiles": [
+      "okx_crypto_linear_swap_v1"
+    ],
+    "materialization_note": "Phase 0 keeps a small explicit OKX crypto universe for research and replay only."
+  },
+  "data_provider": {
+    "provider": "okx",
+    "market": "CRYPTO",
+    "raw_layer": "raw",
+    "cleaned_layer": "cleaned",
+    "validated_layer": "validated",
+    "symbol_format": "okx_inst_id"
+  },
+  "tradability": {
+    "require_positive_volume": true,
+    "min_volume": 0.0,
+    "exclude_limit_locked": false,
+    "exclude_suspended": false
+  },
+  "research_validation": {
+    "enabled": true,
+    "forward_horizon_days": 1,
+    "max_drawdown_limit": 0.25,
+    "min_walk_forward_windows_alive": 2,
+    "max_cost_sensitivity_drawdown_delta": 0.1,
+    "min_cost_sensitivity_return_ratio": 0.5,
+    "require_economic_rationale": true,
+    "require_parameter_robustness": true,
+    "parameter_perturbations": [
+      {
+        "lookback": -0.2
+      },
+      {
+        "lookback": 0.2
+      },
+      {
+        "slippage": 0.5
+      }
+    ]
+  },
+  "agent": {
+    "default_backend": "dry_run",
+    "allow_live_execution": false,
+    "max_cycles_per_run": 1,
+    "require_promotion_gate": true,
+    "default_tool_allowlist_path": "configs/tool_allowlist.yaml"
+  },
+  "market_data_contract": {
+    "exchange": "okx",
+    "market_type": "crypto",
+    "scope": "public-data-only",
+    "required_datasets": [
+      "ohlcv",
+      "instrument_metadata",
+      "fees",
+      "funding_rate"
+    ],
+    "phase_note": "Demo and live trading stay outside phase 0."
+  }
+}

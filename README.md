@@ -1,57 +1,56 @@
-# Research OS Phase 1
+# BackTest Research Kernel
 
-This repository is being refactored into a reproducible research operating system for China A-share daily/weekly strategy work.
+This repo is no longer an A-share-first research OS.
 
-Phase 1 is deliberately narrow:
-- market: A-share
-- frequency: daily / weekly
-- goal: reliable research, reproducible experiments, durable memory, and guarded agent assistance
-- non-goal: live trading, minute-level alpha production, profitability promises
+Its new role is a market-agnostic research kernel.  
+The current mainline is:
 
-## Current Status
+- project: `crypto_okx_research_v1`
+- market: `crypto`
+- exchange: `OKX`
+- phase: `Backtest First`
 
-Implemented in this refactor:
-- a schema-driven limit-up screening strategy spec
-- one audited limit-up research core shared by the step pipeline and the standalone strategy script
-- provider abstraction over AKShare
-- raw -> cleaned -> validated data flow with project-scoped quality reports
-- a research-readiness gate that classifies empty / pilot / ready data coverage before promotion
-- leakage, walk-forward, cost-sensitivity, and promotion-gate modules
-- AGENTS files plus tracked project memory under `memory/projects/<project>/` and runtime artifacts under `data/` / `artifacts/`
-- a dry-run agent cycle that writes plan / execution / evaluation / reflection to disk
-- a subagent governance layer with `OFF/AUTO/FORCE` gate, lifecycle tracking, and tracked/runtime separation
-- contract tests for strategy consistency, Tuesday rebalance, leakage guards, and memory writeback
-- an export-first Excel console MVP for internal monitoring, while the local web UIs stay frozen until the Excel path is accepted
+The old A-share branch stays here as a legacy reference:
 
-Not implemented yet:
-- live trading or broker connectivity
-- minute-level production research
-- richer exchange-native tradability flags
-- automatic profitable strategy discovery
+- legacy project: `as_share_research_v1`
+- legacy alias: `2026Q1_limit_up`
+- status: archive and comparison only
 
-## Important Reality Check
+## What This Repo Is For Now
 
-Historical performance claims that existed in earlier repo states are not trusted unless they can be reproduced from the current local data snapshot.
+Phase 0 is deliberately narrow:
 
-The default project `as_share_research_v1` should now be interpreted through two explicit gates:
-- `data_validate` tells you what validated coverage exists for the frozen universe.
-- `research_readiness` decides whether that snapshot is empty, only a pilot subset, or good enough for promotion-grade research.
+- prove the research loop
+- keep decisions, recall, and postmortems durable
+- define data contracts before data plumbing grows
+- keep live scope at `none`
 
-Because of that:
-- promotion is blocked whenever research readiness is not met
-- partial coverage is treated as pilot recovery, not as full-universe evidence
-- any README-level return claims remain removed unless they can be reproduced from the current local snapshot
+This repo is **not** currently:
 
-## Canonical Strategy
+- a live trading system
+- a broker execution engine
+- a multi-exchange automation platform
+- a promise of profitable strategy output
 
-The Phase 1 canonical strategy is `limit_up_screening`.
+## Current Mainline
 
-Single source of truth:
-- strategy spec: [limit_up_screening.md](docs/strategy_specs/limit_up_screening.md)
-- schema defaults: [strategy_schema.py](quant_mvp/strategy_schema.py)
-- project config schema: [config_schema.py](quant_mvp/config_schema.py)
+The current mainline project is `crypto_okx_research_v1`.
 
-The standalone entrypoint [run_limit_up_screening.py](scripts/run_limit_up_screening.py) and the modular steps both call the same audited library code in [research_core.py](quant_mvp/research_core.py).
+Its minimum kernel surfaces are:
+
+- project config: [C:\Users\asus\Documents\Projects\BackTest\configs\projects\crypto_okx_research_v1.json](C:\Users\asus\Documents\Projects\BackTest\configs\projects\crypto_okx_research_v1.json)
+- universe contract: [C:\Users\asus\Documents\Projects\BackTest\configs\universes\okx_crypto_linear_swap_v1.yaml](C:\Users\asus\Documents\Projects\BackTest\configs\universes\okx_crypto_linear_swap_v1.yaml)
+- data contract: [C:\Users\asus\Documents\Projects\BackTest\docs\data_contracts\okx_public_market_data_v1.md](C:\Users\asus\Documents\Projects\BackTest\docs\data_contracts\okx_public_market_data_v1.md)
+- phase-0 experiment spec: [C:\Users\asus\Documents\Projects\BackTest\docs\experiments\crypto_okx_research_v1_phase0.md](C:\Users\asus\Documents\Projects\BackTest\docs\experiments\crypto_okx_research_v1_phase0.md)
+
+## Current Rules
+
+- Backtest First.
+- Crypto First.
+- OKX First.
+- Public market data first.
+- No live trading in this phase.
+- No widening to demo or live without explicit risk review.
 
 ## Core Commands
 
@@ -61,118 +60,69 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Freeze the project universe:
+Bootstrap tracked memory for the active project:
 
 ```bash
-python scripts/steps/10_symbols.py --project as_share_research_v1 --config configs/projects/as_share_research_v1.json
+python -m quant_mvp memory_bootstrap --project crypto_okx_research_v1
 ```
 
-Validate and clean data:
+Check whether the project contract is wired enough to proceed:
 
 ```bash
-python -m quant_mvp data_validate --project as_share_research_v1 --config configs/projects/as_share_research_v1.json --full-refresh
+python -m quant_mvp doctor --project crypto_okx_research_v1
 ```
 
-Inspect the research-readiness artifacts written by `data_validate`:
+Refresh tracked memory after any contract or state change:
 
 ```bash
-type data\\projects\\as_share_research_v1\\meta\\RESEARCH_READINESS.md
+python -m quant_mvp memory_sync --project crypto_okx_research_v1
 ```
 
-Run the audited repo audit:
+Run one bounded dry-run research cycle:
 
 ```bash
-python -m quant_mvp research_audit --project as_share_research_v1 --config configs/projects/as_share_research_v1.json
+python -m quant_mvp agent_cycle --project crypto_okx_research_v1 --dry-run
 ```
 
-Run one dry-run research cycle:
+Run the repo audit:
 
 ```bash
-python -m quant_mvp agent_cycle --project as_share_research_v1 --config configs/projects/as_share_research_v1.json --dry-run
+python -m quant_mvp research_audit --project crypto_okx_research_v1
 ```
 
-Export the internal Excel console feed and workbook:
+## Legacy A-Share Path
 
-```bash
-python -m quant_mvp excel_export --project as_share_research_v1
-```
+The A-share path remains in this repo for:
 
-Run one bounded higher-order automation loop:
+- archive comparison
+- migration notes
+- old experiment context
+- old tooling reference
 
-```bash
-python -m quant_mvp iterative_run --project as_share_research_v1 --config configs/projects/as_share_research_v1.json --target-productive-minutes 40 --target-iterations 4 --max-iterations 6 --min-substantive-actions 2 --target-substantive-actions 3 --clarify-only-limit 1 --format checkpoint
-```
+It is no longer the default mainline.
 
-Bootstrap tracked memory and handoff files:
+If you need it, call it explicitly:
 
 ```bash
 python -m quant_mvp memory_bootstrap --project as_share_research_v1
-python -m quant_mvp memory_sync --project as_share_research_v1
-python -m quant_mvp generate_handoff --project as_share_research_v1
 ```
 
-Evaluate whether subagents are worth enabling for a task:
+## Memory and Audit
 
-```bash
-python -m quant_mvp subagent_plan --project as_share_research_v1 --task-summary "Assess future data and validation split after bars are restored" --breadth 2 --independence 0.7 --file-overlap 0.2 --validation-load 0.8 --coordination-cost 0.3 --risk-isolation 0.5
-```
+Main tracked memory for the active mainline lives under:
 
-Attempt promotion:
+- [C:\Users\asus\Documents\Projects\BackTest\memory\projects\crypto_okx_research_v1](C:\Users\asus\Documents\Projects\BackTest\memory\projects\crypto_okx_research_v1)
 
-```bash
-python -m quant_mvp promote_candidate --project as_share_research_v1 --config configs/projects/as_share_research_v1.json
-```
+Key system docs remain:
 
-Run the end-to-end strategy pipeline when data is available:
+- [C:\Users\asus\Documents\Projects\BackTest\docs\SYSTEM_BLUEPRINT.md](C:\Users\asus\Documents\Projects\BackTest\docs\SYSTEM_BLUEPRINT.md)
+- [C:\Users\asus\Documents\Projects\BackTest\docs\SYSTEM_AUDIT.md](C:\Users\asus\Documents\Projects\BackTest\docs\SYSTEM_AUDIT.md)
+- [C:\Users\asus\Documents\Projects\BackTest\docs\DECISION_LOG.md](C:\Users\asus\Documents\Projects\BackTest\docs\DECISION_LOG.md)
 
-```bash
-python scripts/run_limit_up_screening.py --project as_share_research_v1 --config configs/projects/as_share_research_v1.json --no-show --save auto
-```
+## What Not To Build Yet
 
-## Memory and Audit Files
-
-System-level docs:
-- [SYSTEM_BLUEPRINT.md](docs/SYSTEM_BLUEPRINT.md)
-- [SYSTEM_AUDIT.md](docs/SYSTEM_AUDIT.md)
-- [FAILURE_MODES.md](docs/FAILURE_MODES.md)
-- [DECISION_LOG.md](docs/DECISION_LOG.md)
-- [RESEARCH_PROMOTION_RULES.md](docs/RESEARCH_PROMOTION_RULES.md)
-
-Tracked project memory for the default project:
-- [PROJECT_STATE.md](memory/projects/as_share_research_v1/PROJECT_STATE.md)
-- [STRATEGY_BOARD.md](memory/projects/as_share_research_v1/STRATEGY_BOARD.md)
-- [STRATEGY_CANDIDATES/](memory/projects/as_share_research_v1/STRATEGY_CANDIDATES/)
-- [RESEARCH_PROGRESS.md](memory/projects/as_share_research_v1/RESEARCH_PROGRESS.md)
-- [HYPOTHESIS_QUEUE.md](memory/projects/as_share_research_v1/HYPOTHESIS_QUEUE.md)
-- [POSTMORTEMS.md](memory/projects/as_share_research_v1/POSTMORTEMS.md)
-- [EXPERIMENT_LEDGER.jsonl](memory/projects/as_share_research_v1/EXPERIMENT_LEDGER.jsonl)
-- [RESEARCH_MEMORY.md](memory/projects/as_share_research_v1/RESEARCH_MEMORY.md)
-- [HANDOFF_NEXT_CHAT.md](memory/projects/as_share_research_v1/HANDOFF_NEXT_CHAT.md)
-- [MIGRATION_PROMPT_NEXT_CHAT.md](memory/projects/as_share_research_v1/MIGRATION_PROMPT_NEXT_CHAT.md)
-- [VERIFY_LAST.md](memory/projects/as_share_research_v1/VERIFY_LAST.md)
-- [SESSION_STATE.json](memory/projects/as_share_research_v1/SESSION_STATE.json)
-- [SUBAGENT_REGISTRY.md](memory/projects/as_share_research_v1/SUBAGENT_REGISTRY.md)
-- [SUBAGENT_LEDGER.jsonl](memory/projects/as_share_research_v1/SUBAGENT_LEDGER.jsonl)
-
-`SESSION_STATE.json` is the canonical tracked state. The markdown handoff, migration, verify, and summary files are derived views.
-`STRATEGY_BOARD.md` and `STRATEGY_CANDIDATES/` are the human-first entrypoint when you need to answer “the system is researching which strategy right now?” before reading loop or governance details.
-
-Runtime/high-noise outputs:
-- `data/projects/<project>/meta/`
-- `artifacts/projects/<project>/`
-- `artifacts/projects/<project>/automation_runs/`
-- `artifacts/projects/<project>/excel/`
-- repo-local skill recipe: `skills/research_iteration_loop/SKILL.md`
-
-## Verification
-
-The contract and smoke suite runs with:
-
-```bash
-python -m pytest tests -q
-```
-
-Current expected result:
-- the test suite passes
-- dry-run agent flow passes
-- promotion may still be blocked on the default project until research readiness passes on the current validated snapshot
+- full live execution
+- multi-exchange abstraction
+- new shell UI
+- large dashboard work
+- extra permanent agent roles

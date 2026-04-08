@@ -17,10 +17,9 @@ ACTIVE_MEMORY_FILES = [
     "SESSION_STATE.json",
     "STRATEGY_BOARD.md",
     "SUBAGENT_REGISTRY.md",
-    "UNIVERSE_POLICY.md",
-    "UNIVERSE_AUDIT.md",
-    "LEGACY_UNIVERSE_NOTE.md",
-    "BASELINE_RESET_NOTE.md",
+    "RESEARCH_PROGRESS.md",
+    "EXECUTION_QUEUE.md",
+    "HYPOTHESIS_QUEUE.md",
 ]
 FORBIDDEN_ACTIVE_PATTERNS = [
     '"project": "2026Q1_limit_up"',
@@ -39,9 +38,10 @@ FORBIDDEN_ACTIVE_PATTERNS = [
 def test_legacy_alias_resolves_to_canonical_project() -> None:
     paths = resolve_project_paths("2026Q1_limit_up")
 
-    assert paths.project == CANONICAL_PROJECT_ID
-    assert canonical_project_id("2026Q1_limit_up") == CANONICAL_PROJECT_ID
-    assert LEGACY_PROJECT_ALIASES["2026Q1_limit_up"] == CANONICAL_PROJECT_ID
+    assert CANONICAL_PROJECT_ID == "crypto_okx_research_v1"
+    assert paths.project == "as_share_research_v1"
+    assert canonical_project_id("2026Q1_limit_up") == "as_share_research_v1"
+    assert LEGACY_PROJECT_ALIASES["2026Q1_limit_up"] == "as_share_research_v1"
 
 
 def test_active_canonical_memory_surfaces_do_not_use_legacy_as_default() -> None:
@@ -62,15 +62,17 @@ def test_active_session_state_keeps_one_coherent_blocker_story() -> None:
 
     assert session["project"] == CANONICAL_PROJECT_ID
     assert session["canonical_project_id"] == CANONICAL_PROJECT_ID
-    assert session["canonical_universe_id"] == "cn_a_mainboard_all_v1"
-    assert "2026Q1_limit_up" in session["legacy_project_aliases"]
+    assert session["canonical_universe_id"] == "okx_crypto_linear_swap_v1"
+    assert session["legacy_project_aliases"] == []
     assert session["configured_subagent_gate_mode"] in {"AUTO", "OFF", "FORCE"}
     assert session["effective_subagent_gate_mode"] in {"OFF", "AUTO", "FORCE"}
     assert isinstance(session.get("current_research_stage"), str)
     assert session["current_research_stage"].strip()
     assert isinstance(session.get("canonical_truth_summary"), str)
     assert session["canonical_truth_summary"].strip()
-    assert "cn_a_mainboard_all_v1" in truth_text
+    assert "okx_crypto_linear_swap_v1" in truth_text
+    assert "phase0_prerequisites_blocked" in truth_text
+    assert "usable raw bars" in truth_text
     assert "715" not in truth_text
     assert "full_a_mainboard_incl_st" not in truth_text
     assert "full_a_mainboard_ex_st" not in truth_text

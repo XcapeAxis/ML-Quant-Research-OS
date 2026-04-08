@@ -241,7 +241,7 @@ def _run_limit_up_screening(args, cfg: dict, paths) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run project-scoped rebalancing backtest.")
-    parser.add_argument("--project", type=str, default="as_share_research_v1")
+    parser.add_argument("--project", type=str, default="crypto_okx_research_v1")
     parser.add_argument("--config", type=Path, default=None)
     parser.add_argument("--rank-path", type=Path, default=None)
     parser.add_argument("--freq", type=str, default=None)

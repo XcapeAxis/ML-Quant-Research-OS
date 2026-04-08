@@ -129,6 +129,8 @@ def _looks_data_blocked_text(text: str) -> bool:
     return any(
         token in lowered
         for token in [
+            "prerequisites-blocked",
+            "usable raw bars",
             "usable validated bars",
             "validated bars for the frozen universe",
             "validated rows",
@@ -368,6 +370,1987 @@ def _canonicalize_active_project_state(paths, state: dict[str, Any]) -> dict[str
     else:
         updated["current_capability_boundary"] = str(updated.get("current_capability_boundary", "")).strip() or "当前可继续推进策略验证，但仍需保持验证口径保守。"
     return updated
+
+
+def _current_research_stage(state: dict[str, Any]) -> str:
+    blocker_key = _infer_blocker_key_from_state(state)
+    if blocker_key == "data_inputs":
+        return "prerequisite recovery"
+    if blocker_key == "strategy_contract":
+        return "strategy contract repair"
+    if blocker_key in {"max_drawdown", "leakage", "walk_forward", "baseline_integrity"}:
+        return "promotion blocked"
+    strategy = summarize_strategy_visibility(state)
+    if strategy.get("blocked"):
+        return "stability work"
+    return "strategy validation"
+
+
+def _canonical_truth_summary(state: dict[str, Any]) -> str:
+    blocker = humanize_text(state.get("current_blocker", "unknown")).rstrip(".")
+    stage = _current_research_stage(state)
+    if _infer_blocker_key_from_state(state) == "data_inputs":
+        return f"The canonical project is still rebuilding research prerequisites. Current blocker: {blocker}."
+    return f"The canonical project is in {stage}. Current blocker: {blocker}. Legacy A-share narratives are archive-only."
+
+
+def _drawdown_next_action(state: dict[str, Any]) -> str:
+    strategy = summarize_strategy_visibility(state)
+    primary = strategy.get("primary_names", []) or ["okx_phase0_research_mainline"]
+    secondary = strategy.get("secondary_names", []) or ["okx_cost_funding_guardrail"]
+    return (
+        f"Break down why {primary[0]} is failing promotion, then decide whether {secondary[0]} or a narrower entry rule is the next bounded branch."
+    )
+
+
+def _canonicalize_active_project_state(paths, state: dict[str, Any]) -> dict[str, Any]:
+    canonical = canonical_project_id(paths.project)
+    updated = rewrite_identity_payload(dict(state), project=canonical) if is_active_canonical_project(paths.project) else dict(state)
+    updated["project"] = paths.project
+    updated["canonical_project_id"] = canonical
+    updated["legacy_project_aliases"] = legacy_project_ids(canonical)
+    updated["project_identity_notice"] = alias_notice(canonical)
+    try:
+        cfg, _ = load_config(paths.project, config_path=paths.config_path)
+        universe_policy = dict(cfg.get("universe_policy", {}) or {})
+        canonical_universe_id = str(
+            universe_policy.get("canonical_universe_id")
+            or universe_policy.get("research_profile")
+            or updated.get("canonical_universe_id")
+            or ""
+        ).strip()
+        if canonical_universe_id:
+            updated["canonical_universe_id"] = canonical_universe_id
+    except Exception:
+        if updated.get("canonical_universe_id"):
+            updated["canonical_universe_id"] = str(updated["canonical_universe_id"]).strip()
+
+    blocker_key = _infer_blocker_key_from_state(updated)
+    if is_active_canonical_project(paths.project):
+        updated["baseline_status"] = (
+            "phase0_prerequisites_blocked" if blocker_key == "data_inputs" else "baseline_validation_ready"
+        )
+        updated["current_phase"] = "Phase 0 Backtest First"
+        updated["current_task"] = "Prove the crypto plus OKX research loop before any demo or live work."
+        updated["readiness"] = {
+            "stage": "bootstrap" if blocker_key == "data_inputs" else "validation-ready",
+            "ready": blocker_key != "data_inputs",
+        }
+
+    canonical_blocker = _canonicalize_current_blocker_text(updated)
+    if canonical_blocker:
+        updated["current_blocker"] = canonical_blocker
+    elif blocker_key == "data_inputs":
+        updated["current_blocker"] = "The frozen research universe exists, but usable OKX bars are still missing in the local market database."
+    updated["current_research_stage"] = _current_research_stage(updated)
+    updated["canonical_truth_summary"] = _canonical_truth_summary(updated)
+    updated["configured_subagent_gate_mode"] = str(updated.get("subagent_gate_mode", "AUTO"))
+    updated["effective_subagent_gate_mode"] = str(
+        ((updated.get("subagent_plan", {}) or {}).get("recommended_gate"))
+        or ((updated.get("iterative_loop", {}) or {}).get("subagent_effective_gate_mode"))
+        or "OFF"
+    )
+    updated["effective_subagent_gate_reason"] = str(
+        updated.get("subagent_continue_reason")
+        or ((updated.get("subagent_plan", {}) or {}).get("no_split_reason"))
+        or "No safe parallel work package is worth expanding right now."
+    )
+    durable_facts = _normalize_list(updated.get("durable_facts"))
+    if is_active_canonical_project(paths.project):
+        durable_facts = [
+            "This repo now treats crypto_okx_research_v1 as the canonical research project.",
+            "The active market focus is crypto and the active exchange focus is OKX.",
+            "A-share work is legacy reference only and must not drive the live research narrative.",
+            updated["project_identity_notice"],
+        ]
+        updated["durable_facts"] = durable_facts
+        updated["negative_memory"] = [
+            "Do not claim crypto readiness from A-share artifacts.",
+            "Do not widen to demo or live before the phase-0 research loop is honest.",
+            "Do not promote any strategy result until fees, funding, and walk-forward checks are visible.",
+        ]
+        updated["latest_hypotheses"] = [
+            {
+                "hypothesis": "The first useful milestone is truthful OKX data coverage for a small frozen universe.",
+                "status": "blocked" if blocker_key == "data_inputs" else "active",
+            },
+            {
+                "hypothesis": "One small explicit OKX universe is enough to prove the research loop before broader expansion.",
+                "status": "pending",
+            },
+            {
+                "hypothesis": "No candidate should be promoted until cost, fee, funding, and walk-forward checks all agree.",
+                "status": "pending",
+            },
+        ]
+        updated["execution_queue"] = [
+            {
+                "task_id": "materialize_phase0_universe",
+                "title": "Materialize the OKX phase-0 universe file",
+                "impact": "high",
+                "risk": "low",
+                "prerequisite": "The universe contract exists.",
+                "current_status": "done",
+                "owner": "main",
+                "success_condition": "universe_codes.txt matches the frozen contract.",
+                "stop_condition": "The universe contract is missing or invalid.",
+                "requires_data_ready": False,
+                "selected_count": 0,
+                "last_iteration": 0,
+                "last_summary": "",
+                "last_classification": "",
+            },
+            {
+                "task_id": "recover_okx_bars",
+                "title": "Load OKX bars for the frozen universe",
+                "impact": "high",
+                "risk": "medium",
+                "prerequisite": "Universe file exists and the exchange endpoints are reachable.",
+                "current_status": "ready" if blocker_key == "data_inputs" else "done",
+                "owner": "main",
+                "success_condition": "doctor reports usable local bars for the frozen OKX universe.",
+                "stop_condition": "Data import still produces zero usable bars for the frozen universe.",
+                "requires_data_ready": False,
+                "selected_count": 0,
+                "last_iteration": 0,
+                "last_summary": "",
+                "last_classification": "",
+            },
+            {
+                "task_id": "refresh_research_audit",
+                "title": "Refresh research audit after data truth changes",
+                "impact": "medium",
+                "risk": "low",
+                "prerequisite": "Universe and doctor truth are up to date.",
+                "current_status": "queued" if blocker_key == "data_inputs" else "ready",
+                "owner": "main",
+                "success_condition": "audit restates the bounded next step without legacy leakage.",
+                "stop_condition": "audit adds no new boundary information.",
+                "requires_data_ready": False,
+                "selected_count": 0,
+                "last_iteration": 0,
+                "last_summary": "",
+                "last_classification": "",
+            },
+            {
+                "task_id": "bounded_agent_cycle",
+                "title": "Run one dry-run research cycle",
+                "impact": "medium",
+                "risk": "medium",
+                "prerequisite": "Doctor and audit no longer block on missing research inputs.",
+                "current_status": "blocked" if blocker_key == "data_inputs" else "queued",
+                "owner": "main",
+                "success_condition": "dry-run adds bounded evidence instead of repeating setup work.",
+                "stop_condition": "dry-run only repeats the same blocker.",
+                "requires_data_ready": True,
+                "selected_count": 0,
+                "last_iteration": 0,
+                "last_summary": "",
+                "last_classification": "",
+            },
+        ]
+
+    blocker_key = _infer_blocker_key_from_state(updated)
+    if blocker_key == "data_inputs":
+        updated["effective_subagent_gate_reason"] = (
+            "Keep subagents OFF until the frozen OKX universe has usable local bars."
+        )
+        updated["current_capability_boundary"] = (
+            "Current work is limited to rebuilding research inputs and truthful contracts. No strategy branch should be "
+            "treated as validated until OKX inputs are usable."
+        )
+        updated["next_priority_action"] = "Load usable OKX bars for the frozen universe, then rerun doctor, memory sync, and research audit."
+        updated["next_step_memory"] = [
+            "Load usable OKX bars for the frozen universe.",
+            "Rerun doctor after the data load and record the real blocker.",
+            "Only after doctor turns honest-green should the next dry-run cycle resume.",
+        ]
+    elif blocker_key == "strategy_contract":
+        updated["effective_subagent_gate_reason"] = (
+            "Keep subagents narrow until the strategy and writeback contract becomes truthful again."
+        )
+        updated["current_capability_boundary"] = (
+            "The current blocker is no longer missing data. It is a strategy or writeback contract problem that must be "
+            "fixed before promotion."
+        )
+        next_action = str(updated.get("next_priority_action", "")).strip()
+        if not next_action or _looks_data_blocked_text(next_action):
+            updated["next_priority_action"] = "Fix tracked-memory truth and the branch-to-ranking contract before touching factor logic."
+        next_steps = [item for item in _normalize_list(updated.get("next_step_memory")) if not _looks_data_blocked_text(item)]
+        updated["next_step_memory"] = [updated["next_priority_action"], *[item for item in next_steps if item != updated["next_priority_action"]]][:5]
+    elif blocker_key == "max_drawdown":
+        updated["effective_subagent_gate_reason"] = (
+            "Keep subagents bounded while drawdown and robustness still block promotion."
+        )
+        updated["current_capability_boundary"] = (
+            "Research inputs and validation entry points exist, but the current strategy still fails the promotion bar on "
+            "drawdown or robustness."
+        )
+        next_action = str(updated.get("next_priority_action", "")).strip()
+        if not next_action or _looks_data_blocked_text(next_action):
+            updated["next_priority_action"] = _drawdown_next_action(updated)
+        next_steps = [item for item in _normalize_list(updated.get("next_step_memory")) if not _looks_data_blocked_text(item)]
+        updated["next_step_memory"] = [updated["next_priority_action"], *[item for item in next_steps if item != updated["next_priority_action"]]][:5]
+    else:
+        updated["current_capability_boundary"] = str(updated.get("current_capability_boundary", "")).strip() or (
+            "Strategy work may continue, but only through conservative validation and explicit evidence."
+        )
+        if is_active_canonical_project(paths.project) and not _normalize_list(updated.get("next_step_memory")):
+            updated["next_step_memory"] = [
+                "Keep the next experiment bounded and auditable.",
+                "Write evaluation results back into tracked memory before changing the narrative.",
+            ]
+    return updated
+
+
+# Final override layer.
+# This file still contains older duplicated render and scoring functions above.
+# Keep the canonical runtime behavior here at the very end so later legacy blocks
+# cannot overwrite the active crypto tracked-memory outputs again.
+
+
+def _english_status(status: str) -> str:
+    value = str(status or "").strip().lower()
+    mapping = {
+        "blocked": "blocked",
+        "partial": "partial",
+        "bootstrap": "bootstrap",
+        "ready": "ready",
+        "active": "active",
+        "done": "done",
+        "queued": "queued",
+        "pending": "pending",
+    }
+    return mapping.get(value, value or "unknown")
+
+
+def _display_list(values: Iterable[Any]) -> str:
+    items = [humanize_text(item) for item in _normalize_list(values)]
+    return ", ".join(items) if items else "none"
+
+
+def _display_score(score: Any) -> str:
+    try:
+        return f"{int(score)}/4"
+    except Exception:
+        return "unknown"
+
+
+def _has_allowed_roots(state: dict[str, Any]) -> bool:
+    contract = dict(state.get("writeback_contract", {}) or {})
+    return bool(_normalize_list(contract.get("allowed_roots")))
+
+
+def _verify_path_summary(state: dict[str, Any]) -> str:
+    verify = dict(state.get("verify_last", {}) or {})
+    commands = _normalize_list(verify.get("passed_commands")) + _normalize_list(verify.get("failed_commands"))
+    if commands:
+        return ", ".join(humanize_text(item) for item in commands)
+    return (
+        "python -m quant_mvp doctor --project crypto_okx_research_v1; "
+        "python -m quant_mvp memory_sync --project crypto_okx_research_v1; "
+        "python -m quant_mvp research_audit --project crypto_okx_research_v1"
+    )
+
+
+def _promotion_gap_lines(state: dict[str, Any]) -> list[str]:
+    gaps: list[str] = []
+    project_root = Path(state.get("project_root", "") or "")
+    if project_root and not project_root.joinpath("AGENTS.md").exists():
+        gaps.append("AGENTS.md is still missing at the repo root.")
+    if not _has_allowed_roots(state):
+        gaps.append("writeback_contract.allowed_roots is still empty.")
+    if not str(state.get("owner_route") or state.get("owner") or "").strip():
+        gaps.append("Owner routing is still missing.")
+    if _infer_blocker_key_from_state(state) == "data_inputs":
+        gaps.append("Usable OKX bars are still missing for the frozen universe.")
+    if not gaps:
+        gaps.append("No promotion gap is currently recorded.")
+    return gaps
+
+
+def _render_strategy_snapshot_lines(state: dict[str, Any]) -> list[str]:
+    strategy = summarize_strategy_visibility(state)
+    return [
+        "## Strategy Snapshot",
+        f"- canonical project: `{state.get('canonical_project_id') or state.get('project') or 'unknown'}`",
+        f"- legacy aliases: {_display_list(state.get('legacy_project_aliases'))}",
+        f"- research stage: {humanize_text(state.get('current_research_stage', 'unknown'))}",
+        f"- round type: {humanize_text(strategy.get('round_type', 'unknown'))}",
+        f"- primary strategies: {_display_list(strategy.get('primary_names'))}",
+        f"- secondary strategies: {_display_list(strategy.get('secondary_names'))}",
+        f"- blocked strategies: {_display_list(strategy.get('blocked_names'))}",
+        f"- rejected strategies: {_display_list(strategy.get('rejected_names'))}",
+        f"- promoted strategies: {_display_list(strategy.get('promoted_names'))}",
+        f"- system line: {humanize_text(strategy.get('system_line', 'unknown'))}",
+        f"- strategy line: {humanize_text(strategy.get('strategy_line', 'unknown'))}",
+        f"- truth summary: {humanize_text(state.get('canonical_truth_summary', 'unknown'))}",
+        "",
+    ]
+
+
+def _recent_strategy_action_lines(state: dict[str, Any], *, limit: int = 3) -> list[str]:
+    log_path = state.get("strategy_action_log_path")
+    if not log_path:
+        return ["## Recent Strategy Actions", "- none recorded", ""]
+    entries = read_strategy_action_log(Path(log_path))
+    if not entries:
+        return ["## Recent Strategy Actions", "- none recorded", ""]
+    lines = ["## Recent Strategy Actions"]
+    for entry in entries[-limit:]:
+        if not isinstance(entry, dict):
+            continue
+        strategy_id = humanize_text(entry.get("strategy_id", "unknown"))
+        action = humanize_text(entry.get("action_name") or entry.get("action") or "update")
+        result = humanize_text(entry.get("result") or entry.get("summary") or "no summary")
+        lines.append(f"- `{strategy_id}` -> {action}: {result}")
+    lines.append("")
+    return lines
+
+
+def _render_research_memory(state: dict[str, Any]) -> str:
+    lines = ["# Research Memory", "", "## Durable Facts"]
+    durable = _normalize_list(state.get("durable_facts"))
+    lines.extend(f"- {humanize_text(item)}" for item in durable) if durable else lines.append("- none recorded")
+    lines.extend(["", "## Negative Memory"])
+    negative = _normalize_list(state.get("negative_memory"))
+    lines.extend(f"- {humanize_text(item)}" for item in negative) if negative else lines.append("- none recorded")
+    lines.extend(["", "## Next Steps"])
+    next_steps = _normalize_list(state.get("next_step_memory"))
+    lines.extend(f"- {humanize_text(item)}" for item in next_steps) if next_steps else lines.append("- none recorded")
+    lines.extend(
+        [
+            "",
+            "## Current Boundary",
+            f"- blocker: {humanize_text(state.get('current_blocker', 'unknown'))}",
+            f"- capability boundary: {humanize_text(state.get('current_capability_boundary', 'unknown'))}",
+            f"- next priority action: {humanize_text(state.get('next_priority_action', 'unknown'))}",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def _render_execution_queue(state: dict[str, Any]) -> str:
+    tasks = _normalize_execution_queue(state.get("execution_queue"))
+    lines = [
+        "# Execution Queue",
+        "",
+        "| Task ID | Title | Impact | Risk | Prerequisite | Status | Owner | Success Condition | Stop Condition |",
+        "|---|---|---|---|---|---|---|---|---|",
+    ]
+    for task in tasks:
+        lines.append(
+            "| {task_id} | {title} | {impact} | {risk} | {prerequisite} | {status} | {owner} | {success} | {stop} |".format(
+                task_id=humanize_text(task.get("task_id", "unknown")),
+                title=humanize_text(task.get("title", "unknown")),
+                impact=humanize_text(task.get("impact", "unknown")),
+                risk=humanize_text(task.get("risk", "unknown")),
+                prerequisite=humanize_text(task.get("prerequisite", "none")),
+                status=humanize_text(task.get("current_status", "unknown")),
+                owner=humanize_text(task.get("owner", "unknown")),
+                success=humanize_text(task.get("success_condition", "unknown")),
+                stop=humanize_text(task.get("stop_condition", "unknown")),
+            )
+        )
+    if not tasks:
+        lines.append("| none | none | none | none | none | none | none | none | none |")
+    return "\n".join(lines)
+
+
+def _dimension_payload(dimension: str, *, score: int, status: str, evidence: str) -> dict[str, Any]:
+    return {
+        "dimension": dimension,
+        "score": max(0, min(int(score), 4)),
+        "status": _english_status(status),
+        "evidence": humanize_text(evidence),
+    }
+
+
+def _score_data_inputs(state: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
+    blocker = humanize_text(state.get("current_blocker", "unknown"))
+    data_status = humanize_text((state.get("verify_last", {}) or {}).get("default_project_data_status", "unknown"))
+    if _infer_blocker_key_from_state(state) == "data_inputs":
+        return _dimension_payload(
+            "Data inputs",
+            score=1,
+            status="blocked",
+            evidence=f"Data status is {data_status}. Current blocker: {blocker}",
+        )
+    if _looks_ready_data_status(data_status):
+        return _dimension_payload(
+            "Data inputs",
+            score=4,
+            status="ready",
+            evidence=f"Data status is {data_status} and the active blocker is no longer a data-input issue.",
+        )
+    return _dimension_payload(
+        "Data inputs",
+        score=2,
+        status="partial",
+        evidence=f"Data status is {data_status}. Inputs exist, but readiness is still conservative.",
+    )
+
+
+def _score_strategy_integrity(state: dict[str, Any], payload: dict[str, Any], data_inputs: dict[str, Any]) -> dict[str, Any]:
+    strategy = summarize_strategy_visibility(state)
+    primary = _display_list(strategy.get("primary_names"))
+    last_verified = humanize_text(state.get("last_verified_capability", "none recorded"))
+    if _infer_blocker_key_from_state(state) == "strategy_contract":
+        return _dimension_payload(
+            "Strategy integrity",
+            score=1,
+            status="blocked",
+            evidence=f"Strategy routing is blocked. Primary strategies: {primary}. Last verified capability: {last_verified}",
+        )
+    return _dimension_payload(
+        "Strategy integrity",
+        score=2 if data_inputs.get("status") == "blocked" else 3,
+        status="partial" if data_inputs.get("status") == "blocked" else "ready",
+        evidence=f"Primary strategies are {primary}. Last verified capability: {last_verified}",
+    )
+
+
+def _score_validation_stack(state: dict[str, Any], payload: dict[str, Any], data_inputs: dict[str, Any]) -> dict[str, Any]:
+    verify = dict(state.get("verify_last", {}) or {})
+    passed = _normalize_list(verify.get("passed_commands"))
+    failed = _normalize_list(verify.get("failed_commands"))
+    if passed:
+        return _dimension_payload(
+            "Validation stack",
+            score=3 if data_inputs.get("status") != "blocked" else 2,
+            status="partial" if data_inputs.get("status") == "blocked" else "ready",
+            evidence=f"Passing verification commands: {', '.join(map(humanize_text, passed))}. Failed commands: {_display_list(failed)}",
+        )
+    return _dimension_payload(
+        "Validation stack",
+        score=1,
+        status="bootstrap",
+        evidence="Only baseline verification entry points exist. No passing verification command has been recorded for the active crypto project yet.",
+    )
+
+
+def _score_promotion_readiness(
+    state: dict[str, Any],
+    payload: dict[str, Any],
+    data_inputs: dict[str, Any],
+    validation_stack: dict[str, Any],
+) -> dict[str, Any]:
+    blocker = humanize_text(state.get("current_blocker", "unknown"))
+    if _infer_blocker_key_from_state(state) == "data_inputs":
+        return _dimension_payload(
+            "Promotion readiness",
+            score=1,
+            status="blocked",
+            evidence=f"Promotion is blocked because the active blocker is still: {blocker}",
+        )
+    gaps = _promotion_gap_lines(state)
+    if gaps and gaps != ["No promotion gap is currently recorded."]:
+        return _dimension_payload(
+            "Promotion readiness",
+            score=2,
+            status="partial",
+            evidence="Promotion gaps: " + "; ".join(gaps),
+        )
+    return _dimension_payload(
+        "Promotion readiness",
+        score=3 if validation_stack.get("status") == "ready" else 2,
+        status="ready" if validation_stack.get("status") == "ready" else "partial",
+        evidence="Promotion can be evaluated only after data, verification, and contract checks all stay green together.",
+    )
+
+
+def _score_subagent_effectiveness(state: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
+    configured = humanize_text(payload.get("configured_subagent_gate_mode") or state.get("configured_subagent_gate_mode") or state.get("subagent_gate_mode") or "AUTO")
+    effective = humanize_text(payload.get("effective_subagent_gate_mode") or state.get("effective_subagent_gate_mode") or "OFF")
+    active = _normalize_list((state.get("subagent_plan", {}) or {}).get("active_subagents"))
+    reason = humanize_text(state.get("effective_subagent_gate_reason", "No reason recorded."))
+    return _dimension_payload(
+        "Subagent effectiveness",
+        score=2 if effective == "OFF" else 3,
+        status="partial" if effective == "OFF" else "ready",
+        evidence=f"Configured gate={configured}, effective gate={effective}. Active subagents: {len(active)}. Reason: {reason}",
+    )
+
+
+def _render_research_progress_lines(state: dict[str, Any], *, heading: str = "## Research Progress") -> list[str]:
+    progress = dict(state.get("research_progress", {}) or {})
+    lines = [heading]
+    for item in progress.get("dimensions", []):
+        if not isinstance(item, dict):
+            continue
+        lines.append(
+            f"- {humanize_text(item.get('dimension', 'unknown'))}: {_english_status(item.get('status', 'unknown'))}, {_display_score(item.get('score'))}. Evidence: {humanize_text(item.get('evidence', 'none recorded'))}"
+        )
+    lines.extend(
+        [
+            f"- overall trajectory: {humanize_text(progress.get('overall_trajectory', 'unknown'))}",
+            f"- this run delta: {humanize_text(progress.get('this_run_delta', 'unknown'))}",
+            f"- current blocker: {humanize_text(progress.get('current_blocker', 'unknown'))}",
+            f"- next milestone: {humanize_text(progress.get('next_milestone', 'unknown'))}",
+            f"- confidence: {humanize_text(progress.get('confidence', 'unknown'))}",
+            "",
+        ]
+    )
+    return lines
+
+
+def _render_project_state(state: dict[str, Any]) -> str:
+    lines = [
+        "# Project State",
+        "",
+        f"- canonical project: `{state.get('canonical_project_id') or state.get('project') or 'unknown'}`",
+        f"- legacy aliases: {_display_list(state.get('legacy_project_aliases'))}",
+        f"- current task: {humanize_text(state.get('current_task', 'unknown'))}",
+        f"- current phase: {humanize_text(state.get('current_phase', 'unknown'))}",
+        f"- current research stage: {humanize_text(state.get('current_research_stage', 'unknown'))}",
+        f"- baseline status: {humanize_text(state.get('baseline_status', 'unknown'))}",
+        f"- blocker: {humanize_text(state.get('current_blocker', 'unknown'))}",
+        f"- capability boundary: {humanize_text(state.get('current_capability_boundary', 'unknown'))}",
+        f"- next priority action: {humanize_text(state.get('next_priority_action', 'unknown'))}",
+        f"- verify path: {_verify_path_summary(state)}",
+        f"- configured gate: {humanize_text(state.get('configured_subagent_gate_mode', state.get('subagent_gate_mode', 'AUTO')))}",
+        f"- effective gate: {humanize_text(state.get('effective_subagent_gate_mode', 'OFF'))}",
+        f"- gate reason: {humanize_text(state.get('effective_subagent_gate_reason', 'unknown'))}",
+        f"- last verified capability: {humanize_text(state.get('last_verified_capability', 'none'))}",
+        f"- last failed capability: {humanize_text(state.get('last_failed_capability', 'none'))}",
+        "",
+    ]
+    lines.extend(_render_strategy_snapshot_lines(state))
+    lines.extend(_render_research_progress_lines(state))
+    lines.extend(["## Promotion Gaps", *[f"- {gap}" for gap in _promotion_gap_lines(state)], ""])
+    lines.extend(_recent_strategy_action_lines(state))
+    return "\n".join(lines)
+
+
+def _render_hypothesis_queue(hypotheses: list[dict[str, str]]) -> str:
+    lines = ["# Hypothesis Queue", ""]
+    if not isinstance(hypotheses, list) or not hypotheses:
+        lines.append("1. [pending] No active hypotheses.")
+        return "\n".join(lines)
+    for index, item in enumerate(hypotheses, start=1):
+        hypothesis = humanize_text((item or {}).get("hypothesis", "unknown"))
+        status = humanize_text((item or {}).get("status", "unknown"))
+        lines.append(f"{index}. [{status}] {hypothesis}")
+    return "\n".join(lines)
+
+
+def _render_verify_last(state: dict[str, Any]) -> str:
+    verify = dict(state.get("verify_last", {}) or {})
+    lines = [
+        "# Latest Verification Snapshot",
+        "",
+        f"- head: {humanize_text(state.get('head', 'unknown'))}",
+        f"- branch: {humanize_text(state.get('branch', 'unknown'))}",
+        f"- passed commands: {_display_list(verify.get('passed_commands'))}",
+        f"- failed commands: {_display_list(verify.get('failed_commands'))}",
+        f"- canonical project: `{state.get('canonical_project_id') or state.get('project') or 'unknown'}`",
+        f"- legacy aliases: {_display_list(state.get('legacy_project_aliases'))}",
+        f"- data status: {humanize_text(verify.get('default_project_data_status', 'unknown'))}",
+        f"- engineering boundary: {humanize_text(verify.get('conclusion_boundary_engineering', 'unknown'))}",
+        f"- research boundary: {humanize_text(verify.get('conclusion_boundary_research', 'unknown'))}",
+        f"- current research stage: {humanize_text(state.get('current_research_stage', 'unknown'))}",
+        f"- current round type: {humanize_text(summarize_strategy_visibility(state).get('round_type', 'unknown'))}",
+        f"- blocker: {humanize_text(state.get('current_blocker', 'unknown'))}",
+        f"- next action: {humanize_text(state.get('next_priority_action', 'unknown'))}",
+        f"- configured gate: {humanize_text(state.get('configured_subagent_gate_mode', state.get('subagent_gate_mode', 'AUTO')))}",
+        f"- effective gate: {humanize_text(state.get('effective_subagent_gate_mode', 'OFF'))}",
+        f"- gate reason: {humanize_text(state.get('effective_subagent_gate_reason', 'unknown'))}",
+        "",
+    ]
+    lines.extend(_render_strategy_snapshot_lines(state))
+    lines.extend(_render_research_progress_lines(state))
+    return "\n".join(lines)
+
+
+def _english_status(status: str) -> str:
+    value = str(status or "").strip().lower()
+    mapping = {
+        "blocked": "blocked",
+        "partial": "partial",
+        "bootstrap": "bootstrap",
+        "ready": "ready",
+        "active": "active",
+        "done": "done",
+        "queued": "queued",
+        "pending": "pending",
+    }
+    return mapping.get(value, value or "unknown")
+
+
+def _english_bool(value: bool) -> str:
+    return "yes" if bool(value) else "no"
+
+
+def _display_list(values: Iterable[Any]) -> str:
+    items = [humanize_text(item) for item in _normalize_list(values)]
+    return ", ".join(items) if items else "none"
+
+
+def _display_score(score: Any) -> str:
+    try:
+        return f"{int(score)}/4"
+    except Exception:
+        return "unknown"
+
+
+def _has_allowed_roots(state: dict[str, Any]) -> bool:
+    contract = dict(state.get("writeback_contract", {}) or {})
+    allowed = contract.get("allowed_roots")
+    return bool(_normalize_list(allowed))
+
+
+def _verify_path_summary(state: dict[str, Any]) -> str:
+    commands = []
+    verify = dict(state.get("verify_last", {}) or {})
+    commands.extend(_normalize_list(verify.get("passed_commands")))
+    commands.extend(_normalize_list(verify.get("failed_commands")))
+    if commands:
+        return ", ".join(commands)
+    return "python -m quant_mvp doctor --project crypto_okx_research_v1; python -m quant_mvp memory_sync --project crypto_okx_research_v1; python -m quant_mvp research_audit --project crypto_okx_research_v1"
+
+
+def _promotion_gap_lines(state: dict[str, Any]) -> list[str]:
+    gaps: list[str] = []
+    if not Path(state.get("project_root", "") or "").joinpath("AGENTS.md").exists():
+        gaps.append("AGENTS.md is still missing at the repo root.")
+    if not _normalize_list((state.get("verify_last", {}) or {}).get("passed_commands")) and _infer_blocker_key_from_state(state) == "data_inputs":
+        gaps.append("No passing verification command has been recorded after data recovery.")
+    if not _has_allowed_roots(state):
+        gaps.append("writeback_contract.allowed_roots is still empty.")
+    if not str(state.get("owner_route") or state.get("owner") or "").strip():
+        gaps.append("Owner routing is still missing.")
+    if not gaps:
+        gaps.append("No promotion gap is currently recorded.")
+    return gaps
+
+
+def _render_strategy_snapshot_lines(state: dict[str, Any]) -> list[str]:
+    strategy = summarize_strategy_visibility(state)
+    lines = [
+        "## Strategy Snapshot",
+        f"- canonical project: `{state.get('canonical_project_id') or state.get('project') or 'unknown'}`",
+        f"- legacy aliases: {_display_list(state.get('legacy_project_aliases'))}",
+        f"- research stage: {humanize_text(state.get('current_research_stage', 'unknown'))}",
+        f"- round type: {humanize_text(strategy.get('round_type', 'unknown'))}",
+        f"- primary strategies: {_display_list(strategy.get('primary_names'))}",
+        f"- secondary strategies: {_display_list(strategy.get('secondary_names'))}",
+        f"- blocked strategies: {_display_list(strategy.get('blocked_names'))}",
+        f"- rejected strategies: {_display_list(strategy.get('rejected_names'))}",
+        f"- promoted strategies: {_display_list(strategy.get('promoted_names'))}",
+        f"- system line: {humanize_text(strategy.get('system_line', 'unknown'))}",
+        f"- strategy line: {humanize_text(strategy.get('strategy_line', 'unknown'))}",
+        f"- truth summary: {humanize_text(state.get('canonical_truth_summary', 'unknown'))}",
+        "",
+    ]
+    return lines
+
+
+def _recent_strategy_action_lines(state: dict[str, Any], *, limit: int = 3) -> list[str]:
+    log_path = state.get("strategy_action_log_path")
+    if not log_path:
+        return ["## Recent Strategy Actions", "- none recorded", ""]
+    entries = read_strategy_action_log(Path(log_path))
+    if not entries:
+        return ["## Recent Strategy Actions", "- none recorded", ""]
+    lines = ["## Recent Strategy Actions"]
+    for entry in entries[-limit:]:
+        if not isinstance(entry, dict):
+            continue
+        strategy_id = humanize_text(entry.get("strategy_id", "unknown"))
+        action = humanize_text(entry.get("action_name") or entry.get("action") or "update")
+        result = humanize_text(entry.get("result") or entry.get("summary") or "no summary")
+        lines.append(f"- `{strategy_id}` -> {action}: {result}")
+    lines.append("")
+    return lines
+
+
+def _render_research_memory(state: dict[str, Any]) -> str:
+    lines = [
+        "# Research Memory",
+        "",
+        "## Durable Facts",
+    ]
+    durable = _normalize_list(state.get("durable_facts"))
+    if durable:
+        lines.extend(f"- {humanize_text(item)}" for item in durable)
+    else:
+        lines.append("- none recorded")
+    lines.extend(
+        [
+            "",
+            "## Negative Memory",
+        ]
+    )
+    negative = _normalize_list(state.get("negative_memory"))
+    if negative:
+        lines.extend(f"- {humanize_text(item)}" for item in negative)
+    else:
+        lines.append("- none recorded")
+    lines.extend(
+        [
+            "",
+            "## Next Steps",
+        ]
+    )
+    next_steps = _normalize_list(state.get("next_step_memory"))
+    if next_steps:
+        lines.extend(f"- {humanize_text(item)}" for item in next_steps)
+    else:
+        lines.append("- none recorded")
+    lines.extend(
+        [
+            "",
+            "## Current Boundary",
+            f"- blocker: {humanize_text(state.get('current_blocker', 'unknown'))}",
+            f"- capability boundary: {humanize_text(state.get('current_capability_boundary', 'unknown'))}",
+            f"- next priority action: {humanize_text(state.get('next_priority_action', 'unknown'))}",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def _render_execution_queue(state: dict[str, Any]) -> str:
+    tasks = _normalize_execution_queue(state.get("execution_queue"))
+    lines = [
+        "# Execution Queue",
+        "",
+        "| Task ID | Title | Impact | Risk | Prerequisite | Status | Owner | Success Condition | Stop Condition |",
+        "|---|---|---|---|---|---|---|---|---|",
+    ]
+    for task in tasks:
+        lines.append(
+            "| {task_id} | {title} | {impact} | {risk} | {prerequisite} | {status} | {owner} | {success} | {stop} |".format(
+                task_id=humanize_text(task.get("task_id", "unknown")),
+                title=humanize_text(task.get("title", "unknown")),
+                impact=humanize_text(task.get("impact", "unknown")),
+                risk=humanize_text(task.get("risk", "unknown")),
+                prerequisite=humanize_text(task.get("prerequisite", "none")),
+                status=humanize_text(task.get("current_status", "unknown")),
+                owner=humanize_text(task.get("owner", "unknown")),
+                success=humanize_text(task.get("success_condition", "unknown")),
+                stop=humanize_text(task.get("stop_condition", "unknown")),
+            )
+        )
+    if not tasks:
+        lines.append("| none | none | none | none | none | none | none | none | none |")
+    return "\n".join(lines)
+
+
+def _dimension_payload(dimension: str, *, score: int, status: str, evidence: str) -> dict[str, Any]:
+    return {
+        "dimension": dimension,
+        "score": max(0, min(int(score), 4)),
+        "status": _english_status(status),
+        "evidence": humanize_text(evidence),
+    }
+
+
+def _score_data_inputs(state: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
+    blocker = humanize_text(state.get("current_blocker", "unknown"))
+    data_status = humanize_text((state.get("verify_last", {}) or {}).get("default_project_data_status", "unknown"))
+    if _infer_blocker_key_from_state(state) == "data_inputs":
+        return _dimension_payload(
+            "Data inputs",
+            score=1,
+            status="blocked",
+            evidence=f"Data status is {data_status}. Current blocker: {blocker}",
+        )
+    if _looks_ready_data_status(data_status):
+        return _dimension_payload(
+            "Data inputs",
+            score=4,
+            status="ready",
+            evidence=f"Data status is {data_status} and the active blocker is no longer a data-input issue.",
+        )
+    return _dimension_payload(
+        "Data inputs",
+        score=2,
+        status="partial",
+        evidence=f"Data status is {data_status}. Inputs exist, but readiness is still conservative.",
+    )
+
+
+def _score_strategy_integrity(state: dict[str, Any], payload: dict[str, Any], data_inputs: dict[str, Any]) -> dict[str, Any]:
+    strategy = summarize_strategy_visibility(state)
+    primary = _display_list(strategy.get("primary_names"))
+    last_verified = humanize_text(state.get("last_verified_capability", "none recorded"))
+    if _infer_blocker_key_from_state(state) == "strategy_contract":
+        return _dimension_payload(
+            "Strategy integrity",
+            score=1,
+            status="blocked",
+            evidence=f"Strategy routing is blocked. Primary strategies: {primary}. Last verified capability: {last_verified}",
+        )
+    return _dimension_payload(
+        "Strategy integrity",
+        score=2 if data_inputs.get("status") == "blocked" else 3,
+        status="partial" if data_inputs.get("status") == "blocked" else "ready",
+        evidence=f"Primary strategies are {primary}. Last verified capability: {last_verified}",
+    )
+
+
+def _score_validation_stack(state: dict[str, Any], payload: dict[str, Any], data_inputs: dict[str, Any]) -> dict[str, Any]:
+    verify = dict(state.get("verify_last", {}) or {})
+    passed = _normalize_list(verify.get("passed_commands"))
+    failed = _normalize_list(verify.get("failed_commands"))
+    if passed:
+        return _dimension_payload(
+            "Validation stack",
+            score=3 if data_inputs.get("status") != "blocked" else 2,
+            status="partial" if data_inputs.get("status") == "blocked" else "ready",
+            evidence=f"Passing verification commands: {', '.join(map(humanize_text, passed))}. Failed commands: {_display_list(failed)}",
+        )
+    return _dimension_payload(
+        "Validation stack",
+        score=1,
+        status="bootstrap",
+        evidence="Only baseline verification entry points exist. No passing verification command has been recorded for the active crypto project yet.",
+    )
+
+
+def _score_promotion_readiness(
+    state: dict[str, Any],
+    payload: dict[str, Any],
+    data_inputs: dict[str, Any],
+    validation_stack: dict[str, Any],
+) -> dict[str, Any]:
+    blocker = humanize_text(state.get("current_blocker", "unknown"))
+    if _infer_blocker_key_from_state(state) == "data_inputs":
+        return _dimension_payload(
+            "Promotion readiness",
+            score=1,
+            status="blocked",
+            evidence=f"Promotion is blocked because the active blocker is still: {blocker}",
+        )
+    gaps = _promotion_gap_lines(state)
+    if gaps and gaps != ["No promotion gap is currently recorded."]:
+        return _dimension_payload(
+            "Promotion readiness",
+            score=2,
+            status="partial",
+            evidence="Promotion gaps: " + "; ".join(gaps),
+        )
+    return _dimension_payload(
+        "Promotion readiness",
+        score=3 if validation_stack.get("status") == "ready" else 2,
+        status="ready" if validation_stack.get("status") == "ready" else "partial",
+        evidence="Promotion can be evaluated only after data, verification, and contract checks all stay green together.",
+    )
+
+
+def _score_subagent_effectiveness(state: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
+    configured = humanize_text(payload.get("configured_subagent_gate_mode") or state.get("configured_subagent_gate_mode") or state.get("subagent_gate_mode") or "AUTO")
+    effective = humanize_text(payload.get("effective_subagent_gate_mode") or state.get("effective_subagent_gate_mode") or "OFF")
+    active = _normalize_list((state.get("subagent_plan", {}) or {}).get("active_subagents"))
+    reason = humanize_text(state.get("effective_subagent_gate_reason", "No reason recorded."))
+    if effective == "OFF":
+        return _dimension_payload(
+            "Subagent effectiveness",
+            score=2,
+            status="partial",
+            evidence=f"Configured gate={configured}, effective gate={effective}. Active subagents: {len(active)}. Reason: {reason}",
+        )
+    return _dimension_payload(
+        "Subagent effectiveness",
+        score=3,
+        status="ready",
+        evidence=f"Configured gate={configured}, effective gate={effective}. Active subagents: {len(active)}. Reason: {reason}",
+    )
+
+
+def _render_research_progress_lines(state: dict[str, Any], *, heading: str = "## Research Progress") -> list[str]:
+    progress = dict(state.get("research_progress", {}) or {})
+    lines = [heading]
+    for item in progress.get("dimensions", []):
+        if not isinstance(item, dict):
+            continue
+        lines.append(
+            f"- {humanize_text(item.get('dimension', 'unknown'))}: {_english_status(item.get('status', 'unknown'))}, {_display_score(item.get('score'))}. Evidence: {humanize_text(item.get('evidence', 'none recorded'))}"
+        )
+    lines.extend(
+        [
+            f"- overall trajectory: {humanize_text(progress.get('overall_trajectory', 'unknown'))}",
+            f"- this run delta: {humanize_text(progress.get('this_run_delta', 'unknown'))}",
+            f"- current blocker: {humanize_text(progress.get('current_blocker', 'unknown'))}",
+            f"- next milestone: {humanize_text(progress.get('next_milestone', 'unknown'))}",
+            f"- confidence: {humanize_text(progress.get('confidence', 'unknown'))}",
+            "",
+        ]
+    )
+    return lines
+
+
+def _render_project_state(state: dict[str, Any]) -> str:
+    verify = dict(state.get("verify_last", {}) or {})
+    lines = [
+        "# Project State",
+        "",
+        f"- canonical project: `{state.get('canonical_project_id') or state.get('project') or 'unknown'}`",
+        f"- legacy aliases: {_display_list(state.get('legacy_project_aliases'))}",
+        f"- current task: {humanize_text(state.get('current_task', 'unknown'))}",
+        f"- current phase: {humanize_text(state.get('current_phase', 'unknown'))}",
+        f"- current research stage: {humanize_text(state.get('current_research_stage', 'unknown'))}",
+        f"- baseline status: {humanize_text(state.get('baseline_status', 'unknown'))}",
+        f"- blocker: {humanize_text(state.get('current_blocker', 'unknown'))}",
+        f"- capability boundary: {humanize_text(state.get('current_capability_boundary', 'unknown'))}",
+        f"- next priority action: {humanize_text(state.get('next_priority_action', 'unknown'))}",
+        f"- verify path: {_verify_path_summary(state)}",
+        f"- configured gate: {humanize_text(state.get('configured_subagent_gate_mode', state.get('subagent_gate_mode', 'AUTO')))}",
+        f"- effective gate: {humanize_text(state.get('effective_subagent_gate_mode', 'OFF'))}",
+        f"- gate reason: {humanize_text(state.get('effective_subagent_gate_reason', 'unknown'))}",
+        f"- last verified capability: {humanize_text(state.get('last_verified_capability', 'none'))}",
+        f"- last failed capability: {humanize_text(state.get('last_failed_capability', 'none'))}",
+        "",
+    ]
+    lines.extend(_render_strategy_snapshot_lines(state))
+    lines.extend(_render_research_progress_lines(state))
+    lines.extend(
+        [
+            "## Promotion Gaps",
+            *[f"- {gap}" for gap in _promotion_gap_lines(state)],
+            "",
+        ]
+    )
+    lines.extend(_recent_strategy_action_lines(state))
+    return "\n".join(lines)
+
+
+def _render_hypothesis_queue(hypotheses: list[dict[str, str]]) -> str:
+    lines = ["# Hypothesis Queue", ""]
+    items = hypotheses if isinstance(hypotheses, list) else []
+    if not items:
+        lines.append("1. [pending] No active hypotheses.")
+        return "\n".join(lines)
+    for index, item in enumerate(items, start=1):
+        hypothesis = humanize_text((item or {}).get("hypothesis", "unknown"))
+        status = humanize_text((item or {}).get("status", "unknown"))
+        lines.append(f"{index}. [{status}] {hypothesis}")
+    return "\n".join(lines)
+
+
+def _render_verify_last(state: dict[str, Any]) -> str:
+    verify = dict(state.get("verify_last", {}) or {})
+    lines = [
+        "# Latest Verification Snapshot",
+        "",
+        f"- head: {humanize_text(state.get('head', 'unknown'))}",
+        f"- branch: {humanize_text(state.get('branch', 'unknown'))}",
+        f"- passed commands: {_display_list(verify.get('passed_commands'))}",
+        f"- failed commands: {_display_list(verify.get('failed_commands'))}",
+        f"- canonical project: `{state.get('canonical_project_id') or state.get('project') or 'unknown'}`",
+        f"- legacy aliases: {_display_list(state.get('legacy_project_aliases'))}",
+        f"- data status: {humanize_text(verify.get('default_project_data_status', 'unknown'))}",
+        f"- engineering boundary: {humanize_text(verify.get('conclusion_boundary_engineering', 'unknown'))}",
+        f"- research boundary: {humanize_text(verify.get('conclusion_boundary_research', 'unknown'))}",
+        f"- current research stage: {humanize_text(state.get('current_research_stage', 'unknown'))}",
+        f"- current round type: {humanize_text(summarize_strategy_visibility(state).get('round_type', 'unknown'))}",
+        f"- blocker: {humanize_text(state.get('current_blocker', 'unknown'))}",
+        f"- next action: {humanize_text(state.get('next_priority_action', 'unknown'))}",
+        f"- configured gate: {humanize_text(state.get('configured_subagent_gate_mode', state.get('subagent_gate_mode', 'AUTO')))}",
+        f"- effective gate: {humanize_text(state.get('effective_subagent_gate_mode', 'OFF'))}",
+        f"- gate reason: {humanize_text(state.get('effective_subagent_gate_reason', 'unknown'))}",
+        "",
+    ]
+    lines.extend(_render_strategy_snapshot_lines(state))
+    lines.extend(_render_research_progress_lines(state))
+    return "\n".join(lines)
+
+
+def _build_research_progress_final(
+    *,
+    state: dict[str, Any],
+    payload: dict[str, Any] | None = None,
+    previous: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    payload = dict(payload or {})
+    payload.setdefault("blocker_key", _infer_blocker_key_from_state(state))
+    payload.setdefault(
+        "configured_subagent_gate_mode",
+        state.get("configured_subagent_gate_mode") or state.get("subagent_gate_mode", "AUTO"),
+    )
+    payload.setdefault(
+        "effective_subagent_gate_mode",
+        state.get("effective_subagent_gate_mode")
+        or ((state.get("subagent_plan", {}) or {}).get("recommended_gate") or "OFF"),
+    )
+    data_inputs = _score_data_inputs(state, payload)
+    strategy_integrity = _score_strategy_integrity(state, payload, data_inputs)
+    validation_stack = _score_validation_stack(state, payload, data_inputs)
+    promotion_readiness = _score_promotion_readiness(state, payload, data_inputs, validation_stack)
+    subagent_effectiveness = _score_subagent_effectiveness(state, payload)
+    progress = {
+        "dimensions": [
+            data_inputs,
+            strategy_integrity,
+            validation_stack,
+            promotion_readiness,
+            subagent_effectiveness,
+        ],
+        "current_blocker": str(state.get("current_blocker", "unknown")),
+        "next_milestone": str(state.get("next_priority_action", "unknown")),
+    }
+    progress["this_run_delta"] = _classify_progress_delta(previous, progress, payload)
+    progress["overall_trajectory"] = _classify_overall_trajectory(progress, payload)
+    progress["confidence"] = _classify_progress_confidence(progress, payload)
+    progress["materially_changed"] = _progress_signature(previous) != _progress_signature(progress)
+    return progress
+
+
+def _FINAL_RENDER_RESEARCH_MEMORY(state: dict[str, Any]) -> str:
+    from .writeback_final import render_research_memory_final
+
+    return render_research_memory_final(state)
+
+
+def _FINAL_RENDER_EXECUTION_QUEUE(state: dict[str, Any]) -> str:
+    from .writeback_final import render_execution_queue_final
+
+    return render_execution_queue_final(state)
+
+
+def _FINAL_RENDER_PROJECT_STATE(state: dict[str, Any]) -> str:
+    from .writeback_final import render_project_state_final
+
+    return render_project_state_final(state)
+
+
+def _FINAL_RENDER_HYPOTHESIS_QUEUE(hypotheses: list[dict[str, str]]) -> str:
+    from .writeback_final import render_hypothesis_queue_final
+
+    return render_hypothesis_queue_final(hypotheses)
+
+
+def _FINAL_RENDER_VERIFY_LAST(state: dict[str, Any]) -> str:
+    from .writeback_final import render_verify_last_final
+
+    return render_verify_last_final(state)
+
+
+def _FINAL_BUILD_RESEARCH_PROGRESS(
+    *,
+    state: dict[str, Any],
+    payload: dict[str, Any] | None = None,
+    previous: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    from .writeback_final import build_research_progress_final
+
+    return build_research_progress_final(state=state, payload=payload, previous=previous)
+
+
+def _render_research_memory(state: dict[str, Any]) -> str:
+    durable = _normalize_list(state.get("durable_facts"))
+    negative = _normalize_list(state.get("negative_memory"))
+    next_steps = _normalize_list(state.get("next_step_memory"))
+    lines = ["# Research Memory", "", "## Durable facts"]
+    lines.extend([f"- {humanize_text(item)}" for item in durable] or ["- Not recorded."])
+    strategy = summarize_strategy_visibility(state)
+    lines.extend(["", "## Active strategy hypotheses"])
+    if strategy["primary"] or strategy["secondary"]:
+        for item in [*strategy["primary"], *strategy["secondary"]]:
+            lines.append(f"- `{item['strategy_id']}`: {item['core_hypothesis']}")
+    else:
+        lines.append("- Not recorded.")
+    lines.extend(["", "## Rejected or downgraded strategy hypotheses"])
+    if strategy["rejected"]:
+        for item in strategy["rejected"]:
+            lines.append(f"- `{item['strategy_id']}`: {item['latest_result']}")
+    else:
+        lines.append("- No newly rejected strategy hypotheses are recorded.")
+    lines.extend(["", "## Negative memory"])
+    lines.extend([f"- {humanize_text(item)}" for item in negative] or ["- Not recorded."])
+    lines.extend(["", "## Next-step memory"])
+    lines.extend([f"- {humanize_text(item)}" for item in next_steps] or ["- Not recorded."])
+    lines.extend(["", *_render_strategy_snapshot_lines(state)])
+    lines.extend(["", *_render_research_progress_lines(state)])
+    return "\n".join(lines)
+
+
+def _render_execution_queue(state: dict[str, Any]) -> str:
+    tasks = _normalize_execution_queue(state.get("execution_queue"))
+    lines = [
+        "# Execution Queue",
+        "",
+        "| Task ID | Title | Impact | Risk | Prerequisite | Status | Owner | Success condition | Stop condition |",
+        "|---|---|---|---|---|---|---|---|---|",
+    ]
+    if not tasks:
+        lines.append("| none | Not recorded. | medium | medium | none | queued | main | Not recorded. | Not recorded. |")
+        return "\n".join(lines)
+    for item in tasks:
+        lines.append(
+            "| {task_id} | {title} | {impact} | {risk} | {prerequisite} | {status} | {owner} | {success} | {stop} |".format(
+                task_id=item["task_id"],
+                title=humanize_text(item["title"]).replace("|", "/"),
+                impact=_queue_impact_label(item["impact"]),
+                risk=_queue_risk_label(item["risk"]),
+                prerequisite=humanize_text(item["prerequisite"]).replace("|", "/"),
+                status=_queue_status_label(item["current_status"]),
+                owner=humanize_text(item["owner"]).replace("|", "/"),
+                success=humanize_text(item["success_condition"]).replace("|", "/"),
+                stop=humanize_text(item["stop_condition"]).replace("|", "/"),
+            ),
+        )
+    return "\n".join(lines)
+
+
+def _render_project_state(state: dict[str, Any]) -> str:
+    subagents = summarize_subagent_state(state)
+    stage0a = dict(state.get("stage0a_decision", {}) or {})
+    strategy = summarize_strategy_visibility(state)
+    lines = [
+        "# Project State",
+        "",
+        f"- canonical_project_id: {state.get('canonical_project_id', state.get('project', 'unknown'))}",
+        f"- legacy_aliases: {', '.join(state.get('legacy_project_aliases', [])) or 'none'}",
+        f"- current_task: {humanize_text(state.get('current_task', 'unknown'))}",
+        f"- current_phase: {humanize_text(state.get('current_phase', 'unknown'))}",
+        f"- current_research_stage: {state.get('current_research_stage', 'Not recorded.')}",
+        f"- round_type: {strategy['round_type']}",
+        f"- primary_strategies: {', '.join(strategy['primary_names']) or 'none'}",
+        f"- secondary_strategies: {', '.join(strategy['secondary_names']) or 'none'}",
+        f"- current_blocker: {humanize_text(state.get('current_blocker', 'unknown'))}",
+        f"- current_capability_boundary: {humanize_text(state.get('current_capability_boundary', 'unknown'))}",
+        f"- canonical_truth_summary: {humanize_text(state.get('canonical_truth_summary', 'unknown'))}",
+        f"- strategy_line: {strategy['strategy_line']}",
+        f"- system_line: {strategy['system_line']}",
+        f"- next_priority_action: {humanize_text(state.get('next_priority_action', 'unknown'))}",
+        f"- last_verified_capability: {humanize_text(state.get('last_verified_capability', 'unknown'))}",
+        f"- last_failed_capability: {humanize_text(state.get('last_failed_capability', 'unknown'))}",
+        *_subagent_gate_lines(state),
+        f"- active_subagents: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
+        f"- blocked_subagents: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
+        f"- last_subagent_event: {humanize_text(subagents['last_event'].get('action', 'none recorded'))}",
+    ]
+    if stage0a:
+        lines.extend(
+            [
+                f"- stage0a_decision: {humanize_text(stage0a.get('decision', 'unknown'))}",
+                f"- stage0a_universe_change: {stage0a.get('old_universe_size', 'n/a')} -> {stage0a.get('new_universe_size', 'n/a')}",
+            ],
+        )
+    lines.extend(["", *_render_strategy_snapshot_lines(state), "", *_render_research_progress_lines(state)])
+    lines.extend(["", "## High-level loop summary"])
+    lines.extend(_render_loop_summary_lines(state))
+    return "\n".join(lines)
+
+
+def _render_verify_last(state: dict[str, Any]) -> str:
+    verify = state.get("verify_last", {}) or {}
+    subagents = summarize_subagent_state(state)
+    strategy = summarize_strategy_visibility(state)
+    passed = _normalize_list(verify.get("passed_commands"))
+    failed = _normalize_list(verify.get("failed_commands"))
+    lines = ["# Verify Last", "", f"- head: {state.get('head', 'unknown')}", f"- branch: {state.get('branch', 'unknown')}", "- passed_commands:"]
+    lines.extend([f"  - {item}" for item in passed] or ["  - Not recorded."])
+    lines.append("- failed_commands:")
+    lines.extend([f"  - {item}" for item in failed] or ["  - Not recorded."])
+    lines.extend(
+        [
+            f"- canonical_project_id: {state.get('canonical_project_id', state.get('project', 'unknown'))}",
+            f"- legacy_aliases: {', '.join(state.get('legacy_project_aliases', [])) or 'none'}",
+            f"- default_project_data_status: {humanize_text(verify.get('default_project_data_status', 'unknown'))}",
+            f"- engineering_boundary: {humanize_text(verify.get('conclusion_boundary_engineering', 'unknown'))}",
+            f"- research_boundary: {humanize_text(verify.get('conclusion_boundary_research', 'unknown'))}",
+            f"- current_research_stage: {state.get('current_research_stage', 'Not recorded.')}",
+            f"- round_type: {strategy['round_type']}",
+            f"- primary_strategies: {', '.join(strategy['primary_names']) or 'none'}",
+            f"- blocked_strategies: {', '.join(strategy['blocked_names']) or 'none'}",
+            f"- strategy_line: {strategy['strategy_line']}",
+            *_subagent_gate_lines(state),
+            f"- active_subagents: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
+            f"- blocked_subagents: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
+            f"- last_subagent_event: {humanize_text(subagents['last_event'].get('action', 'none recorded'))}",
+            "",
+            *_render_strategy_snapshot_lines(state),
+            "",
+            *_render_research_progress_lines(state),
+            "",
+            "## High-level loop summary",
+        ],
+    )
+    lines.extend(_render_loop_summary_lines(state))
+    return "\n".join(lines)
+
+
+def _queue_impact_label(value: str) -> str:
+    return {"high": "high", "medium": "medium", "low": "low"}.get(str(value or "").strip(), humanize_text(value))
+
+
+def _queue_risk_label(value: str) -> str:
+    return {"high": "high", "medium": "medium", "low": "low"}.get(str(value or "").strip(), humanize_text(value))
+
+
+def _queue_status_label(value: str) -> str:
+    mapping = {"done": "done", "ready": "ready", "queued": "queued", "blocked": "blocked", "in-progress": "in-progress"}
+    return mapping.get(str(value or "").strip(), humanize_text(value))
+
+
+def _progress_status_label(status: str) -> str:
+    mapping = {
+        "blocked": "blocked",
+        "bootstrap": "bootstrap",
+        "partial": "partial",
+        "validation-ready": "validation-ready",
+        "promotion-ready": "promotion-ready",
+        "operational": "operational",
+        "not-needed-yet": "not-needed-yet",
+    }
+    return mapping.get(str(status or "").strip(), str(status or "").strip() or "Not recorded.")
+
+
+def _progress_trajectory_label(value: str) -> str:
+    return {"on-track": "on-track", "narrowed": "narrowed", "redirected": "redirected", "blocked": "blocked"}.get(
+        str(value or "").strip(),
+        humanize_text(value),
+    )
+
+
+def _progress_delta_label(value: str) -> str:
+    return {"improved": "improved", "unchanged": "unchanged", "regressed": "regressed"}.get(
+        str(value or "").strip(),
+        humanize_text(value),
+    )
+
+
+def _progress_confidence_label(value: str) -> str:
+    return {"high": "high", "medium": "medium", "low": "low"}.get(str(value or "").strip(), humanize_text(value))
+
+
+def _dimension_payload(dimension: str, *, status: str, score: int, evidence: str) -> dict[str, Any]:
+    return {
+        "dimension": dimension,
+        "status": str(status or "blocked").strip(),
+        "score": _bounded_score(score),
+        "evidence": str(evidence or "").strip() or "Not recorded.",
+    }
+
+
+def _score_data_inputs(state: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
+    verify = dict(state.get("verify_last", {}) or {})
+    data_status = str(verify.get("default_project_data_status") or payload.get("default_project_data_status") or "").strip()
+    lowered = data_status.lower()
+    blocker_key = str(payload.get("blocker_key") or "").strip().lower()
+    data_ready = payload.get("data_ready", None)
+    blocker = humanize_text(state.get("current_blocker", "unknown"))
+
+    if blocker_key == "data_inputs" or data_ready is False or any(token in lowered for token in ["missing", "blocked", "unknown", "no bars", "coverage near zero", "near zero"]):
+        status = "blocked" if blocker_key == "data_inputs" or data_ready is False else "bootstrap"
+        evidence = f"default_project_data_status={humanize_text(data_status or 'unknown')}; current_blocker={blocker}"
+        return _dimension_payload("Data inputs", status=status, score=1, evidence=evidence)
+    if any(token in lowered for token in ["partial", "pilot", "fixture", "synthetic"]):
+        evidence = f"default_project_data_status={humanize_text(data_status)}; inputs are only partially usable."
+        return _dimension_payload("Data inputs", status="partial", score=2, evidence=evidence)
+    if any(token in lowered for token in ["operational", "robust", "phase-ready"]):
+        evidence = f"default_project_data_status={humanize_text(data_status)}; data inputs are close to operational quality."
+        return _dimension_payload("Data inputs", status="operational", score=4, evidence=evidence)
+    if any(token in lowered for token in ["validation-ready", "validated snapshot", "ready coverage", "research-readiness", "promotion-grade"]):
+        evidence = f"default_project_data_status={humanize_text(data_status)}; inputs can support this validation stage."
+        return _dimension_payload("Data inputs", status="validation-ready", score=3, evidence=evidence)
+    if data_ready is True:
+        evidence = "data_ready=True was reported, but stronger coverage evidence is still missing."
+        return _dimension_payload("Data inputs", status="partial", score=2, evidence=evidence)
+    evidence = f"default_project_data_status={humanize_text(data_status or 'unknown')}; no stronger evidence supports a higher score."
+    return _dimension_payload("Data inputs", status="bootstrap", score=1, evidence=evidence)
+
+
+def _score_strategy_integrity(state: dict[str, Any], payload: dict[str, Any], data_inputs: dict[str, Any]) -> dict[str, Any]:
+    blocker_key = str(payload.get("blocker_key") or "").strip().lower()
+    classification = str(payload.get("classification") or "").strip().lower()
+    verified_progress = bool(payload.get("verified_progress", False))
+    last_verified = humanize_text(state.get("last_verified_capability", "unknown"))
+    last_failed = humanize_text(state.get("last_failed_capability", "unknown"))
+
+    if blocker_key in {"leakage", "baseline_integrity"}:
+        evidence = f"current blocker points to {blocker_key}; last_failed_capability={last_failed}"
+        return _dimension_payload("Strategy integrity", status="blocked", score=1, evidence=evidence)
+    if verified_progress and data_inputs.get("score", 0) >= 2 and classification in {"verified_progress", "direction_corrected"}:
+        evidence = f"last_verified_capability={last_verified}; this run produced bounded verified progress."
+        return _dimension_payload("Strategy integrity", status="validation-ready", score=3, evidence=evidence)
+    evidence = f"One research mainline and one guardrail branch exist; last_verified_capability={last_verified}"
+    return _dimension_payload("Strategy integrity", status="partial", score=2, evidence=evidence)
+
+
+def _score_validation_stack(state: dict[str, Any], payload: dict[str, Any], data_inputs: dict[str, Any]) -> dict[str, Any]:
+    verify = dict(state.get("verify_last", {}) or {})
+    passed = _normalize_list(verify.get("passed_commands"))
+    last_verified = humanize_text(state.get("last_verified_capability", "unknown"))
+    if data_inputs.get("score", 0) >= 3 and passed:
+        evidence = f"{len(passed)} verification commands have passed; the validation stack is usable for this phase."
+        return _dimension_payload("Validation stack", status="validation-ready", score=3, evidence=evidence)
+    if passed or str(payload.get("classification", "")).strip():
+        evidence = f"Audit, leakage, and promotion checks exist; last_verified_capability={last_verified}"
+        return _dimension_payload("Validation stack", status="partial", score=2, evidence=evidence)
+    evidence = "Only the baseline validation hooks exist. More recorded evidence is still required."
+    return _dimension_payload("Validation stack", status="bootstrap", score=1, evidence=evidence)
+
+
+def _score_promotion_readiness(state: dict[str, Any], payload: dict[str, Any], data_inputs: dict[str, Any], validation_stack: dict[str, Any]) -> dict[str, Any]:
+    blocker_key = str(payload.get("blocker_key") or _infer_blocker_key_from_state(state)).strip().lower()
+    blocker = humanize_text(state.get("current_blocker", "unknown"))
+    if data_inputs.get("score", 0) <= 1 or blocker_key == "data_inputs":
+        evidence = f"current_blocker={blocker}; research inputs still do not support promotion."
+        return _dimension_payload("Promotion readiness", status="blocked", score=1, evidence=evidence)
+    if data_inputs.get("score", 0) == 2 or validation_stack.get("score", 0) <= 2:
+        evidence = "Inputs and validation are only partially ready; promotion can only be judged in a narrow way."
+        return _dimension_payload("Promotion readiness", status="partial", score=2, evidence=evidence)
+    if blocker_key not in {"", "none"}:
+        evidence = "Inputs are usable, but the blocker has shifted to strategy or control-plane issues. Promotion review can now be meaningful."
+        return _dimension_payload("Promotion readiness", status="promotion-ready", score=3, evidence=evidence)
+    evidence = "Inputs and validation are in place and the phase is close to direct promotion decisions."
+    return _dimension_payload("Promotion readiness", status="operational", score=4, evidence=evidence)
+
+
+def _score_subagent_effectiveness(state: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
+    configured = str(payload.get("configured_subagent_gate_mode") or state.get("configured_subagent_gate_mode") or state.get("subagent_gate_mode", "AUTO")).strip()
+    effective = str(payload.get("effective_subagent_gate_mode") or state.get("effective_subagent_gate_mode") or ((state.get("subagent_plan", {}) or {}).get("recommended_gate") or "OFF")).strip()
+    max_active = int(payload.get("max_active_subagents", 0) or 0)
+    used = _normalize_list(payload.get("subagents_used"))
+    verified_progress = bool(payload.get("verified_progress", False))
+    auto_closed = list(payload.get("auto_closed_subagents", []) or [])
+
+    if max_active > 1 and used and verified_progress:
+        evidence = f"max_active_subagents={max_active}; verified progress happened with active subagents."
+        return _dimension_payload("Subagent effectiveness", status="operational", score=4, evidence=evidence)
+    if max_active > 0 or used:
+        evidence = f"subagents_used={', '.join(used) or 'recorded'}; there is real task-execution evidence."
+        return _dimension_payload("Subagent effectiveness", status="validation-ready", score=3, evidence=evidence)
+    evidence = f"subagent gate is configured={configured}, effective={effective}; auto_closed={len(auto_closed)}"
+    return _dimension_payload("Subagent effectiveness", status="partial", score=2, evidence=evidence)
+
+
+def _render_research_memory(state: dict[str, Any]) -> str:
+    durable = _normalize_list(state.get("durable_facts"))
+    negative = _normalize_list(state.get("negative_memory"))
+    next_steps = _normalize_list(state.get("next_step_memory"))
+    lines = ["# Research Memory", "", "## Durable facts"]
+    lines.extend([f"- {humanize_text(item)}" for item in durable] or ["- Not recorded."])
+    strategy = summarize_strategy_visibility(state)
+    lines.extend(["", "## Active strategy hypotheses"])
+    if strategy["primary"] or strategy["secondary"]:
+        for item in [*strategy["primary"], *strategy["secondary"]]:
+            lines.append(f"- `{item['strategy_id']}`: {item['core_hypothesis']}")
+    else:
+        lines.append("- Not recorded.")
+    lines.extend(["", "## Rejected or downgraded strategy hypotheses"])
+    if strategy["rejected"]:
+        for item in strategy["rejected"]:
+            lines.append(f"- `{item['strategy_id']}`: {item['latest_result']}")
+    else:
+        lines.append("- No newly rejected strategy hypotheses are recorded.")
+    lines.extend(["", "## Negative memory"])
+    lines.extend([f"- {humanize_text(item)}" for item in negative] or ["- Not recorded."])
+    lines.extend(["", "## Next-step memory"])
+    lines.extend([f"- {humanize_text(item)}" for item in next_steps] or ["- Not recorded."])
+    lines.extend(["", *_render_strategy_snapshot_lines(state)])
+    lines.extend(["", *_render_research_progress_lines(state)])
+    return "\n".join(lines)
+
+
+def _render_strategy_snapshot_lines(state: dict[str, Any], *, heading: str = "## Strategy snapshot") -> list[str]:
+    strategy = summarize_strategy_visibility(state)
+    return [
+        heading,
+        f"- canonical_project_id: {state.get('canonical_project_id', state.get('project', 'unknown'))}",
+        f"- legacy_aliases: {', '.join(state.get('legacy_project_aliases', [])) or 'none'}",
+        f"- research_stage: {state.get('current_research_stage', 'Not recorded.')}",
+        f"- round_type: {strategy['round_type']}",
+        f"- primary_strategies: {', '.join(strategy['primary_names']) or 'none'}",
+        f"- secondary_strategies: {', '.join(strategy['secondary_names']) or 'none'}",
+        f"- blocked_strategies: {', '.join(strategy['blocked_names']) or 'none'}",
+        f"- rejected_strategies: {', '.join(strategy['rejected_names']) or 'none'}",
+        f"- promoted_strategies: {', '.join(strategy['promoted_names']) or 'none'}",
+        f"- system_line: {strategy['system_line']}",
+        f"- strategy_line: {strategy['strategy_line']}",
+        f"- canonical_truth_summary: {humanize_text(state.get('canonical_truth_summary', 'unknown'))}",
+    ]
+
+
+def _recent_strategy_action_lines(paths, *, run_id: str | None = None, limit: int = 5) -> list[str]:
+    entries = read_strategy_action_log(paths.strategy_action_log_path, run_id=run_id, limit=limit)
+    if not entries and run_id is not None:
+        entries = read_strategy_action_log(paths.strategy_action_log_path, limit=limit)
+    lines = ["## Recent strategy actions"]
+    if not entries:
+        lines.append("- No new strategy action was recorded for this run.")
+        return lines
+    for item in entries:
+        strategy = "no-active-strategy" if item["strategy_id"] == "__none__" else item["strategy_id"]
+        actor = f"{item['actor_type']}:{item['actor_id']}"
+        lines.append(
+            f"- {strategy} | {actor} | {humanize_text(item['action_summary'])} | result: {humanize_text(item['result'])} | decision_delta: {humanize_text(item['decision_delta'])}"
+        )
+    return lines
+
+
+def _render_execution_queue(state: dict[str, Any]) -> str:
+    tasks = _normalize_execution_queue(state.get("execution_queue"))
+    lines = [
+        "# Execution Queue",
+        "",
+        "| Task ID | Title | Impact | Risk | Prerequisite | Status | Owner | Success condition | Stop condition |",
+        "|---|---|---|---|---|---|---|---|---|",
+    ]
+    if not tasks:
+        lines.append("| none | Not recorded. | medium | medium | none | queued | main | Not recorded. | Not recorded. |")
+        return "\n".join(lines)
+    for item in tasks:
+        lines.append(
+            "| {task_id} | {title} | {impact} | {risk} | {prerequisite} | {status} | {owner} | {success} | {stop} |".format(
+                task_id=item["task_id"],
+                title=humanize_text(item["title"]).replace("|", "/"),
+                impact=_queue_impact_label(item["impact"]),
+                risk=_queue_risk_label(item["risk"]),
+                prerequisite=humanize_text(item["prerequisite"]).replace("|", "/"),
+                status=_queue_status_label(item["current_status"]),
+                owner=humanize_text(item["owner"]).replace("|", "/"),
+                success=humanize_text(item["success_condition"]).replace("|", "/"),
+                stop=humanize_text(item["stop_condition"]).replace("|", "/"),
+            ),
+        )
+    return "\n".join(lines)
+
+
+def _render_research_progress_lines(state: dict[str, Any], *, heading: str = "## Research progress") -> list[str]:
+    progress = dict(state.get("research_progress", {}) or {})
+    lines = [heading]
+    for item in progress.get("dimensions", []):
+        if not isinstance(item, dict):
+            continue
+        lines.append(
+            f"- {item.get('dimension', 'unknown')}: {_progress_status_label(str(item.get('status', 'blocked')))}; "
+            f"{_bounded_score(item.get('score', 0))}/4. Evidence: {humanize_text(item.get('evidence', 'unknown'))}"
+        )
+    lines.extend(
+        [
+            f"- overall_trajectory: {_progress_trajectory_label(str(progress.get('overall_trajectory', 'blocked')))}",
+            f"- this_run_delta: {_progress_delta_label(str(progress.get('this_run_delta', 'unchanged')))}",
+            f"- current_blocker: {humanize_text(progress.get('current_blocker', 'unknown'))}",
+            f"- next_milestone: {humanize_text(progress.get('next_milestone', 'unknown'))}",
+            f"- confidence: {_progress_confidence_label(str(progress.get('confidence', 'low')))}",
+        ],
+    )
+    return lines
+
+
+def _render_project_state(state: dict[str, Any]) -> str:
+    subagents = summarize_subagent_state(state)
+    stage0a = dict(state.get("stage0a_decision", {}) or {})
+    strategy = summarize_strategy_visibility(state)
+    lines = [
+        "# Project State",
+        "",
+        f"- canonical_project_id: {state.get('canonical_project_id', state.get('project', 'unknown'))}",
+        f"- legacy_aliases: {', '.join(state.get('legacy_project_aliases', [])) or 'none'}",
+        f"- current_task: {humanize_text(state.get('current_task', 'unknown'))}",
+        f"- current_phase: {humanize_text(state.get('current_phase', 'unknown'))}",
+        f"- current_research_stage: {state.get('current_research_stage', 'Not recorded.')}",
+        f"- round_type: {strategy['round_type']}",
+        f"- primary_strategies: {', '.join(strategy['primary_names']) or 'none'}",
+        f"- secondary_strategies: {', '.join(strategy['secondary_names']) or 'none'}",
+        f"- current_blocker: {humanize_text(state.get('current_blocker', 'unknown'))}",
+        f"- current_capability_boundary: {humanize_text(state.get('current_capability_boundary', 'unknown'))}",
+        f"- canonical_truth_summary: {humanize_text(state.get('canonical_truth_summary', 'unknown'))}",
+        f"- strategy_line: {strategy['strategy_line']}",
+        f"- system_line: {strategy['system_line']}",
+        f"- next_priority_action: {humanize_text(state.get('next_priority_action', 'unknown'))}",
+        f"- last_verified_capability: {humanize_text(state.get('last_verified_capability', 'unknown'))}",
+        f"- last_failed_capability: {humanize_text(state.get('last_failed_capability', 'unknown'))}",
+        *_subagent_gate_lines(state),
+        f"- active_subagents: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
+        f"- blocked_subagents: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
+        f"- last_subagent_event: {humanize_text(subagents['last_event'].get('action', 'none recorded'))}",
+    ]
+    if stage0a:
+        lines.extend(
+            [
+                f"- stage0a_decision: {humanize_text(stage0a.get('decision', 'unknown'))}",
+                f"- stage0a_universe_change: {stage0a.get('old_universe_size', 'n/a')} -> {stage0a.get('new_universe_size', 'n/a')}",
+            ],
+        )
+    lines.extend(["", *_render_strategy_snapshot_lines(state), "", *_render_research_progress_lines(state)])
+    lines.extend(["", "## High-level loop summary"])
+    lines.extend(_render_loop_summary_lines(state))
+    return "\n".join(lines)
+
+
+def _render_hypothesis_queue(hypotheses: list[dict[str, str]]) -> str:
+    lines = ["# Hypothesis Queue", ""]
+    if not hypotheses:
+        lines.append("1. [pending] No active hypotheses.")
+        return "\n".join(lines)
+    status_map = {"pending": "pending", "blocked": "blocked", "active": "active", "done": "done"}
+    for idx, item in enumerate(hypotheses, start=1):
+        lines.append(f"{idx}. [{status_map.get(item['status'], item['status'])}] {humanize_text(item['hypothesis'])}")
+    return "\n".join(lines)
+
+
+def _render_verify_last(state: dict[str, Any]) -> str:
+    verify = state.get("verify_last", {}) or {}
+    subagents = summarize_subagent_state(state)
+    strategy = summarize_strategy_visibility(state)
+    passed = _normalize_list(verify.get("passed_commands"))
+    failed = _normalize_list(verify.get("failed_commands"))
+    lines = ["# Verify Last", "", f"- head: {state.get('head', 'unknown')}", f"- branch: {state.get('branch', 'unknown')}", "- passed_commands:"]
+    lines.extend([f"  - {item}" for item in passed] or ["  - Not recorded."])
+    lines.append("- failed_commands:")
+    lines.extend([f"  - {item}" for item in failed] or ["  - Not recorded."])
+    lines.extend(
+        [
+            f"- canonical_project_id: {state.get('canonical_project_id', state.get('project', 'unknown'))}",
+            f"- legacy_aliases: {', '.join(state.get('legacy_project_aliases', [])) or 'none'}",
+            f"- default_project_data_status: {humanize_text(verify.get('default_project_data_status', 'unknown'))}",
+            f"- engineering_boundary: {humanize_text(verify.get('conclusion_boundary_engineering', 'unknown'))}",
+            f"- research_boundary: {humanize_text(verify.get('conclusion_boundary_research', 'unknown'))}",
+            f"- current_research_stage: {state.get('current_research_stage', 'Not recorded.')}",
+            f"- round_type: {strategy['round_type']}",
+            f"- primary_strategies: {', '.join(strategy['primary_names']) or 'none'}",
+            f"- blocked_strategies: {', '.join(strategy['blocked_names']) or 'none'}",
+            f"- strategy_line: {strategy['strategy_line']}",
+            *_subagent_gate_lines(state),
+            f"- active_subagents: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
+            f"- blocked_subagents: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
+            f"- last_subagent_event: {humanize_text(subagents['last_event'].get('action', 'none recorded'))}",
+            "",
+            *_render_strategy_snapshot_lines(state),
+            "",
+            *_render_research_progress_lines(state),
+            "",
+            "## High-level loop summary",
+        ],
+    )
+    lines.extend(_render_loop_summary_lines(state))
+    return "\n".join(lines)
+
+
+def _queue_impact_label(value: str) -> str:
+    return {"high": "high", "medium": "medium", "low": "low"}.get(str(value or "").strip(), humanize_text(value))
+
+
+def _queue_risk_label(value: str) -> str:
+    return {"high": "high", "medium": "medium", "low": "low"}.get(str(value or "").strip(), humanize_text(value))
+
+
+def _queue_status_label(value: str) -> str:
+    mapping = {
+        "done": "done",
+        "ready": "ready",
+        "queued": "queued",
+        "blocked": "blocked",
+        "in-progress": "in-progress",
+    }
+    return mapping.get(str(value or "").strip(), humanize_text(value))
+
+
+def _progress_status_label(status: str) -> str:
+    mapping = {
+        "blocked": "blocked",
+        "bootstrap": "bootstrap",
+        "partial": "partial",
+        "validation-ready": "validation-ready",
+        "promotion-ready": "promotion-ready",
+        "operational": "operational",
+        "not-needed-yet": "not-needed-yet",
+    }
+    return mapping.get(str(status or "").strip(), str(status or "").strip() or "Not recorded.")
+
+
+def _progress_trajectory_label(value: str) -> str:
+    return {
+        "on-track": "on-track",
+        "narrowed": "narrowed",
+        "redirected": "redirected",
+        "blocked": "blocked",
+    }.get(str(value or "").strip(), humanize_text(value))
+
+
+def _progress_delta_label(value: str) -> str:
+    return {
+        "improved": "improved",
+        "unchanged": "unchanged",
+        "regressed": "regressed",
+    }.get(str(value or "").strip(), humanize_text(value))
+
+
+def _progress_confidence_label(value: str) -> str:
+    return {"high": "high", "medium": "medium", "low": "low"}.get(str(value or "").strip(), humanize_text(value))
+
+
+def _dimension_payload(dimension: str, *, status: str, score: int, evidence: str) -> dict[str, Any]:
+    return {
+        "dimension": dimension,
+        "status": str(status or "blocked").strip(),
+        "score": _bounded_score(score),
+        "evidence": str(evidence or "").strip() or "Not recorded.",
+    }
+
+
+def _score_data_inputs(state: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
+    verify = dict(state.get("verify_last", {}) or {})
+    data_status = str(verify.get("default_project_data_status") or payload.get("default_project_data_status") or "").strip()
+    lowered = data_status.lower()
+    blocker_key = str(payload.get("blocker_key") or "").strip().lower()
+    data_ready = payload.get("data_ready", None)
+    blocker = humanize_text(state.get("current_blocker", "unknown"))
+
+    if blocker_key == "data_inputs" or data_ready is False or any(token in lowered for token in ["missing", "blocked", "unknown", "no bars", "coverage near zero", "near zero"]):
+        status = "blocked" if blocker_key == "data_inputs" or data_ready is False else "bootstrap"
+        evidence = f"default_project_data_status={humanize_text(data_status or 'unknown')}; current_blocker={blocker}"
+        return _dimension_payload("Data inputs", status=status, score=1, evidence=evidence)
+    if any(token in lowered for token in ["partial", "pilot", "fixture", "synthetic"]):
+        evidence = f"default_project_data_status={humanize_text(data_status)}; inputs are only partially usable."
+        return _dimension_payload("Data inputs", status="partial", score=2, evidence=evidence)
+    if any(token in lowered for token in ["operational", "robust", "phase-ready"]):
+        evidence = f"default_project_data_status={humanize_text(data_status)}; data inputs are close to operational quality."
+        return _dimension_payload("Data inputs", status="operational", score=4, evidence=evidence)
+    if any(token in lowered for token in ["validation-ready", "validated snapshot", "ready coverage", "research-readiness", "promotion-grade"]):
+        evidence = f"default_project_data_status={humanize_text(data_status)}; inputs can support this validation stage."
+        return _dimension_payload("Data inputs", status="validation-ready", score=3, evidence=evidence)
+    if data_ready is True:
+        evidence = "data_ready=True was reported, but stronger coverage evidence is still missing."
+        return _dimension_payload("Data inputs", status="partial", score=2, evidence=evidence)
+    evidence = f"default_project_data_status={humanize_text(data_status or 'unknown')}; no stronger evidence supports a higher score."
+    return _dimension_payload("Data inputs", status="bootstrap", score=1, evidence=evidence)
+
+
+def _score_strategy_integrity(state: dict[str, Any], payload: dict[str, Any], data_inputs: dict[str, Any]) -> dict[str, Any]:
+    blocker_key = str(payload.get("blocker_key") or "").strip().lower()
+    classification = str(payload.get("classification") or "").strip().lower()
+    verified_progress = bool(payload.get("verified_progress", False))
+    last_verified = humanize_text(state.get("last_verified_capability", "unknown"))
+    last_failed = humanize_text(state.get("last_failed_capability", "unknown"))
+
+    if blocker_key in {"leakage", "baseline_integrity"}:
+        evidence = f"current blocker points to {blocker_key}; last_failed_capability={last_failed}"
+        return _dimension_payload("Strategy integrity", status="blocked", score=1, evidence=evidence)
+    if verified_progress and data_inputs.get("score", 0) >= 2 and classification in {"verified_progress", "direction_corrected"}:
+        evidence = f"last_verified_capability={last_verified}; this run produced bounded verified progress."
+        return _dimension_payload("Strategy integrity", status="validation-ready", score=3, evidence=evidence)
+    evidence = f"One research mainline and one guardrail branch exist; last_verified_capability={last_verified}"
+    return _dimension_payload("Strategy integrity", status="partial", score=2, evidence=evidence)
+
+
+def _score_validation_stack(state: dict[str, Any], payload: dict[str, Any], data_inputs: dict[str, Any]) -> dict[str, Any]:
+    verify = dict(state.get("verify_last", {}) or {})
+    passed = _normalize_list(verify.get("passed_commands"))
+    last_verified = humanize_text(state.get("last_verified_capability", "unknown"))
+    if data_inputs.get("score", 0) >= 3 and passed:
+        evidence = f"{len(passed)} verification commands have passed; the validation stack is usable for this phase."
+        return _dimension_payload("Validation stack", status="validation-ready", score=3, evidence=evidence)
+    if passed or str(payload.get("classification", "")).strip():
+        evidence = f"Audit, leakage, and promotion checks exist; last_verified_capability={last_verified}"
+        return _dimension_payload("Validation stack", status="partial", score=2, evidence=evidence)
+    evidence = "Only the baseline validation hooks exist. More recorded evidence is still required."
+    return _dimension_payload("Validation stack", status="bootstrap", score=1, evidence=evidence)
+
+
+def _score_promotion_readiness(
+    state: dict[str, Any],
+    payload: dict[str, Any],
+    data_inputs: dict[str, Any],
+    validation_stack: dict[str, Any],
+) -> dict[str, Any]:
+    blocker_key = str(payload.get("blocker_key") or _infer_blocker_key_from_state(state)).strip().lower()
+    blocker = humanize_text(state.get("current_blocker", "unknown"))
+    if data_inputs.get("score", 0) <= 1 or blocker_key == "data_inputs":
+        evidence = f"current_blocker={blocker}; research inputs still do not support promotion."
+        return _dimension_payload("Promotion readiness", status="blocked", score=1, evidence=evidence)
+    if data_inputs.get("score", 0) == 2 or validation_stack.get("score", 0) <= 2:
+        evidence = "Inputs and validation are only partially ready; promotion can only be judged in a narrow way."
+        return _dimension_payload("Promotion readiness", status="partial", score=2, evidence=evidence)
+    if blocker_key not in {"", "none"}:
+        evidence = "Inputs are usable, but the blocker has shifted to strategy or control-plane issues. Promotion review can now be meaningful."
+        return _dimension_payload("Promotion readiness", status="promotion-ready", score=3, evidence=evidence)
+    evidence = "Inputs and validation are in place and the phase is close to direct promotion decisions."
+    return _dimension_payload("Promotion readiness", status="operational", score=4, evidence=evidence)
+
+
+def _score_subagent_effectiveness(state: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
+    configured = str(payload.get("configured_subagent_gate_mode") or state.get("configured_subagent_gate_mode") or state.get("subagent_gate_mode", "AUTO")).strip()
+    effective = str(payload.get("effective_subagent_gate_mode") or state.get("effective_subagent_gate_mode") or ((state.get("subagent_plan", {}) or {}).get("recommended_gate") or "OFF")).strip()
+    max_active = int(payload.get("max_active_subagents", 0) or 0)
+    used = _normalize_list(payload.get("subagents_used"))
+    verified_progress = bool(payload.get("verified_progress", False))
+    auto_closed = list(payload.get("auto_closed_subagents", []) or [])
+
+    if max_active > 1 and used and verified_progress:
+        evidence = f"max_active_subagents={max_active}; verified progress happened with active subagents."
+        return _dimension_payload("Subagent effectiveness", status="operational", score=4, evidence=evidence)
+    if max_active > 0 or used:
+        evidence = f"subagents_used={', '.join(used) or 'recorded'}; there is real task-execution evidence."
+        return _dimension_payload("Subagent effectiveness", status="validation-ready", score=3, evidence=evidence)
+    evidence = f"subagent gate is configured={configured}, effective={effective}; auto_closed={len(auto_closed)}"
+    return _dimension_payload("Subagent effectiveness", status="partial", score=2, evidence=evidence)
+
+
+def _render_research_memory(state: dict[str, Any]) -> str:
+    durable = _normalize_list(state.get("durable_facts"))
+    negative = _normalize_list(state.get("negative_memory"))
+    next_steps = _normalize_list(state.get("next_step_memory"))
+    lines = ["# Research Memory", "", "## Durable facts"]
+    lines.extend([f"- {humanize_text(item)}" for item in durable] or ["- Not recorded."])
+    strategy = summarize_strategy_visibility(state)
+    lines.extend(["", "## Active strategy hypotheses"])
+    if strategy["primary"] or strategy["secondary"]:
+        for item in [*strategy["primary"], *strategy["secondary"]]:
+            lines.append(f"- `{item['strategy_id']}`: {item['core_hypothesis']}")
+    else:
+        lines.append("- Not recorded.")
+    lines.extend(["", "## Rejected or downgraded strategy hypotheses"])
+    if strategy["rejected"]:
+        for item in strategy["rejected"]:
+            lines.append(f"- `{item['strategy_id']}`: {item['latest_result']}")
+    else:
+        lines.append("- No newly rejected strategy hypotheses are recorded.")
+    lines.extend(["", "## Negative memory"])
+    lines.extend([f"- {humanize_text(item)}" for item in negative] or ["- Not recorded."])
+    lines.extend(["", "## Next-step memory"])
+    lines.extend([f"- {humanize_text(item)}" for item in next_steps] or ["- Not recorded."])
+    lines.extend(["", *_render_strategy_snapshot_lines(state)])
+    lines.extend(["", *_render_research_progress_lines(state)])
+    return "\n".join(lines)
+
+
+def _render_strategy_snapshot_lines(state: dict[str, Any], *, heading: str = "## Strategy snapshot") -> list[str]:
+    strategy = summarize_strategy_visibility(state)
+    return [
+        heading,
+        f"- canonical_project_id: {state.get('canonical_project_id', state.get('project', 'unknown'))}",
+        f"- legacy_aliases: {', '.join(state.get('legacy_project_aliases', [])) or 'none'}",
+        f"- research_stage: {state.get('current_research_stage', 'Not recorded.')}",
+        f"- round_type: {strategy['round_type']}",
+        f"- primary_strategies: {', '.join(strategy['primary_names']) or 'none'}",
+        f"- secondary_strategies: {', '.join(strategy['secondary_names']) or 'none'}",
+        f"- blocked_strategies: {', '.join(strategy['blocked_names']) or 'none'}",
+        f"- rejected_strategies: {', '.join(strategy['rejected_names']) or 'none'}",
+        f"- promoted_strategies: {', '.join(strategy['promoted_names']) or 'none'}",
+        f"- system_line: {strategy['system_line']}",
+        f"- strategy_line: {strategy['strategy_line']}",
+        f"- canonical_truth_summary: {humanize_text(state.get('canonical_truth_summary', 'unknown'))}",
+    ]
+
+
+def _recent_strategy_action_lines(paths, *, run_id: str | None = None, limit: int = 5) -> list[str]:
+    entries = read_strategy_action_log(paths.strategy_action_log_path, run_id=run_id, limit=limit)
+    if not entries and run_id is not None:
+        entries = read_strategy_action_log(paths.strategy_action_log_path, limit=limit)
+    lines = ["## Recent strategy actions"]
+    if not entries:
+        lines.append("- No new strategy action was recorded for this run.")
+        return lines
+    for item in entries:
+        strategy = "no-active-strategy" if item["strategy_id"] == "__none__" else item["strategy_id"]
+        actor = f"{item['actor_type']}:{item['actor_id']}"
+        lines.append(
+            f"- {strategy} | {actor} | {humanize_text(item['action_summary'])} | result: {humanize_text(item['result'])} | decision_delta: {humanize_text(item['decision_delta'])}"
+        )
+    return lines
+
+
+def _render_execution_queue(state: dict[str, Any]) -> str:
+    tasks = _normalize_execution_queue(state.get("execution_queue"))
+    lines = [
+        "# Execution Queue",
+        "",
+        "| Task ID | Title | Impact | Risk | Prerequisite | Status | Owner | Success condition | Stop condition |",
+        "|---|---|---|---|---|---|---|---|---|",
+    ]
+    if not tasks:
+        lines.append("| none | Not recorded. | medium | medium | none | queued | main | Not recorded. | Not recorded. |")
+        return "\n".join(lines)
+    for item in tasks:
+        lines.append(
+            "| {task_id} | {title} | {impact} | {risk} | {prerequisite} | {status} | {owner} | {success} | {stop} |".format(
+                task_id=item["task_id"],
+                title=humanize_text(item["title"]).replace("|", "/"),
+                impact=_queue_impact_label(item["impact"]),
+                risk=_queue_risk_label(item["risk"]),
+                prerequisite=humanize_text(item["prerequisite"]).replace("|", "/"),
+                status=_queue_status_label(item["current_status"]),
+                owner=humanize_text(item["owner"]).replace("|", "/"),
+                success=humanize_text(item["success_condition"]).replace("|", "/"),
+                stop=humanize_text(item["stop_condition"]).replace("|", "/"),
+            ),
+        )
+    return "\n".join(lines)
+
+
+def _render_research_progress_lines(state: dict[str, Any], *, heading: str = "## Research progress") -> list[str]:
+    progress = dict(state.get("research_progress", {}) or {})
+    lines = [heading]
+    for item in progress.get("dimensions", []):
+        if not isinstance(item, dict):
+            continue
+        lines.append(
+            f"- {item.get('dimension', 'unknown')}: {_progress_status_label(str(item.get('status', 'blocked')))}; "
+            f"{_bounded_score(item.get('score', 0))}/4. Evidence: {humanize_text(item.get('evidence', 'unknown'))}"
+        )
+    lines.extend(
+        [
+            f"- overall_trajectory: {_progress_trajectory_label(str(progress.get('overall_trajectory', 'blocked')))}",
+            f"- this_run_delta: {_progress_delta_label(str(progress.get('this_run_delta', 'unchanged')))}",
+            f"- current_blocker: {humanize_text(progress.get('current_blocker', 'unknown'))}",
+            f"- next_milestone: {humanize_text(progress.get('next_milestone', 'unknown'))}",
+            f"- confidence: {_progress_confidence_label(str(progress.get('confidence', 'low')))}",
+        ],
+    )
+    return lines
+
+
+def _default_session_state(project: str, *, root: Path, paths) -> dict[str, Any]:
+    canonical_universe_id = ""
+    try:
+        cfg, _ = load_config(project, config_path=paths.config_path)
+        universe_policy = dict(cfg.get("universe_policy", {}) or {})
+        canonical_universe_id = str(
+            universe_policy.get("canonical_universe_id")
+            or universe_policy.get("research_profile")
+            or "",
+        ).strip()
+    except Exception:
+        canonical_universe_id = ""
+    base = {
+        "project": project,
+        "canonical_project_id": canonical_project_id(project),
+        "legacy_project_aliases": legacy_project_ids(project),
+        "project_identity_notice": alias_notice(project),
+        "canonical_universe_id": canonical_universe_id,
+        "baseline_status": "baseline_validation_ready",
+        "readiness": {"stage": "validation-ready", "ready": True},
+        "current_task": "Keep the research OS reproducible with tracked memory and truthful runtime artifacts.",
+        "current_phase": "Phase 1 Research OS",
+        "current_blocker": "none",
+        "current_capability_boundary": "Refresh verified research artifacts before changing the narrative.",
+        "next_priority_action": "Refresh verified research artifacts before changing the blocker narrative.",
+        "last_verified_capability": "No verified capability has been recorded yet.",
+        "last_failed_capability": "none",
+        "durable_facts": [
+            "Tracked long-term memory lives under memory/projects/<project>/.",
+            "Runtime experiment artifacts live under data/ and artifacts/.",
+        ],
+        "negative_memory": [
+            "Do not change the blocker narrative without fresh verified research evidence.",
+            "Ignored runtime directories are not a substitute for tracked memory.",
+        ],
+        "next_step_memory": [
+            "Refresh verified research artifacts before changing the blocker narrative.",
+            "Keep tracked ledgers in sync with runtime experiment payloads.",
+        ],
+        "latest_hypotheses": _parse_hypotheses(HYPOTHESIS_QUEUE_TEMPLATE),
+        "execution_queue": _default_execution_queue_state(),
+        "last_failure": {},
+        "verify_last": {
+            "passed_commands": [],
+            "failed_commands": [],
+            "default_project_data_status": "unknown",
+            "conclusion_boundary_engineering": "unknown",
+            "conclusion_boundary_research": "unknown",
+        },
+        "tracked_memory_dir": str(paths.memory_dir),
+        "runtime_meta_dir": str(paths.meta_dir),
+        "runtime_artifacts_dir": str(paths.artifacts_dir),
+        "head": _git_value(root, "rev-parse", "HEAD"),
+        "branch": _git_value(root, "rev-parse", "--abbrev-ref", "HEAD"),
+        "last_updated": _utc_now(),
+        "iterative_loop": _default_iterative_loop_state(),
+    }
+    base.update(default_subagent_state(paths))
+    base["configured_subagent_gate_mode"] = str(base.get("subagent_gate_mode", "AUTO"))
+    base["effective_subagent_gate_mode"] = str((base.get("subagent_plan", {}) or {}).get("recommended_gate", "OFF"))
+    base["effective_subagent_gate_reason"] = str(base.get("subagent_continue_reason", "unknown"))
+    base["current_research_stage"] = _current_research_stage(base)
+    base["canonical_truth_summary"] = _canonical_truth_summary(base)
+    base["research_progress"] = _build_research_progress(state=base)
+    return base
+
+
+def _render_project_state(state: dict[str, Any]) -> str:
+    subagents = summarize_subagent_state(state)
+    stage0a = dict(state.get("stage0a_decision", {}) or {})
+    strategy = summarize_strategy_visibility(state)
+    lines = [
+        "# Project State",
+        "",
+        f"- canonical_project_id: {state.get('canonical_project_id', state.get('project', 'unknown'))}",
+        f"- legacy_aliases: {', '.join(state.get('legacy_project_aliases', [])) or 'none'}",
+        f"- current_task: {humanize_text(state.get('current_task', 'unknown'))}",
+        f"- current_phase: {humanize_text(state.get('current_phase', 'unknown'))}",
+        f"- current_research_stage: {state.get('current_research_stage', 'Not recorded.')}",
+        f"- round_type: {strategy['round_type']}",
+        f"- primary_strategies: {', '.join(strategy['primary_names']) or 'none'}",
+        f"- secondary_strategies: {', '.join(strategy['secondary_names']) or 'none'}",
+        f"- current_blocker: {humanize_text(state.get('current_blocker', 'unknown'))}",
+        f"- current_capability_boundary: {humanize_text(state.get('current_capability_boundary', 'unknown'))}",
+        f"- canonical_truth_summary: {humanize_text(state.get('canonical_truth_summary', 'unknown'))}",
+        f"- strategy_line: {strategy['strategy_line']}",
+        f"- system_line: {strategy['system_line']}",
+        f"- next_priority_action: {humanize_text(state.get('next_priority_action', 'unknown'))}",
+        f"- last_verified_capability: {humanize_text(state.get('last_verified_capability', 'unknown'))}",
+        f"- last_failed_capability: {humanize_text(state.get('last_failed_capability', 'unknown'))}",
+        *_subagent_gate_lines(state),
+        f"- active_subagents: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
+        f"- blocked_subagents: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
+        f"- last_subagent_event: {humanize_text(subagents['last_event'].get('action', 'none recorded'))}",
+    ]
+    if stage0a:
+        lines.extend(
+            [
+                f"- stage0a_decision: {humanize_text(stage0a.get('decision', 'unknown'))}",
+                f"- stage0a_universe_change: {stage0a.get('old_universe_size', 'n/a')} -> {stage0a.get('new_universe_size', 'n/a')}",
+            ],
+        )
+    lines.extend(["", *_render_strategy_snapshot_lines(state), "", *_render_research_progress_lines(state)])
+    lines.extend(["", "## High-level loop summary"])
+    lines.extend(_render_loop_summary_lines(state))
+    return "\n".join(lines)
+
+
+def _render_hypothesis_queue(hypotheses: list[dict[str, str]]) -> str:
+    lines = ["# Hypothesis Queue", ""]
+    if not hypotheses:
+        lines.append("1. [pending] No active hypotheses.")
+        return "\n".join(lines)
+    status_map = {"pending": "pending", "blocked": "blocked", "active": "active", "done": "done"}
+    for idx, item in enumerate(hypotheses, start=1):
+        lines.append(f"{idx}. [{status_map.get(item['status'], item['status'])}] {humanize_text(item['hypothesis'])}")
+    return "\n".join(lines)
+
+
+def _render_verify_last(state: dict[str, Any]) -> str:
+    verify = state.get("verify_last", {}) or {}
+    subagents = summarize_subagent_state(state)
+    strategy = summarize_strategy_visibility(state)
+    passed = _normalize_list(verify.get("passed_commands"))
+    failed = _normalize_list(verify.get("failed_commands"))
+    lines = ["# Verify Last", "", f"- head: {state.get('head', 'unknown')}", f"- branch: {state.get('branch', 'unknown')}", "- passed_commands:"]
+    lines.extend([f"  - {item}" for item in passed] or ["  - Not recorded."])
+    lines.append("- failed_commands:")
+    lines.extend([f"  - {item}" for item in failed] or ["  - Not recorded."])
+    lines.extend(
+        [
+            f"- canonical_project_id: {state.get('canonical_project_id', state.get('project', 'unknown'))}",
+            f"- legacy_aliases: {', '.join(state.get('legacy_project_aliases', [])) or 'none'}",
+            f"- default_project_data_status: {humanize_text(verify.get('default_project_data_status', 'unknown'))}",
+            f"- engineering_boundary: {humanize_text(verify.get('conclusion_boundary_engineering', 'unknown'))}",
+            f"- research_boundary: {humanize_text(verify.get('conclusion_boundary_research', 'unknown'))}",
+            f"- current_research_stage: {state.get('current_research_stage', 'Not recorded.')}",
+            f"- round_type: {strategy['round_type']}",
+            f"- primary_strategies: {', '.join(strategy['primary_names']) or 'none'}",
+            f"- blocked_strategies: {', '.join(strategy['blocked_names']) or 'none'}",
+            f"- strategy_line: {strategy['strategy_line']}",
+            *_subagent_gate_lines(state),
+            f"- active_subagents: {', '.join(subagents['active_ids']) if subagents['active_ids'] else 'none'}",
+            f"- blocked_subagents: {', '.join(subagents['blocked_ids']) if subagents['blocked_ids'] else 'none'}",
+            f"- last_subagent_event: {humanize_text(subagents['last_event'].get('action', 'none recorded'))}",
+            "",
+            *_render_strategy_snapshot_lines(state),
+            "",
+            *_render_research_progress_lines(state),
+            "",
+            "## High-level loop summary",
+        ],
+    )
+    lines.extend(_render_loop_summary_lines(state))
+    return "\n".join(lines)
 
 
 def _refresh_research_activity_markdown(paths, *, run_id: str | None = None) -> None:
@@ -1716,6 +3699,15 @@ def _migrate_legacy_memory(paths, state: dict[str, Any], *, prefer_tracked_files
 
 
 def _refresh_derived_memory(paths, state: dict[str, Any], *, preserve_progress: bool = False) -> None:
+    from .writeback_final import (
+        build_research_progress_final,
+        render_execution_queue_final,
+        render_hypothesis_queue_final,
+        render_project_state_final,
+        render_research_memory_final,
+        render_verify_last_final,
+    )
+
     state = _canonicalize_active_project_state(paths, dict(state))
     state.update({key: state.get(key) for key in default_subagent_state(paths).keys() if key in state})
     for key, value in default_subagent_state(paths).items():
@@ -1727,7 +3719,7 @@ def _refresh_derived_memory(paths, state: dict[str, Any], *, preserve_progress: 
     if preserve_progress and isinstance(state.get("research_progress"), dict) and state["research_progress"].get("dimensions"):
         state["research_progress"] = dict(state["research_progress"])
     else:
-        state["research_progress"] = _build_research_progress(state=state, previous=state.get("research_progress"))
+        state["research_progress"] = build_research_progress_final(state=state, previous=state.get("research_progress"))
     state["head"] = _git_value(paths.root, "rev-parse", "HEAD")
     state["branch"] = _git_value(paths.root, "rev-parse", "--abbrev-ref", "HEAD")
     state["tracked_memory_dir"] = str(paths.memory_dir)
@@ -1735,13 +3727,13 @@ def _refresh_derived_memory(paths, state: dict[str, Any], *, preserve_progress: 
     state["runtime_artifacts_dir"] = str(paths.artifacts_dir)
     state["last_updated"] = _utc_now()
     _sync_mission_state_identity(paths)
-    _write_text(paths.project_state_path, _render_project_state(state))
-    _write_text(paths.research_memory_path, _render_research_memory(state))
+    _write_text(paths.project_state_path, render_project_state_final(state))
+    _write_text(paths.research_memory_path, render_research_memory_final(state))
     _write_text(paths.strategy_board_path, render_strategy_board(state, paths=paths))
     _write_text(paths.research_progress_path, render_strategy_progress(state))
-    _write_text(paths.hypothesis_queue_path, _render_hypothesis_queue(state.get("latest_hypotheses", [])))
-    _write_text(paths.execution_queue_path, _render_execution_queue(state))
-    _write_text(paths.verify_last_path, _render_verify_last(state))
+    _write_text(paths.hypothesis_queue_path, render_hypothesis_queue_final(state.get("latest_hypotheses", [])))
+    _write_text(paths.execution_queue_path, render_execution_queue_final(state))
+    _write_text(paths.verify_last_path, render_verify_last_final(state))
     _write_text(paths.handoff_path, _render_handoff(state, paths))
     _write_text(paths.migration_prompt_path, _render_migration_prompt(state, paths))
     strategy_cards = render_strategy_cards(state, paths=paths)
@@ -1870,7 +3862,7 @@ def save_machine_state(
     paths, _ = _load_state(project, repo_root=repo_root)
     state = dict(state)
     if rebuild_progress:
-        state["research_progress"] = _build_research_progress(state=state, previous=state.get("research_progress"))
+        state["research_progress"] = _FINAL_BUILD_RESEARCH_PROGRESS(state=state, previous=state.get("research_progress"))
     _refresh_derived_memory(paths, state, preserve_progress=True)
     return paths.session_state_path
 
@@ -1893,7 +3885,7 @@ def sync_project_state(project: str, summary: dict[str, Any], *, repo_root: Path
             "last_failed_capability": summary.get("last_failed_capability") or state.get("last_failed_capability"),
         },
     )
-    state["research_progress"] = _build_research_progress(state=state, previous=state.get("research_progress"))
+    state["research_progress"] = _FINAL_BUILD_RESEARCH_PROGRESS(state=state, previous=state.get("research_progress"))
     _refresh_derived_memory(paths, state)
     return paths.project_state_path
 
@@ -2061,7 +4053,7 @@ def record_failure(
         state["research_progress"] = dict(state["research_progress"])
         _refresh_derived_memory(paths, state, preserve_progress=True)
     else:
-        state["research_progress"] = _build_research_progress(state=state, previous=state.get("research_progress"))
+        state["research_progress"] = _FINAL_BUILD_RESEARCH_PROGRESS(state=state, previous=state.get("research_progress"))
         _refresh_derived_memory(paths, state)
     if append_ledger:
         record_experiment_result(
@@ -2218,7 +4210,7 @@ def record_iterative_run(
 
     if "execution_queue" in payload:
         state["execution_queue"] = _normalize_execution_queue(payload.get("execution_queue"))
-    state["research_progress"] = _build_research_progress(state=state, payload=payload, previous=previous_progress)
+    state["research_progress"] = _FINAL_BUILD_RESEARCH_PROGRESS(state=state, payload=payload, previous=previous_progress)
     _refresh_derived_memory(paths, state, preserve_progress=True)
     for action_entry in _strategy_actions_from_iterative_payload(state, payload, run_path=run_path):
         append_strategy_action_log(paths.strategy_action_log_path, action_entry)
@@ -2276,7 +4268,7 @@ def write_verify_snapshot(project: str, summary: dict[str, Any], *, repo_root: P
     )
     state["verify_last"] = verify
     state["last_verified_capability"] = summary.get("last_verified_capability") or state.get("last_verified_capability")
-    state["research_progress"] = _build_research_progress(state=state, previous=state.get("research_progress"))
+    state["research_progress"] = _FINAL_BUILD_RESEARCH_PROGRESS(state=state, previous=state.get("research_progress"))
     _refresh_derived_memory(paths, state)
     return paths.verify_last_path
 
@@ -2289,3 +4281,223 @@ def generate_handoff(project: str, *, repo_root: Path | None = None) -> dict[str
         "migration_prompt_next_chat": paths.migration_prompt_path,
         "session_state": paths.session_state_path,
     }
+
+
+def _current_research_stage(state: dict[str, Any]) -> str:
+    blocker_key = _infer_blocker_key_from_state(state)
+    if blocker_key == "data_inputs":
+        return "prerequisite recovery"
+    if blocker_key == "strategy_contract":
+        return "contract repair"
+    if blocker_key in {"max_drawdown", "leakage", "walk_forward", "baseline_integrity"}:
+        return "promotion blocked"
+    strategy = summarize_strategy_visibility(state)
+    if strategy.get("blocked"):
+        return "stability work"
+    return "strategy validation"
+
+
+def _canonical_truth_summary(state: dict[str, Any]) -> str:
+    blocker = humanize_text(state.get("current_blocker", "unknown")).rstrip(".")
+    stage = _current_research_stage(state)
+    if _infer_blocker_key_from_state(state) == "data_inputs":
+        return f"The canonical project is still rebuilding research prerequisites. Current blocker: {blocker}."
+    return f"The canonical project is in {stage}. Current blocker: {blocker}. Legacy A-share narratives are archive-only."
+
+
+def _drawdown_next_action(state: dict[str, Any]) -> str:
+    strategy = summarize_strategy_visibility(state)
+    primary = strategy.get("primary_names", []) or ["okx_phase0_research_mainline"]
+    secondary = strategy.get("secondary_names", []) or ["okx_cost_funding_guardrail"]
+    return (
+        f"Break down why {primary[0]} is failing promotion, then decide whether {secondary[0]} or a narrower entry rule is the next bounded branch."
+    )
+
+
+def _canonicalize_active_project_state(paths, state: dict[str, Any]) -> dict[str, Any]:
+    canonical = canonical_project_id(paths.project)
+    updated = rewrite_identity_payload(dict(state), project=canonical) if is_active_canonical_project(paths.project) else dict(state)
+    updated["project"] = paths.project
+    updated["canonical_project_id"] = canonical
+    updated["legacy_project_aliases"] = legacy_project_ids(canonical)
+    updated["project_identity_notice"] = alias_notice(canonical)
+    try:
+        cfg, _ = load_config(paths.project, config_path=paths.config_path)
+        universe_policy = dict(cfg.get("universe_policy", {}) or {})
+        canonical_universe_id = str(
+            universe_policy.get("canonical_universe_id")
+            or universe_policy.get("research_profile")
+            or updated.get("canonical_universe_id")
+            or ""
+        ).strip()
+        if canonical_universe_id:
+            updated["canonical_universe_id"] = canonical_universe_id
+    except Exception:
+        if updated.get("canonical_universe_id"):
+            updated["canonical_universe_id"] = str(updated["canonical_universe_id"]).strip()
+
+    canonical_blocker = _canonicalize_current_blocker_text(updated)
+    if canonical_blocker:
+        updated["current_blocker"] = canonical_blocker
+    elif _looks_data_blocked_text(updated.get("verify_last", {}).get("default_project_data_status", "")):
+        updated["current_blocker"] = "The frozen research universe exists, but usable OKX bars are still missing in the local market database."
+
+    blocker_key = _infer_blocker_key_from_state(updated)
+    if is_active_canonical_project(paths.project):
+        updated["baseline_status"] = (
+            "phase0_prerequisites_blocked" if blocker_key == "data_inputs" else "baseline_validation_ready"
+        )
+        updated["current_phase"] = "Phase 0 Backtest First"
+        updated["current_task"] = "Prove the crypto plus OKX research loop before any demo or live work."
+        updated["readiness"] = {
+            "stage": "bootstrap" if blocker_key == "data_inputs" else "validation-ready",
+            "ready": blocker_key != "data_inputs",
+        }
+
+    updated["current_research_stage"] = _current_research_stage(updated)
+    updated["canonical_truth_summary"] = _canonical_truth_summary(updated)
+    updated["configured_subagent_gate_mode"] = str(updated.get("subagent_gate_mode", "AUTO"))
+    updated["effective_subagent_gate_mode"] = str(
+        ((updated.get("subagent_plan", {}) or {}).get("recommended_gate"))
+        or ((updated.get("iterative_loop", {}) or {}).get("subagent_effective_gate_mode"))
+        or "OFF"
+    )
+    updated["effective_subagent_gate_reason"] = str(
+        updated.get("subagent_continue_reason")
+        or ((updated.get("subagent_plan", {}) or {}).get("no_split_reason"))
+        or "No safe parallel work package is worth expanding right now."
+    )
+    if is_active_canonical_project(paths.project):
+        updated["durable_facts"] = [
+            "This repo now treats crypto_okx_research_v1 as the canonical research project.",
+            "The active market focus is crypto and the active exchange focus is OKX.",
+            "A-share work is legacy reference only and must not drive the live research narrative.",
+            updated["project_identity_notice"],
+        ]
+        updated["negative_memory"] = [
+            "Do not claim crypto readiness from A-share artifacts.",
+            "Do not widen to demo or live before the phase-0 research loop is honest.",
+            "Do not promote any strategy result until fees, funding, and walk-forward checks are visible.",
+        ]
+        updated["latest_hypotheses"] = [
+            {
+                "hypothesis": "The first useful milestone is truthful OKX data coverage for a small frozen universe.",
+                "status": "blocked" if blocker_key == "data_inputs" else "active",
+            },
+            {
+                "hypothesis": "One small explicit OKX universe is enough to prove the research loop before broader expansion.",
+                "status": "pending",
+            },
+            {
+                "hypothesis": "No candidate should be promoted until cost, fee, funding, and walk-forward checks all agree.",
+                "status": "pending",
+            },
+        ]
+        updated["execution_queue"] = [
+            {
+                "task_id": "materialize_phase0_universe",
+                "title": "Materialize the OKX phase-0 universe file",
+                "impact": "high",
+                "risk": "low",
+                "prerequisite": "The universe contract exists.",
+                "current_status": "done",
+                "owner": "main",
+                "success_condition": "universe_codes.txt matches the frozen contract.",
+                "stop_condition": "The universe contract is missing or invalid.",
+                "requires_data_ready": False,
+                "selected_count": 0,
+                "last_iteration": 0,
+                "last_summary": "",
+                "last_classification": "",
+            },
+            {
+                "task_id": "recover_okx_bars",
+                "title": "Load OKX bars for the frozen universe",
+                "impact": "high",
+                "risk": "medium",
+                "prerequisite": "Universe file exists and the exchange endpoints are reachable.",
+                "current_status": "ready" if blocker_key == "data_inputs" else "done",
+                "owner": "main",
+                "success_condition": "doctor reports usable local bars for the frozen OKX universe.",
+                "stop_condition": "Data import still produces zero usable bars for the frozen universe.",
+                "requires_data_ready": False,
+                "selected_count": 0,
+                "last_iteration": 0,
+                "last_summary": "",
+                "last_classification": "",
+            },
+            {
+                "task_id": "refresh_research_audit",
+                "title": "Refresh research audit after data truth changes",
+                "impact": "medium",
+                "risk": "low",
+                "prerequisite": "Universe and doctor truth are up to date.",
+                "current_status": "queued" if blocker_key == "data_inputs" else "ready",
+                "owner": "main",
+                "success_condition": "audit restates the bounded next step without legacy leakage.",
+                "stop_condition": "audit adds no new boundary information.",
+                "requires_data_ready": False,
+                "selected_count": 0,
+                "last_iteration": 0,
+                "last_summary": "",
+                "last_classification": "",
+            },
+            {
+                "task_id": "bounded_agent_cycle",
+                "title": "Run one dry-run research cycle",
+                "impact": "medium",
+                "risk": "medium",
+                "prerequisite": "Doctor and audit no longer block on missing research inputs.",
+                "current_status": "blocked" if blocker_key == "data_inputs" else "queued",
+                "owner": "main",
+                "success_condition": "dry-run adds bounded evidence instead of repeating setup work.",
+                "stop_condition": "dry-run only repeats the same blocker.",
+                "requires_data_ready": True,
+                "selected_count": 0,
+                "last_iteration": 0,
+                "last_summary": "",
+                "last_classification": "",
+            },
+        ]
+
+    if blocker_key == "data_inputs":
+        updated["effective_subagent_gate_reason"] = "Keep subagents OFF until the frozen OKX universe has usable local bars."
+        updated["current_capability_boundary"] = (
+            "Current work is limited to rebuilding research inputs and truthful contracts. No strategy branch should be treated as validated until OKX inputs are usable."
+        )
+        updated["next_priority_action"] = "Load usable OKX bars for the frozen universe, then rerun doctor, memory sync, and research audit."
+        updated["next_step_memory"] = [
+            "Load usable OKX bars for the frozen universe.",
+            "Rerun doctor after the data load and record the real blocker.",
+            "Only after doctor turns honest-green should the next dry-run cycle resume.",
+        ]
+    elif blocker_key == "strategy_contract":
+        updated["effective_subagent_gate_reason"] = "Keep subagents narrow until the strategy and writeback contract becomes truthful again."
+        updated["current_capability_boundary"] = (
+            "The current blocker is no longer missing data. It is a strategy or writeback contract problem that must be fixed before promotion."
+        )
+        next_action = str(updated.get("next_priority_action", "")).strip()
+        if not next_action or _looks_data_blocked_text(next_action):
+            updated["next_priority_action"] = "Fix tracked-memory truth and the branch-to-ranking contract before touching factor logic."
+        next_steps = [item for item in _normalize_list(updated.get("next_step_memory")) if not _looks_data_blocked_text(item)]
+        updated["next_step_memory"] = [updated["next_priority_action"], *[item for item in next_steps if item != updated["next_priority_action"]]][:5]
+    elif blocker_key == "max_drawdown":
+        updated["effective_subagent_gate_reason"] = "Keep subagents bounded while drawdown and robustness still block promotion."
+        updated["current_capability_boundary"] = (
+            "Research inputs and validation entry points exist, but the current strategy still fails the promotion bar on drawdown or robustness."
+        )
+        next_action = str(updated.get("next_priority_action", "")).strip()
+        if not next_action or _looks_data_blocked_text(next_action):
+            updated["next_priority_action"] = _drawdown_next_action(updated)
+        next_steps = [item for item in _normalize_list(updated.get("next_step_memory")) if not _looks_data_blocked_text(item)]
+        updated["next_step_memory"] = [updated["next_priority_action"], *[item for item in next_steps if item != updated["next_priority_action"]]][:5]
+    else:
+        updated["current_capability_boundary"] = str(updated.get("current_capability_boundary", "")).strip() or (
+            "Strategy work may continue, but only through conservative validation and explicit evidence."
+        )
+        if is_active_canonical_project(paths.project) and not _normalize_list(updated.get("next_step_memory")):
+            updated["next_step_memory"] = [
+                "Keep the next experiment bounded and auditable.",
+                "Write evaluation results back into tracked memory before changing the narrative.",
+            ]
+    return updated

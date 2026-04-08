@@ -1,0 +1,51 @@
+# Project State
+
+- canonical project: `crypto_okx_research_v1`
+- legacy aliases: none
+- current task: Prove the crypto plus OKX research loop before any demo or live work.
+- current phase: Phase 0 Backtest First
+- current research stage: prerequisite recovery
+- baseline status: phase0_prerequisites_blocked
+- blocker: The frozen research universe exists, but the configured market database has no usable raw bars for it.
+- capability boundary: Current work is limited to rebuilding research inputs and truthful contracts. No strategy branch should be treated as validated until OKX inputs are usable.
+- next priority action: Load usable OKX bars for the frozen universe, then rerun doctor, memory sync, and research audit.
+- verify path: python -m quant_mvp doctor --project crypto_okx_research_v1; python -m quant_mvp memory_sync --project crypto_okx_research_v1; python -m quant_mvp research_audit --project crypto_okx_research_v1
+- configured gate: AUTO
+- effective gate: OFF
+- gate reason: Keep subagents OFF until the frozen OKX universe has usable local bars.
+- last verified capability: Doctor confirmed OKX upstream access and the frozen universe, but blocked promotion because local OKX bars are still missing.
+- last failed capability: none
+
+## Strategy Snapshot
+- canonical project: `crypto_okx_research_v1`
+- legacy aliases: none
+- research stage: prerequisite recovery
+- round type: prerequisite_recovery
+- primary strategies: okx_phase0_research_mainline (OKX phase-0 research mainline)
+- secondary strategies: okx_cost_funding_guardrail (OKX cost and funding guardrail)
+- blocked strategies: okx_phase0_research_mainline (OKX phase-0 research mainline), okx_cost_funding_guardrail (OKX cost and funding guardrail)
+- rejected strategies: legacy_a_share_archive (Legacy A-share archive)
+- promoted strategies: none
+- system line: This round is about restoring the research floor, keeping the active strategy objects honest, and preventing legacy A-share assumptions from steering the current crypto program.
+- strategy line: Research is still blocked on prerequisites. Current blocker: The frozen research universe exists, but the configured market database has no usable raw bars for it.. Restore truthful OKX inputs before treating any strategy path as validated.
+- truth summary: The canonical project is still rebuilding research prerequisites. Current blocker: The frozen research universe exists, but the configured market database has no usable raw bars for it.
+
+## Research Progress
+- Data inputs: blocked, 1/4. Evidence: Data status is prerequisites-blocked. Current blocker: The frozen research universe exists, but the configured market database has no usable raw bars for it.
+- Strategy integrity: partial, 2/4. Evidence: Primary strategies are okx_phase0_research_mainline (OKX phase-0 research mainline). Last verified capability: Doctor confirmed OKX upstream access and the frozen universe, but blocked promotion because local OKX bars are still missing.
+- Validation stack: bootstrap, 1/4. Evidence: Only baseline verification entry points exist. No passing verification command has been recorded for the active crypto project yet.
+- Promotion readiness: blocked, 1/4. Evidence: Promotion is blocked because the active blocker is still: The frozen research universe exists, but the configured market database has no usable raw bars for it.
+- Subagent effectiveness: partial, 2/4. Evidence: Configured gate=AUTO, effective gate=OFF. Active subagents: 0. Reason: Keep subagents OFF until the frozen OKX universe has usable local bars.
+- overall trajectory: blocked
+- this run delta: unchanged
+- current blocker: The frozen research universe exists, but the configured market database has no usable raw bars for it.
+- next milestone: Load usable OKX bars for the frozen universe, then rerun doctor, memory sync, and research audit.
+- confidence: low
+
+## Promotion Gaps
+- writeback_contract.allowed_roots is still empty.
+- Owner routing is still missing.
+- Usable OKX bars are still missing for the frozen universe.
+
+## Recent Strategy Actions
+- none recorded

@@ -1,4 +1,4 @@
-"""Run the audited limit-up screening pipeline end-to-end."""
+"""Run the legacy A-share limit-up screening pipeline end-to-end."""
 from __future__ import annotations
 
 import argparse
@@ -29,8 +29,10 @@ def _load_strategy_universe(project: str, config_path: Path | None) -> list[str]
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run the audited limit-up screening strategy.")
-    parser.add_argument("--project", type=str, default="as_share_research_v1")
+    parser = argparse.ArgumentParser(
+        description="Run the legacy A-share limit-up screening strategy. Pass --project explicitly."
+    )
+    parser.add_argument("--project", type=str, required=True)
     parser.add_argument("--config", type=Path, default=None)
     parser.add_argument("--save", type=str, default="auto")
     parser.add_argument("--no-show", action="store_true")

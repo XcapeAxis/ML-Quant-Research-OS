@@ -1,0 +1,25 @@
+{
+  "profile_id": "okx_crypto_linear_swap_v1",
+  "display_name": "OKX crypto linear swap research universe v1",
+  "description": "Phase-0 crypto research universe for OKX linear swap contracts. Use it for public market-data research only, not live execution.",
+  "market": "crypto",
+  "exchange": "OKX",
+  "instrument_scope": "linear_swap",
+  "settlement": "USDT",
+  "source_kind": "static_contract_seed",
+  "default_symbols": [
+    "BTC-USDT-SWAP",
+    "ETH-USDT-SWAP",
+    "SOL-USDT-SWAP",
+    "DOGE-USDT-SWAP"
+  ],
+  "timeframes": [
+    "1d",
+    "4h",
+    "1h"
+  ],
+  "notes": [
+    "Public market data only in phase 0.",
+    "Do not treat this universe file as execution approval."
+  ]
+}

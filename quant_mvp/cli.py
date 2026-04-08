@@ -44,6 +44,7 @@ from .excel_export import run_excel_export
 from .r1_pipeline import run_r1_verify
 from .strategy_campaign import run_baseline_strategy_diagnostic
 from .superagent import branch_review, mission_status, mission_tick
+from .universe import materialize_universe_from_project_contract
 
 
 TASK_TO_SCRIPT = {
@@ -98,6 +99,10 @@ def main() -> None:
         default=PipelineName.full_analysis_pack.value,
         choices=[item.value for item in PipelineName],
     )
+
+    universe_parser = sub.add_parser("materialize_universe", help="Materialize universe_codes.txt from the project contract")
+    universe_parser.add_argument("--project", type=str, required=True)
+    universe_parser.add_argument("--config", type=Path, default=None)
 
     bootstrap_parser = sub.add_parser("memory_bootstrap", help="Create tracked memory files and migrate legacy memory")
     bootstrap_parser.add_argument("--project", type=str, required=True)
@@ -297,6 +302,11 @@ def main() -> None:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         raise SystemExit(1 if result["blocking_issue_details"] else 0)
 
+    if args.command == "materialize_universe":
+        result = materialize_universe_from_project_contract(args.project, config_path=args.config)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
     if args.command in {"memory_bootstrap", "agent_bootstrap"}:
         result = bootstrap_memory_files(args.project, repo_root=find_repo_root())
         print(json.dumps({key: str(value) for key, value in result.items()}, ensure_ascii=False, indent=2))
@@ -371,17 +381,70 @@ def main() -> None:
         paths = bootstrap_memory_files(args.project, repo_root=find_repo_root())
         cfg, resolved_paths = load_config(args.project, config_path=args.config)
         _, state = load_machine_state(args.project, repo_root=find_repo_root())
+        doctor_path = resolved_paths.meta_dir / "platform_doctor.json"
+        doctor_payload = {}
+        if doctor_path.exists():
+            try:
+                doctor_payload = json.loads(doctor_path.read_text(encoding="utf-8"))
+            except json.JSONDecodeError:
+                doctor_payload = {}
+        blocking_issue = ""
+        next_action = ""
+        data_status = "unknown"
+        if doctor_payload:
+            blocking_issues = list(doctor_payload.get("blocking_issues", []) or [])
+            blocking_issue = str(blocking_issues[0]).strip() if blocking_issues else ""
+            issue_details = list(doctor_payload.get("blocking_issue_details", []) or [])
+            if issue_details:
+                next_action = str(issue_details[0].get("suggestion", "")).strip()
+            if doctor_payload.get("ready"):
+                data_status = "validation-ready"
+            elif doctor_payload.get("universe_exists"):
+                data_status = "prerequisites-blocked"
         summary = {
-            "current_task": state.get("current_task") or "Keep the Phase 1 Research OS reproducible with tracked memory and honest runtime artifacts.",
-            "current_phase": state.get("current_phase") or "Phase 1 Research OS",
-            "current_blocker": state.get("current_blocker") or "none",
-            "current_capability_boundary": state.get("current_capability_boundary")
-            or "Tracked memory sync only refreshed the current snapshot; it did not validate any new research claim.",
-            "next_priority_action": state.get("next_priority_action") or "Run handoff generation.",
-            "last_verified_capability": state.get("last_verified_capability")
-            or f"Tracked memory synced from config {resolved_paths.config_path.name}.",
+            "current_task": "Prove the crypto plus OKX research loop before any demo or live work.",
+            "current_phase": "Phase 0 Backtest First",
+            "current_blocker": blocking_issue or state.get("current_blocker") or "none",
+            "current_capability_boundary": (
+                "Current work is limited to rebuilding research inputs and truthful contracts. No strategy branch should be treated as validated until OKX inputs are usable."
+                if blocking_issue
+                else (
+                    state.get("current_capability_boundary")
+                    or "Tracked memory sync refreshed the current snapshot; it did not validate any new research claim."
+                )
+            ),
+            "next_priority_action": next_action or state.get("next_priority_action") or "Run handoff generation.",
+            "last_verified_capability": (
+                "Doctor confirmed OKX upstream access and the frozen universe, but blocked promotion because local OKX bars are still missing."
+                if blocking_issue
+                else (
+                    state.get("last_verified_capability")
+                    or f"Tracked memory synced from config {resolved_paths.config_path.name}."
+                )
+            ),
         }
         state_path = sync_project_state(args.project, summary, repo_root=find_repo_root())
+        if doctor_payload:
+            write_verify_snapshot(
+                args.project,
+                {
+                    "passed_commands": list((state.get("verify_last", {}) or {}).get("passed_commands", []) or []),
+                    "failed_commands": list((state.get("verify_last", {}) or {}).get("failed_commands", []) or []),
+                    "default_project_data_status": data_status,
+                    "conclusion_boundary_engineering": (
+                        "OKX upstream reachability is healthy, but local market bars are still missing for the frozen universe."
+                        if blocking_issue
+                        else "Doctor has no blocking issue."
+                    ),
+                    "conclusion_boundary_research": (
+                        "Do not treat any candidate as validated until the frozen OKX universe has usable local bars."
+                        if blocking_issue
+                        else "Research may continue through bounded experiments."
+                    ),
+                    "last_verified_capability": summary["last_verified_capability"],
+                },
+                repo_root=find_repo_root(),
+            )
         print(
             json.dumps(
                 {

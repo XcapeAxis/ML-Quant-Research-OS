@@ -104,7 +104,7 @@ def run_audit(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Audit SQLite coverage against frozen universe.")
-    parser.add_argument("--project", type=str, default="as_share_research_v1")
+    parser.add_argument("--project", type=str, default="crypto_okx_research_v1")
     parser.add_argument("--config", type=Path, default=None)
     parser.add_argument("--data-mode", type=str, default="clean", choices=["auto", "clean", "raw"])
     args = parser.parse_args()

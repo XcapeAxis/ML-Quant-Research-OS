@@ -1,0 +1,21 @@
+# Legacy A-share archive
+
+- strategy_id: legacy_a_share_archive
+- name: Legacy A-share archive
+- category: legacy
+- core_hypothesis: This is a historical reference only. It is not an active research branch.
+- economic_rationale: Keep the old work visible for reference, but do not let it steer the active crypto program.
+- required_data: Legacy A-share data only. This branch is archived and should not drive the active research loop.
+- current_stage: archived
+- latest_action: Leave this branch archived and keep it out of the active research queue.
+- latest_result: This branch is archived and should not steer the active research loop.
+- decision: reject
+- next_validation: None. This branch should stay archived.
+- owner: main
+- subagents_assigned:
+  - none
+- artifact_refs:
+  - none
+- blocked_by:
+  - Legacy reference only.
+- kill_criteria: Never promote this branch back into the active crypto workflow without an explicit strategic reset.

@@ -1,56 +1,58 @@
 from __future__ import annotations
 
 
-ROOT_AGENTS_TEMPLATE = """# Research OS Instructions
+ROOT_AGENTS_TEMPLATE = """# Research Kernel Instructions
 
 ## Goal
-- This repository is Phase 1 of a China A-share research operating system.
-- Scope is A-share daily/weekly research only.
-- It is not a live trading system and does not promise profitability.
+- This repository is a market-agnostic research kernel.
+- The current mainline is `crypto_okx_research_v1`.
+- The current market focus is crypto.
+- The current exchange focus is OKX.
+- The current phase is `Backtest First`.
+- Live scope stays `none` until governance and risk review both approve a wider phase.
 
 ## Response Contract
 - Follow `docs/RESPONSE_CONTRACT.md`.
-- Default to `CHECKPOINT` replies unless the user explicitly asks for targeted evidence or full forensics.
-- `CHECKPOINT` replies must stay strategy-centered and use `Done`, `Evidence`, `Research progress`, `Strategy actions this run`, `Next recommendation`, and `Subagent status`.
+- Default to clear checkpoint-style replies.
+- Do not pretend an experiment or a promotion is stronger than its evidence.
 
 ## Memory Layers
 - Git-tracked long-term memory lives under `memory/projects/<project>/`.
-- Runtime/high-noise artifacts live under `data/projects/<project>/meta/` and `artifacts/projects/<project>/`.
-- Do not write durable memory only into ignored runtime directories.
+- Runtime and high-noise outputs live under `data/projects/<project>/meta/` and `artifacts/projects/<project>/`.
+- Durable decisions must not live only in ignored runtime directories.
 
 ## Non-Negotiables
 - Never fabricate backtest, validation, or agent results.
-- Never delete failed experiments to make the ledger look cleaner.
-- Never bypass leakage, tradability, or promotion checks for convenience.
-- Never install or invoke new tools silently; log the reason first.
+- Never bypass risk review because a result looks promising.
+- Never widen to demo or live during phase 0.
+- Never silently treat a legacy A-share result as crypto evidence.
 
 ## Required Verification
-- Run contract tests for strategy specs, weekday rebalance, tracked memory writeback, and leakage guards.
-- Run contract tests for the strategy snapshot, tracked-memory writeback, and the checkpoint format when the reply contract changes.
+- Run `python -m quant_mvp memory_bootstrap --project <project>`.
+- Run `python -m quant_mvp doctor --project <project>`.
+- Run `python -m quant_mvp memory_sync --project <project>`.
 - Run `python -m quant_mvp research_audit --project <project>`.
-- Run `python -m quant_mvp data_validate --project <project>` when data changes.
-- Run `python -m quant_mvp agent_cycle --project <project> --dry-run` before trusting the control plane.
+- Use `python -m quant_mvp agent_cycle --project <project> --dry-run` only when the project contract is already stable enough to make that cycle useful.
 
 ## Memory Writeback Contract
 - Major repo-level decisions update `docs/DECISION_LOG.md`.
 - Durable project summaries update `memory/projects/<project>/PROJECT_STATE.md`.
-- Every failed or blocked experiment appends `memory/projects/<project>/POSTMORTEMS.md`.
-- Every compact experiment record appends `memory/projects/<project>/EXPERIMENT_LEDGER.jsonl`.
-- Every hypothesis refresh updates `memory/projects/<project>/HYPOTHESIS_QUEUE.md`.
+- Failed or blocked experiments append `memory/projects/<project>/POSTMORTEMS.md`.
+- Compact experiment records append `memory/projects/<project>/EXPERIMENT_LEDGER.jsonl`.
 - Session handoff artifacts live beside tracked project memory.
 
 ## Uncertainty Handling
 - Prefer the most conservative, most auditable assumption.
-- Write assumptions and unknowns into tracked project memory instead of leaving them only in context.
-- If a tool or dependency is missing, stop at the interface boundary, record it, and keep the system reproducible.
+- Write assumptions and unknowns into tracked project memory instead of leaving them only in chat.
+- If a required data contract is missing, stop at that boundary and record it.
 """
 
 
 QUANT_AGENTS_TEMPLATE = """# quant_mvp Scope
 
 - Core modules must stay deterministic, testable, and auditable.
-- Strategy logic belongs in library modules, not scripts.
-- Default values must come from schema modules, not ad-hoc literals.
+- Strategy logic belongs in library modules, not ad-hoc scripts.
+- Defaults must come from config or schema modules, not scattered literals.
 - Memory APIs must preserve the tracked-memory / runtime-artifact split.
 """
 
@@ -58,89 +60,98 @@ QUANT_AGENTS_TEMPLATE = """# quant_mvp Scope
 SCRIPTS_AGENTS_TEMPLATE = """# scripts Scope
 
 - Scripts orchestrate library code only.
-- Do not embed strategy defaults or duplicate selection logic here.
-- Durable memory writes must go through the memory writeback layer, not ad-hoc file writes.
+- Do not hide strategy defaults in scripts.
+- Durable memory writes must go through the memory writeback layer.
 """
 
 
 TESTS_AGENTS_TEMPLATE = """# tests Scope
 
-- Prefer contract tests over broad smoke tests.
-- Cover strategy spec consistency, leakage guards, reproducibility, tracked-memory writeback, and append-only behaviour.
-- Tests must clean up tracked-memory side effects for temporary projects.
+- Prefer contract tests over large noisy smoke tests.
+- Cover identity, tracked-memory writeback, readiness boundaries, and reproducibility.
+- Temporary test projects must clean up tracked side effects.
 """
 
 
 DOCS_AGENTS_TEMPLATE = """# docs Scope
 
-- Documentation must match the current code, config schema, and audit outputs.
-- When behaviour changes, update response contract, strategy specs, decision logs, failure modes, and blueprint docs together.
-- Do not retain historical performance claims that cannot be reproduced from the current repo state.
+- Docs must match current code, config, audit outputs, and promotion boundaries.
+- When behavior changes, update the decision log, audit docs, and current mainline docs together.
+- Do not keep historical claims that cannot be reproduced from current repo state.
 """
 
 
-PROJECT_STATE_TEMPLATE = """# 项目状态
+PROJECT_STATE_TEMPLATE = """# Project State
 
-- 当前总任务: 保持 Phase 1 Research OS 可复现、可审计，并让 tracked memory 稳定。
-- 当前阶段: Phase 1 Research OS
-- 当前 blocker: 默认项目在 frozen universe 上仍缺少可用的 validated bars。
-- 当前真实能力边界: 工程护栏可用，但真实 default project 研究仍被数据覆盖率阻塞。
-- 下一优先动作: 恢复 frozen default universe 可用的 validated bar 快照。
-- 最近已验证能力: 仓库虚拟环境中的 contract 与 dry-run orchestration 测试已通过。
-- 最近失败能力: 默认项目的 promotion 仍被缺失研究输入阻塞。
+- Current canonical project: `crypto_okx_research_v1`
+- Current phase: `Phase 0 Backtest First`
+- Current task: establish the crypto + OKX research kernel without widening into execution.
+- Current blocker: no verified blocker has been recorded yet; write one only after doctor, audit, or a bounded experiment produces fresh evidence.
+- Current capability boundary: tracked memory bootstrap alone does not prove research readiness.
+- Next priority action: run doctor, memory sync, and research audit before changing the blocker story.
+- Latest verified capability: none recorded yet for the crypto mainline.
+- Latest failed capability: none recorded yet for the crypto mainline.
 """
 
 
-HYPOTHESIS_QUEUE_TEMPLATE = """# 假设队列
+HYPOTHESIS_QUEUE_TEMPLATE = """# Hypothesis Queue
 
-1. [阻塞] 先恢复 frozen default universe 的 validated daily bars，再重跑 promotion。
-2. [待处理] 仅在已验证数据上重新校验审计后的 limit-up screening 规格。
-3. [待处理] 任何 promotion 结论前，先与基线和成本压力场景做对比。
+1. [blocked] Prove the phase-0 data contract on OKX public market data before trusting any strategy claim.
+2. [pending] Check whether one small explicit OKX universe is enough to support a useful Backtest First loop.
+3. [pending] Refuse promotion unless costs, fees, funding, and walk-forward behavior are all visible in the evaluation bundle.
 """
 
 
-EXECUTION_QUEUE_TEMPLATE = """# 执行队列
+EXECUTION_QUEUE_TEMPLATE = """# Execution Queue
 
-| 任务ID | 标题 | 影响 | 风险 | 前置条件 | 当前状态 | Owner | 成功条件 | 停止条件 |
+| task_id | title | impact | risk | prerequisite | current_status | owner | success_condition | stop_condition |
 |---|---|---|---|---|---|---|---|---|
-| recover_daily_bars | 恢复默认项目可用日频 bars | 高 | 低 | 无 | 就绪 | main | `data_validate` 后 blocker 缩小或 `data_ready=True` | full refresh 后仍无新证据且 blocker 未缩小 |
-| refresh_research_audit | 刷新 repo truth 与审计基线 | 中 | 低 | 以当前 blocker 重新确认 repo truth | 待排队 | main | 审计结果让下一轮选择更确定 | 审计结果没有带来新的边界信息 |
-| refresh_promotion_boundary | 刷新晋级边界诊断 | 高 | 中 | 默认项目具备可研究输入 | 阻塞 | main | promotion 失败边界被重新确认 | 输入仍不足，继续执行 ROI 过低 |
-| dry_run_agent_cycle | 跑一次 dry-run control plane | 中 | 中 | 默认项目具备可研究输入 | 阻塞 | main | dry-run 结果带来新的候选或 blocker 收敛 | dry-run 只重复旧 blocker 且没有新信息 |
+| materialize_phase0_universe | Materialize the OKX phase-0 universe file | high | low | universe contract exists | queued | main | `universe_codes.txt` exists and matches the contract | universe contract is missing or invalid |
+| refresh_project_doctor | Refresh project doctor and readiness boundary | high | low | config exists | queued | main | doctor output clarifies the real blocker | doctor still only reports missing configuration noise |
+| refresh_research_audit | Refresh repo audit and current truth | medium | low | tracked memory exists | queued | main | audit clarifies the next bounded research step | audit adds no new boundary information |
+| bounded_agent_cycle | Run one dry-run research cycle | medium | medium | doctor and audit no longer block on missing contracts | blocked | main | dry-run adds new bounded evidence | dry-run only repeats the same blocker |
 """
 
 
-POSTMORTEMS_TEMPLATE = """# 失败复盘
+POSTMORTEMS_TEMPLATE = """# Postmortems
 
-当前尚无关键失败。后续仅追加高信号失败，记录根因、纠偏动作和当前状态。
+No high-value failure has been recorded yet for the crypto mainline.
+Append only when the failure changes direction, risk, or the next bounded step.
 """
 
 
-RESEARCH_MEMORY_TEMPLATE = """# 研究记忆
+RESEARCH_MEMORY_TEMPLATE = """# Research Memory
 
-## 长期事实
-- standalone script 与 modular steps 现已共享同一个经过审计的研究核心。
-- tracked long-term memory 位于 `memory/projects/<project>/`，runtime artifacts 位于 `data/` 和 `artifacts/`。
+## Durable Facts
+- This repo is now the research kernel for `crypto_okx_research_v1`.
+- The current market focus is crypto and the current exchange focus is OKX.
+- A-share work remains in the repo only as a legacy reference.
 
-## 负面记忆
-- 在 frozen universe 拥有 validated bars 之前，不要信任 default project 的 promotion 结论。
-- 被忽略的 runtime 目录不能作为 durable project memory 的唯一存储。
+## Negative Memory
+- Do not claim crypto readiness from A-share artifacts.
+- Do not widen to demo or live during phase 0.
+- Do not trust a strategy story until doctor, audit, and evaluation all line up.
 
-## 下一步记忆
-- 在相信任何研究结论之前，先恢复 default project 的 validated bars。
-- 保持紧凑的 tracked ledger 与 handoff 文件和 runtime experiment payloads 同步。
+## Next Step Memory
+- Materialize the OKX phase-0 universe file.
+- Refresh doctor and audit before promoting any research claim.
+- Keep tracked memory and runtime artifacts aligned after every bounded step.
 """
 
 
-VERIFY_LAST_TEMPLATE = """# 最近验证快照
+VERIFY_LAST_TEMPLATE = """# Latest Verify Snapshot
 
 - head: unknown
 - branch: unknown
-- 通过命令:
-  - 未记录
-- 失败命令:
-  - 未记录
-- 默认项目数据状态: unknown
-- 工程边界结论: unknown
-- 研究边界结论: unknown
+- passed commands:
+  - none recorded
+- failed commands:
+  - none recorded
+- current canonical project ID: crypto_okx_research_v1
+- historical aliases:
+  - as_share_research_v1
+  - 2026Q1_limit_up
+- default project data status: unknown
+- engineering boundary: unknown
+- research boundary: unknown
 """

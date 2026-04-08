@@ -1,0 +1,21 @@
+# OKX phase-0 research mainline
+
+- strategy_id: okx_phase0_research_mainline
+- name: OKX phase-0 research mainline
+- category: market-structure
+- core_hypothesis: A small, validated OKX universe plus explicit fee and funding modeling is enough to prove whether the research loop can produce honest, repeatable evidence.
+- economic_rationale: The first job is not alpha maximization. It is to show that the crypto research process can survive data quality checks, cost modeling, walk-forward review, and postmortem discipline.
+- required_data: OKX instrument metadata, OHLCV, funding rate, fee model, contract specs, and a validated universe snapshot for the frozen research set.
+- current_stage: data-blocked
+- latest_action: Keep the crypto phase-0 hypothesis queue narrow and rebuild missing OKX inputs first.
+- latest_result: No passing conclusion yet. Current blocker: The frozen research universe exists, but the configured market database has no usable raw bars for it.
+- decision: blocked
+- next_validation: Restore usable OKX inputs and materialize the frozen universe before rerunning research checks.
+- owner: main
+- subagents_assigned:
+  - none
+- artifact_refs:
+  - none
+- blocked_by:
+  - The frozen research universe exists, but the configured market database has no usable raw bars for it.
+- kill_criteria: Stop treating this as the mainline if repeatable phase-0 experiments still cannot produce a trustworthy evaluation bundle after data, fee, and funding inputs are restored.

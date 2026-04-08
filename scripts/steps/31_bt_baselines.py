@@ -43,7 +43,7 @@ def _equity_from_close(close: pd.Series, cash: float) -> pd.Series:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run baselines and random controls.")
-    parser.add_argument("--project", type=str, default="as_share_research_v1")
+    parser.add_argument("--project", type=str, default="crypto_okx_research_v1")
     parser.add_argument("--config", type=Path, default=None)
     parser.add_argument("--random-trials", type=int, default=None)
     parser.add_argument("--random-seed", type=int, default=None)

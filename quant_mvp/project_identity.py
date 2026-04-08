@@ -4,9 +4,9 @@ from pathlib import Path
 from typing import Any
 
 
-CANONICAL_PROJECT_ID = "as_share_research_v1"
+CANONICAL_PROJECT_ID = "crypto_okx_research_v1"
 LEGACY_PROJECT_ALIASES = {
-    "2026Q1_limit_up": CANONICAL_PROJECT_ID,
+    "2026Q1_limit_up": "as_share_research_v1",
 }
 
 
@@ -27,8 +27,8 @@ def is_active_canonical_project(project: str) -> bool:
 def alias_notice(project: str) -> str:
     aliases = legacy_project_ids(project)
     if not aliases:
-        return "当前项目没有已知历史别名。"
-    return f"历史项目名 {', '.join(aliases)} 仅作为 legacy alias / 迁移记录保留，不再代表当前活跃项目。"
+        return "Current project has no legacy aliases."
+    return f"Legacy project aliases: {', '.join(aliases)}. Keep them only for migration and archive references."
 
 
 def rewrite_identity_text(text: str, *, project: str) -> str:
@@ -72,13 +72,13 @@ def legacy_archive_markdown(*, legacy_project: str, canonical_project: str, curr
         [
             f"# Legacy Archive: {legacy_project}",
             "",
-            f"- 历史项目名: `{legacy_project}`",
-            f"- 当前规范项目名: `{canonical_project}`",
-            "- 当前状态: 已归档，仅保留历史迁移与兼容说明。",
-            "- 归档原因: 当前活跃研究已经统一到规范项目名下，旧项目名不再承载活跃 blocker 或当前研究结论。",
-            f"- 当前规范项目的真实 blocker: {current_blocker}",
-            "- 使用规则: 如果需要继续研究、验证、handoff、migration prompt、verify snapshot 或 session state，请只读写规范项目名目录。",
-            "- 兼容边界: 旧项目名只允许继续出现在 legacy alias、迁移说明、历史实验引用或归档注释中。",
+            f"- Legacy project label: `{legacy_project}`",
+            f"- Current canonical project: `{canonical_project}`",
+            "- Current state: archived reference only. Keep it for migration notes and old experiment context.",
+            "- Archive reason: the active research line has moved elsewhere, so this legacy label no longer carries the live blocker or the active strategy decision.",
+            f"- Canonical blocker now: {current_blocker}",
+            "- Usage rule: if you need current research, verification, handoff, migration prompt, or session state, read and write the canonical project directory only.",
+            "- Compatibility boundary: the legacy label may still appear in old experiment references, migration notes, and archive comments only.",
         ],
     )
 

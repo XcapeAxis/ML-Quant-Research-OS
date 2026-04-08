@@ -1,0 +1,21 @@
+# OKX cost and funding guardrail
+
+- strategy_id: okx_cost_funding_guardrail
+- name: OKX cost and funding guardrail
+- category: risk-control
+- core_hypothesis: Many early crypto research wins disappear once fees, funding, and contract details are modeled honestly. This branch exists to prove or reject that risk early.
+- economic_rationale: Crypto backtests are easy to overstate when funding or fee drag is missing. This branch prevents false confidence from leaking into promotion decisions.
+- required_data: OKX instrument metadata, OHLCV, funding rate, fee model, contract specs, and a validated universe snapshot for the frozen research set.
+- current_stage: data-blocked
+- latest_action: Keep this branch as a standing check on all promising OKX experiments.
+- latest_result: No passing conclusion yet. Current blocker: The frozen research universe exists, but the configured market database has no usable raw bars for it.
+- decision: blocked
+- next_validation: Do not run this branch until funding and fee inputs are available for the frozen OKX universe.
+- owner: main
+- subagents_assigned:
+  - none
+- artifact_refs:
+  - none
+- blocked_by:
+  - The frozen research universe exists, but the configured market database has no usable raw bars for it.
+- kill_criteria: Drop this branch only after fees and funding are fully modeled in the mainline and no longer need a separate guardrail.

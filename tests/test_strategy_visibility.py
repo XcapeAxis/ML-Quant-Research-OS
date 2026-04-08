@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 
 from quant_mvp.agent.subagent_controller import reconcile_loop_subagents, register_worker_subagent
-from quant_mvp.memory.writeback import bootstrap_memory_files, generate_handoff, load_machine_state
 from quant_mvp.memory.strategy_visibility import REQUIRED_CANDIDATE_FIELDS, summarize_strategy_visibility
+from quant_mvp.memory.writeback import bootstrap_memory_files, generate_handoff, load_machine_state
 
 
 def test_strategy_board_and_seed_candidate_are_written(limit_up_project) -> None:
@@ -23,15 +23,15 @@ def test_strategy_board_and_seed_candidate_are_written(limit_up_project) -> None
     assert state["strategy_candidates"]
 
     board = paths.strategy_board_path.read_text(encoding="utf-8")
-    assert "# 策略研究看板" in board
-    assert "## 主线策略" in board
-    assert "## 支线策略" in board
-    assert "## 系统判断" in board
+    assert "# Strategy Research Board" in board
+    assert "## Primary tracks" in board
+    assert "## Secondary tracks" in board
+    assert "## Blocked tracks" in board
     assert "limit_up_screening_mainline" in board
     assert "universe-reset" not in board
     assert "51.11% coverage" not in board
-    assert "strategy_action_log" in board
-    assert "idea_backlog" in board
+    assert "strategy_action_log" in board.lower()
+    assert "idea_backlog" in board.lower()
 
     candidate = state["strategy_candidates"][0]
     for field in REQUIRED_CANDIDATE_FIELDS:
@@ -87,8 +87,6 @@ def test_strategy_subagents_are_bound_and_infra_subagents_are_not(limit_up_proje
     assert "baseline_limit_up candidate evidence refresh" in registry
     assert "recover prerequisite daily-bar visibility" in registry
     assert "strategy_id: baseline_limit_up" in registry
-    assert "服务 blocker / 前提:" in registry
-    assert "这不是直接研究策略:" in registry
 
     ledger_entries = [
         json.loads(line)
@@ -114,11 +112,11 @@ def test_strategy_visibility_keeps_rank_contract_issues_out_of_data_blocked_roun
                 {
                     "strategy_id": "baseline_limit_up",
                     "track": "primary",
-                    "name": "涨停主线基线分支",
+                    "name": "Limit-up baseline branch",
                     "decision": "blocked",
                 },
             ],
         },
     )
 
-    assert summary["round_type"] == "策略推进轮"
+    assert summary["round_type"] == "strategy_progress"

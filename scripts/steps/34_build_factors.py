@@ -15,7 +15,7 @@ from quant_mvp.manifest import update_run_manifest
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build factor library outputs into project-scoped features dir.")
-    parser.add_argument("--project", type=str, default="as_share_research_v1")
+    parser.add_argument("--project", type=str, default="crypto_okx_research_v1")
     parser.add_argument("--config", type=Path, default=None)
     parser.add_argument("--factors", type=str, default="mom20,rev5,vol20,range,vol_surge,ma_gap")
     parser.add_argument("--start", type=str, default=None)
