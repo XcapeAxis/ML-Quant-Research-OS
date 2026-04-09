@@ -1,6 +1,7 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
+import sqlite3
 import subprocess
 import sys
 import time
@@ -11,9 +12,11 @@ import pytest
 from fastapi.testclient import TestClient
 
 from quant_mvp import cli as cli_module
+from quant_mvp.memory.writeback import bootstrap_memory_files, sync_project_state
 from quant_mvp.platform.app import create_app
 from quant_mvp.platform.jobs import StepExecutionResult
-from quant_mvp.platform.readiness import DOCTOR_FILENAME, READINESS_FILENAME, project_doctor
+from quant_mvp.platform.readiness import DOCTOR_FILENAME, READINESS_FILENAME, project_doctor, project_readiness
+from quant_mvp.project_identity import CANONICAL_PROJECT_ID
 from quant_mvp.platform.settings import load_platform_settings
 from quant_mvp.project import resolve_project_paths
 
@@ -102,7 +105,7 @@ def test_platform_readiness_requires_explicit_db_path(synthetic_project, tmp_pat
           payload = readiness.json()
           assert payload["ready"] is False
           assert payload["blocking_issue_details"][0]["code"] == "db_path_missing"
-          assert "显式 db_path" in payload["blocking_issues"][0]
+          assert "explicit db_path" in payload["blocking_issues"][0]
 
           readiness_path = ctx["paths"].meta_dir / READINESS_FILENAME
           assert readiness_path.exists()
@@ -116,7 +119,7 @@ def test_platform_readiness_requires_explicit_db_path(synthetic_project, tmp_pat
               },
           )
           assert created.status_code == 400
-          assert "显式 db_path" in created.json()["detail"]
+          assert "explicit db_path" in created.json()["detail"]
   finally:
       if config_path.exists():
           config_path.unlink()
@@ -148,11 +151,262 @@ def test_platform_readiness_reports_valid_external_db(synthetic_project, tmp_pat
 
           readiness_path = ctx["paths"].meta_dir / READINESS_FILENAME
           assert readiness_path.exists()
-          persisted = json.loads(readiness_path.read_text(encoding="utf-8"))
-          assert persisted["db_status"]["window_coverage"]["enabled"] is True
+      persisted = json.loads(readiness_path.read_text(encoding="utf-8"))
+      assert persisted["db_status"]["window_coverage"]["enabled"] is True
   finally:
       if config_path.exists():
           config_path.unlink()
+
+
+def test_project_readiness_blocks_when_crypto_okx_phase0_artifacts_are_missing(monkeypatch, tmp_path: Path) -> None:
+    project_data_dir = tmp_path / "project_data"
+    fake_meta_dir = tmp_path / "meta"
+    fake_paths = types.SimpleNamespace(
+        config_path=tmp_path / "crypto_okx_config.json",
+        universe_path=tmp_path / "universe_codes.txt",
+        meta_dir=fake_meta_dir,
+        project_data_dir=project_data_dir,
+    )
+    fake_paths.universe_path.write_text("BTC-USDT-SWAP\n", encoding="utf-8")
+
+    db_path = tmp_path / "market.db"
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            "CREATE TABLE bars (symbol TEXT NOT NULL, datetime TEXT NOT NULL, freq TEXT NOT NULL, open REAL, high REAL, low REAL, close REAL, volume REAL, PRIMARY KEY (symbol, datetime, freq))"
+        )
+        conn.execute(
+            "INSERT INTO bars (symbol, datetime, freq, open, high, low, close, volume) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            ("BTC-USDT-SWAP", "2020-01-02", "1d", 100.0, 101.0, 99.0, 100.5, 10.0),
+        )
+        conn.commit()
+
+    fake_config_path = fake_paths.config_path
+    fake_config_path.write_text(
+        json.dumps(
+            {
+                "db_path": str(db_path).replace("\\", "/"),
+                "freq": "1d",
+                "start_date": "2020-01-01",
+                "end_date": "2020-06-15",
+                "data_provider": {"provider": "okx", "market": "CRYPTO"},
+                "market_data_contract": {
+                    "exchange": "okx",
+                    "required_datasets": ["ohlcv", "instrument_metadata", "fees", "funding_rate"],
+                },
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    def fake_resolve_project_paths(_project: str, root=None):
+        return fake_paths
+
+    def fake_network_diagnostics(_settings, upstream_keys=None):
+        return {
+            "proxy_url": None,
+            "ca_bundle_path": None,
+            "connect_timeout_seconds": 5,
+            "read_timeout_seconds": 15,
+            "using_proxy": False,
+            "using_custom_ca": False,
+            "ca_bundle_exists": True,
+            "blocking_issues": [],
+            "blocking_issue_details": [],
+            "warnings": [],
+            "checks": [
+                {
+                    "key": "okx_instruments",
+                    "label": "OKX public instruments",
+                    "url": "https://www.okx.com/api/v5/public/instruments",
+                    "reachable": True,
+                    "http_status": 200,
+                    "latency_ms": 12.5,
+                    "error_code": None,
+                    "error_summary": None,
+                    "suggestion": None,
+                },
+                {
+                    "key": "okx_candles",
+                    "label": "OKX history candles",
+                    "url": "https://www.okx.com/api/v5/market/history-candles",
+                    "reachable": True,
+                    "http_status": 200,
+                    "latency_ms": 10.1,
+                    "error_code": None,
+                    "error_summary": None,
+                    "suggestion": None,
+                },
+                {
+                    "key": "okx_funding",
+                    "label": "OKX funding rate history",
+                    "url": "https://www.okx.com/api/v5/public/funding-rate-history",
+                    "reachable": True,
+                    "http_status": 200,
+                    "latency_ms": 11.2,
+                    "error_code": None,
+                    "error_summary": None,
+                    "suggestion": None,
+                },
+            ],
+        }
+
+    monkeypatch.setattr("quant_mvp.platform.readiness.resolve_project_paths", fake_resolve_project_paths)
+    monkeypatch.setattr("quant_mvp.platform.readiness.run_network_diagnostics", fake_network_diagnostics)
+
+    settings = load_platform_settings(
+        repo_root=ROOT,
+        overrides={"platform_db_path": str(tmp_path / "platform.db"), "mode": "local", "max_concurrent_jobs": 1},
+    )
+
+    payload = project_readiness(
+        settings=settings,
+        project=CANONICAL_PROJECT_ID,
+        pipeline="backtest_only",
+        config_path_override=fake_config_path,
+    )
+
+    assert payload["ready"] is False
+    assert "phase0_artifact_missing" in {issue["code"] for issue in payload["blocking_issue_details"]}
+
+
+def test_project_readiness_accepts_symbol_keyed_okx_funding_history(monkeypatch, tmp_path: Path) -> None:
+    project_data_dir = tmp_path / "project_data"
+    raw_dir = project_data_dir / "raw"
+    validated_dir = project_data_dir / "validated"
+    fake_meta_dir = tmp_path / "meta"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    validated_dir.mkdir(parents=True, exist_ok=True)
+
+    fake_paths = types.SimpleNamespace(
+        config_path=tmp_path / "crypto_okx_config.json",
+        universe_path=tmp_path / "universe_codes.txt",
+        meta_dir=fake_meta_dir,
+        project_data_dir=project_data_dir,
+    )
+    fake_paths.universe_path.write_text("BTC-USDT-SWAP\nETH-USDT-SWAP\n", encoding="utf-8")
+
+    db_path = tmp_path / "market.db"
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            "CREATE TABLE bars (symbol TEXT NOT NULL, datetime TEXT NOT NULL, freq TEXT NOT NULL, open REAL, high REAL, low REAL, close REAL, volume REAL, PRIMARY KEY (symbol, datetime, freq))"
+        )
+        conn.execute(
+            "CREATE TABLE bars_clean (symbol TEXT NOT NULL, datetime TEXT NOT NULL, freq TEXT NOT NULL, open REAL, high REAL, low REAL, close REAL, volume REAL, PRIMARY KEY (symbol, datetime, freq))"
+        )
+        conn.executemany(
+            "INSERT INTO bars (symbol, datetime, freq, open, high, low, close, volume) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            [
+                ("BTC-USDT-SWAP", "2020-01-02", "1d", 100.0, 101.0, 99.0, 100.5, 10.0),
+                ("ETH-USDT-SWAP", "2020-01-02", "1d", 200.0, 202.0, 198.0, 201.0, 12.0),
+            ],
+        )
+        conn.executemany(
+            "INSERT INTO bars_clean (symbol, datetime, freq, open, high, low, close, volume) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            [
+                ("BTC-USDT-SWAP", "2020-01-02", "1d", 100.0, 101.0, 99.0, 100.5, 10.0),
+                ("ETH-USDT-SWAP", "2020-01-02", "1d", 200.0, 202.0, 198.0, 201.0, 12.0),
+            ],
+        )
+        conn.commit()
+
+    fake_config_path = fake_paths.config_path
+    fake_config_path.write_text(
+        json.dumps(
+            {
+                "db_path": str(db_path).replace("\\", "/"),
+                "freq": "1d",
+                "start_date": "2020-01-01",
+                "end_date": "2020-06-15",
+                "data_provider": {"provider": "okx", "market": "CRYPTO"},
+                "market_data_contract": {
+                    "exchange": "okx",
+                    "required_datasets": ["ohlcv", "instrument_metadata", "fees", "funding_rate"],
+                },
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    (raw_dir / "okx_instruments.json").write_text(
+        json.dumps(
+            [
+                {"instId": "BTC-USDT-SWAP", "instType": "SWAP"},
+                {"instId": "ETH-USDT-SWAP", "instType": "SWAP"},
+            ],
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    (raw_dir / "okx_fee_assumptions.json").write_text(
+        json.dumps({"maker": 0.0002, "taker": 0.0005}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    (raw_dir / "okx_funding_history.json").write_text(
+        json.dumps(
+            {
+                "BTC-USDT-SWAP": [{"funding_time": "2020-01-02 08:00:00", "funding_rate": 0.0001}],
+                "ETH-USDT-SWAP": [{"funding_time": "2020-01-02 08:00:00", "funding_rate": 0.0002}],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    (validated_dir / "okx_dataset_scope.json").write_text(
+        json.dumps(
+            {
+                "required_entities": {
+                    "instrument_metadata": True,
+                    "ohlcv": True,
+                    "funding_rate": True,
+                    "fees": True,
+                },
+                "dataset_scope": {"symbols": ["BTC-USDT-SWAP", "ETH-USDT-SWAP"]},
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    def fake_resolve_project_paths(_project: str, root=None):
+        return fake_paths
+
+    def fake_network_diagnostics(_settings, upstream_keys=None):
+        return {
+            "proxy_url": None,
+            "ca_bundle_path": None,
+            "connect_timeout_seconds": 5,
+            "read_timeout_seconds": 15,
+            "using_proxy": False,
+            "using_custom_ca": False,
+            "ca_bundle_exists": True,
+            "blocking_issues": [],
+            "blocking_issue_details": [],
+            "warnings": [],
+            "checks": [],
+        }
+
+    monkeypatch.setattr("quant_mvp.platform.readiness.resolve_project_paths", fake_resolve_project_paths)
+    monkeypatch.setattr("quant_mvp.platform.readiness.run_network_diagnostics", fake_network_diagnostics)
+
+    settings = load_platform_settings(
+        repo_root=ROOT,
+        overrides={"platform_db_path": str(tmp_path / "platform.db"), "mode": "local", "max_concurrent_jobs": 1},
+    )
+
+    payload = project_readiness(
+        settings=settings,
+        project=CANONICAL_PROJECT_ID,
+        pipeline="backtest_only",
+        config_path_override=fake_config_path,
+    )
+
+    issue_codes = {issue["code"] for issue in payload["blocking_issue_details"]}
+
+    assert payload["db_status"]["ready"] is True
+    assert "phase0_artifact_invalid_type" not in issue_codes
+    assert "phase0_artifact_missing" not in issue_codes
 
 
 def test_project_doctor_persists_full_diagnostics(synthetic_project, tmp_path: Path, monkeypatch) -> None:
@@ -178,9 +432,9 @@ def test_project_doctor_persists_full_diagnostics(synthetic_project, tmp_path: P
           "warnings": [],
           "checks": [
               {
-                  "key": "eastmoney",
-                  "label": "东方财富历史行情",
-                  "url": "https://push2his.eastmoney.com/api/qt/stock/kline/get",
+                  "key": "okx_candles",
+                  "label": "OKX history candles",
+                  "url": "https://www.okx.com/api/v5/market/history-candles",
                   "reachable": True,
                   "http_status": 200,
                   "latency_ms": 23.5,
@@ -215,7 +469,7 @@ def test_project_doctor_persists_full_diagnostics(synthetic_project, tmp_path: P
       doctor_path = ctx["paths"].meta_dir / DOCTOR_FILENAME
       assert doctor_path.exists()
       persisted = json.loads(doctor_path.read_text(encoding="utf-8"))
-      assert persisted["network_status"]["checks"][0]["key"] == "eastmoney"
+      assert persisted["network_status"]["checks"][0]["key"] == "okx_candles"
   finally:
       if config_path.exists():
           config_path.unlink()
@@ -251,7 +505,7 @@ def test_platform_doctor_route_can_be_stubbed(synthetic_project, tmp_path: Path,
           "modified_at": None,
           "window_coverage": {"enabled": False, "reason": "db_unavailable"},
           "ready": False,
-          "issues": ["缺少显式 db_path"],
+          "issues": ["Project config is missing an explicit db_path."],
       },
       "network_status": {
           "proxy_url": None,
@@ -272,18 +526,18 @@ def test_platform_doctor_route_can_be_stubbed(synthetic_project, tmp_path: Path,
           "reason": None,
           "rebuild_clean_only": False,
       },
-      "decision_trace": [{"stage": "inputs", "message": "已载入项目配置。", "detail": {}}],
+      "decision_trace": [{"stage": "inputs", "message": "Loaded project config.", "detail": {}}],
       "required_upstreams": [],
       "warning_details": [],
       "blocking_issue_details": [
           {
               "code": "db_path_missing",
-              "message": "缺少显式 db_path",
-              "suggestion": "请填写外部 market.db 绝对路径。",
+              "message": "Project config is missing an explicit db_path.",
+              "suggestion": "Set db_path to the absolute path of the external market.db file.",
               "detail": {},
           }
       ],
-      "blocking_issues": ["缺少显式 db_path"],
+      "blocking_issues": ["Project config is missing an explicit db_path."],
       "warnings": [],
   }
   monkeypatch.setattr("quant_mvp.platform.app.project_doctor", lambda **_: sample_payload)
@@ -365,7 +619,7 @@ def test_platform_job_failure_surfaces_chinese_prepare_data_message(synthetic_pr
               if step.step_key == "prepare_data":
                   return StepExecutionResult(
                       exit_code=1,
-                      error_message="目标回测区间数据缺失，自动补数失败，请检查网络、代理或数据源。",
+                      error_message="Target backtest window data is missing; automatic refill failed.",
                   )
               return StepExecutionResult(exit_code=0)
 
@@ -384,14 +638,14 @@ def test_platform_job_failure_surfaces_chinese_prepare_data_message(synthetic_pr
 
           detail_payload = _wait_for_terminal_status(client, job_id)
           assert detail_payload["status"] == "failed"
-          assert "自动补数失败" in detail_payload["error_message"]
+          assert "automatic refill failed" in detail_payload["error_message"]
           assert [step["step_key"] for step in detail_payload["steps"]] == ["build_universe", "prepare_data", "rank"]
-          assert detail_payload["steps"][1]["error_message"] == "目标回测区间数据缺失，自动补数失败，请检查网络、代理或数据源。"
+          assert detail_payload["steps"][1]["error_message"] == "Target backtest window data is missing; automatic refill failed."
           assert detail_payload["steps"][2]["status"] == "skipped"
 
           events = client.get(f"/api/jobs/{job_id}/events")
           assert events.status_code == 200
-          assert "自动补数失败" in events.text
+          assert "automatic refill failed" in events.text
   finally:
       if config_path.exists():
           config_path.unlink()
@@ -412,9 +666,9 @@ def test_platform_network_diagnostics_route_can_be_stubbed(tmp_path: Path, monke
           "warnings": [],
           "checks": [
               {
-                  "key": "eastmoney",
-                  "label": "东方财富历史行情",
-                  "url": "https://push2his.eastmoney.com/api/qt/stock/kline/get",
+                  "key": "okx_candles",
+                  "label": "OKX history candles",
+                  "url": "https://www.okx.com/api/v5/market/history-candles",
                   "reachable": True,
                   "http_status": 200,
                   "latency_ms": 18.0,
@@ -431,8 +685,57 @@ def test_platform_network_diagnostics_route_can_be_stubbed(tmp_path: Path, monke
       assert response.status_code == 200
       payload = response.json()
       assert payload["using_proxy"] is True
-      assert payload["checks"][0]["key"] == "eastmoney"
+      assert payload["checks"][0]["key"] == "okx_candles"
       assert payload["checks"][0]["latency_ms"] == 18.0
+
+
+def test_memory_sync_clears_stale_data_blocker_when_doctor_is_ready(synthetic_project, monkeypatch) -> None:
+  ctx = synthetic_project
+  config_path = _write_test_project_config(ctx["project"], ctx["config_path"])
+  bootstrap_memory_files(ctx["project"], repo_root=ROOT)
+  sync_project_state(
+      ctx["project"],
+      {
+          "current_task": "Prove the crypto plus OKX research loop before any demo or live work.",
+          "current_phase": "Phase 0 Backtest First",
+          "current_blocker": "The frozen research universe exists, but the configured market database has no usable raw bars for it.",
+          "current_capability_boundary": "Current work is limited to rebuilding research inputs and truthful contracts. No strategy branch should be treated as validated until OKX inputs are usable.",
+          "next_priority_action": "Load usable OKX bars for the frozen universe, then rerun doctor, memory sync, and research audit.",
+          "last_verified_capability": "Doctor confirmed OKX upstream access and the frozen universe, but blocked promotion because local OKX bars are still missing.",
+          "last_failed_capability": "none",
+      },
+      repo_root=ROOT,
+  )
+  doctor_path = ctx["paths"].meta_dir / DOCTOR_FILENAME
+  doctor_path.write_text(
+      json.dumps(
+          {
+              "ready": True,
+              "universe_exists": True,
+              "blocking_issues": [],
+              "blocking_issue_details": [],
+          },
+          ensure_ascii=False,
+          indent=2,
+      ),
+      encoding="utf-8",
+  )
+
+  try:
+      monkeypatch.setattr(sys, "argv", ["quant_mvp", "memory_sync", "--project", ctx["project"], "--config", str(config_path)])
+      cli_module.main()
+
+      session_payload = json.loads(ctx["paths"].session_state_path.read_text(encoding="utf-8"))
+      assert session_payload["current_blocker"] == "none"
+      assert session_payload["readiness"]["ready"] is True
+      assert session_payload["verify_last"]["default_project_data_status"] == "validation-ready"
+      assert any("python -m quant_mvp doctor --project" in command for command in session_payload["verify_last"]["passed_commands"])
+      assert "usable OKX local coverage" in session_payload["last_verified_capability"]
+      assert "Load usable OKX bars" not in session_payload["next_priority_action"]
+      assert "rebuilding research prerequisites" not in session_payload["canonical_truth_summary"]
+  finally:
+      if config_path.exists():
+          config_path.unlink()
 
 
 def test_cli_doctor_exits_nonzero_when_blocking_issues_exist(monkeypatch, capsys) -> None:
@@ -442,8 +745,8 @@ def test_cli_doctor_exits_nonzero_when_blocking_issues_exist(monkeypatch, capsys
       "project_doctor",
       lambda **_: {
           "project": "demo",
-          "blocking_issue_details": [{"code": "db_path_missing", "message": "缺少显式 db_path", "suggestion": None, "detail": {}}],
-          "blocking_issues": ["缺少显式 db_path"],
+          "blocking_issue_details": [{"code": "db_path_missing", "message": "Project config is missing an explicit db_path.", "suggestion": None, "detail": {}}],
+          "blocking_issues": ["Project config is missing an explicit db_path."],
       },
   )
   monkeypatch.setattr(sys, "argv", ["quant_mvp", "doctor", "--project", "demo"])

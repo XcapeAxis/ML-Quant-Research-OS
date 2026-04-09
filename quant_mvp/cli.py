@@ -22,6 +22,7 @@ from .agent.runner import run_agent_cycle
 from .data import run_data_validate_flow
 from .factors import build_factors_for_project
 from .memory.writeback import (
+    _looks_data_blocked_text,
     bootstrap_memory_files,
     generate_handoff,
     load_machine_state,
@@ -381,6 +382,9 @@ def main() -> None:
         paths = bootstrap_memory_files(args.project, repo_root=find_repo_root())
         cfg, resolved_paths = load_config(args.project, config_path=args.config)
         _, state = load_machine_state(args.project, repo_root=find_repo_root())
+        doctor_command = f"python -m quant_mvp doctor --project {args.project}"
+        if args.config:
+            doctor_command += f" --config {args.config}"
         doctor_path = resolved_paths.meta_dir / "platform_doctor.json"
         doctor_payload = {}
         if doctor_path.exists():
@@ -401,35 +405,56 @@ def main() -> None:
                 data_status = "validation-ready"
             elif doctor_payload.get("universe_exists"):
                 data_status = "prerequisites-blocked"
+        current_blocker = str(state.get("current_blocker") or "").strip()
+        current_boundary = str(state.get("current_capability_boundary") or "").strip()
+        last_verified_capability = str(state.get("last_verified_capability") or "").strip()
+        next_priority_action = str(state.get("next_priority_action") or "").strip()
+        cleared_data_blocker = False
+        if blocking_issue:
+            current_blocker = blocking_issue
+            if not next_action:
+                next_action = next_priority_action
+            current_boundary = (
+                "Current work is limited to rebuilding research inputs and truthful contracts. No strategy branch should be treated as validated until OKX inputs are usable."
+            )
+            last_verified_capability = (
+                "Doctor confirmed OKX upstream access and the frozen universe, but blocked promotion because local OKX bars are still missing."
+            )
+        else:
+            if _looks_data_blocked_text(current_blocker):
+                current_blocker = "none"
+                cleared_data_blocker = True
+            if not current_boundary or _looks_data_blocked_text(current_boundary):
+                current_boundary = "Doctor shows the research floor is available. Continue only through bounded experiments and truthful writeback."
+            if cleared_data_blocker or not next_priority_action or _looks_data_blocked_text(next_priority_action):
+                next_priority_action = "Run the next bounded experiment bundle and write the evidence back into tracked memory."
+            if not last_verified_capability or _looks_data_blocked_text(last_verified_capability):
+                last_verified_capability = "Doctor confirmed usable OKX local coverage and reachable upstream checks."
         summary = {
             "current_task": "Prove the crypto plus OKX research loop before any demo or live work.",
             "current_phase": "Phase 0 Backtest First",
-            "current_blocker": blocking_issue or state.get("current_blocker") or "none",
-            "current_capability_boundary": (
-                "Current work is limited to rebuilding research inputs and truthful contracts. No strategy branch should be treated as validated until OKX inputs are usable."
-                if blocking_issue
-                else (
-                    state.get("current_capability_boundary")
-                    or "Tracked memory sync refreshed the current snapshot; it did not validate any new research claim."
-                )
-            ),
-            "next_priority_action": next_action or state.get("next_priority_action") or "Run handoff generation.",
-            "last_verified_capability": (
-                "Doctor confirmed OKX upstream access and the frozen universe, but blocked promotion because local OKX bars are still missing."
-                if blocking_issue
-                else (
-                    state.get("last_verified_capability")
-                    or f"Tracked memory synced from config {resolved_paths.config_path.name}."
-                )
-            ),
+            "current_blocker": current_blocker or "none",
+            "current_capability_boundary": current_boundary or "Tracked memory sync refreshed the current snapshot; it did not validate any new research claim.",
+            "next_priority_action": next_action or next_priority_action or "Run handoff generation.",
+            "last_verified_capability": last_verified_capability or f"Tracked memory synced from config {resolved_paths.config_path.name}.",
         }
         state_path = sync_project_state(args.project, summary, repo_root=find_repo_root())
         if doctor_payload:
+            passed_commands = list((state.get("verify_last", {}) or {}).get("passed_commands", []) or [])
+            failed_commands = list((state.get("verify_last", {}) or {}).get("failed_commands", []) or [])
+            if blocking_issue:
+                if doctor_command not in failed_commands:
+                    failed_commands.append(doctor_command)
+                passed_commands = [cmd for cmd in passed_commands if cmd != doctor_command]
+            else:
+                if doctor_command not in passed_commands:
+                    passed_commands.append(doctor_command)
+                failed_commands = [cmd for cmd in failed_commands if cmd != doctor_command]
             write_verify_snapshot(
                 args.project,
                 {
-                    "passed_commands": list((state.get("verify_last", {}) or {}).get("passed_commands", []) or []),
-                    "failed_commands": list((state.get("verify_last", {}) or {}).get("failed_commands", []) or []),
+                    "passed_commands": passed_commands,
+                    "failed_commands": failed_commands,
                     "default_project_data_status": data_status,
                     "conclusion_boundary_engineering": (
                         "OKX upstream reachability is healthy, but local market bars are still missing for the frozen universe."
