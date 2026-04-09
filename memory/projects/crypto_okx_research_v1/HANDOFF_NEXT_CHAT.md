@@ -1,103 +1,62 @@
-# 下一轮交接
+# Next Chat Handoff
 
-## 当前总任务
-Prove the crypto plus OKX research loop before any demo or live work.
+## Current Goal
+Prove that `crypto_okx_research_v1` has a real research loop before any demo or live work.
 
-## 当前阶段
-Phase 0 Backtest First
+## Current Phase
+- Phase: `phase-0-backtest-first`
+- Market: `crypto`
+- Exchange: `okx`
 
-## 项目身份
-- 当前规范项目ID: crypto_okx_research_v1
-- 历史别名: 无
-- 身份说明: Current project has no legacy aliases.
+## Current Truth
+- Canonical project: `crypto_okx_research_v1`
+- Repo root: `C:\Users\asus\Documents\Projects\BackTest`
+- The current blocker is not missing OKX data.
+- The current blocker is `tests/test_platform_api.py`, which still has broken strings from earlier bad encoding.
+- `pytest` stops during collection with an unterminated string around line `528`.
 
-## 当前研究对象
-- 当前研究阶段: prerequisite recovery
-- 当前轮次类型: prerequisite_recovery
-- 当前主线策略: okx_phase0_research_mainline (OKX phase-0 research mainline)
-- 当前支线策略: okx_cost_funding_guardrail (OKX cost and funding guardrail)
-- 当前 blocked 策略: okx_phase0_research_mainline (OKX phase-0 research mainline), okx_cost_funding_guardrail (OKX cost and funding guardrail)
-- 当前 rejected 策略: legacy_a_share_archive (Legacy A-share archive)
-- 当前策略推进判断: Research is still blocked on prerequisites. Current blocker: The frozen research universe exists, but the configured market database has no usable raw bars for it.. Restore truthful OKX inputs before treating any strategy path as validated.
-- 规范叙事结论: The canonical project is still rebuilding research prerequisites. Current blocker: The frozen research universe exists, but the configured market database has no usable raw bars for it.
+## Verified Facts
+- `python -m quant_mvp.cli doctor --project crypto_okx_research_v1` currently passes.
+- The doctor result shows:
+  - OKX instruments: `200`
+  - OKX candles: `200`
+  - OKX funding history: `200`
+  - BTC and ETH swap data exists in the target window
+- `crypto_okx_research_v1` is still the canonical project.
+- The A-share path is now legacy and is no longer the default path.
 
-## 已确认路径
-- tracked memory 目录: C:\Users\asus\Documents\Projects\BackTest\memory\projects\crypto_okx_research_v1
-- runtime meta 目录: C:\Users\asus\Documents\Projects\BackTest\data\projects\crypto_okx_research_v1\meta
-- runtime artifacts 目录: C:\Users\asus\Documents\Projects\BackTest\artifacts\projects\crypto_okx_research_v1
+## Exact Next Step
+Repair `C:\Users\asus\Documents\Projects\BackTest\tests\test_platform_api.py`.
 
-## 当前 blocker
-The frozen research universe exists, but the configured market database has no usable raw bars for it.
+### Fix First
+- Around line `528`: the `decision_trace` sample still has an unterminated string.
+- The same area still contains several broken fixture strings and stale corrupted text.
+- Replace those fixtures with clear plain strings. Do not keep corrupted text.
 
-## 最近关键失败
-none
+## Required Commands After The Fix
+1. `python -m pytest tests/test_crypto_okx_contract.py tests/test_okx_provider.py tests/test_platform_api.py -q`
+2. `python -m pytest tests/test_canonical_project_identity.py tests/test_strategy_visibility.py tests/test_config_manifest.py -q`
+3. `python -m quant_mvp.cli doctor --project crypto_okx_research_v1`
 
-## 当前真实能力边界
-Current work is limited to rebuilding research inputs and truthful contracts. No strategy branch should be treated as validated until OKX inputs are usable.
+## Do Not Do In The Next Chat
+- Do not add new strategy branches.
+- Do not start demo or live work.
+- Do not open a new crypto repo.
+- Do not restore A-share as the default path.
+- Do not do broad cleanup of old memory files.
 
-## Subagent 状态
-- configured_gate: AUTO
-- effective_gate_this_run: OFF
-- gate_reason: Keep subagents OFF until the frozen OKX universe has usable local bars.
-- active: none
-- blocked: none
-- active_research: none
-- active_infrastructure: none
-- recent_transition: none recorded
-- continue_using_subagents: no
+## Read These Files Before Coding
+1. `C:\Users\asus\Documents\Projects\OpenClaw\docs\CURRENT_STRATEGIC_PLAN.md`
+2. `C:\Users\asus\Documents\Projects\OpenClaw\docs\ACTIVE_EXECUTION_HANDOFF.md`
+3. `C:\Users\asus\Documents\Projects\BackTest\memory\projects\crypto_okx_research_v1\HANDOFF_NEXT_CHAT.md`
+4. `C:\Users\asus\Documents\Projects\BackTest\memory\projects\crypto_okx_research_v1\MIGRATION_PROMPT_NEXT_CHAT.md`
+5. `C:\Users\asus\Documents\Projects\BackTest\docs\data_contracts\okx_public_market_data_v1.md`
+6. `C:\Users\asus\Documents\Projects\BackTest\docs\experiments\crypto_okx_research_v1_phase0.md`
 
-## 当前 active 研究型 subagents
-- 当前为空
+## Current Boundaries
+- Research loop only. No demo or live.
+- Only `BTC-USDT-SWAP` and `ETH-USDT-SWAP`.
+- The first baseline is still a trend baseline.
 
-## 最近策略动作
-- 本轮未推进实质策略研究，当前没有新的策略动作记录。
-
-## 研究进度
-- Data inputs: 阻塞，1/4。证据：Data status is prerequisites-blocked. Current blocker: The frozen research universe exists, but the configured market database has no usable raw bars for it.
-- Strategy integrity: 部分可用，2/4。证据：Primary strategies are okx_phase0_research_mainline (OKX phase-0 research mainline). Last verified capability: Doctor confirmed OKX upstream access and the frozen universe, but blocked promotion because local OKX bars are still missing.
-- Validation stack: 起步，1/4。证据：Only baseline verification entry points exist. No passing verification command has been recorded for the active crypto project yet.
-- Promotion readiness: 阻塞，1/4。证据：Promotion is blocked because the active blocker is still: The frozen research universe exists, but the configured market database has no usable raw bars for it.
-- Subagent effectiveness: 部分可用，2/4。证据：Configured gate=AUTO, effective gate=OFF. Active subagents: 0. Reason: Keep subagents OFF until the frozen OKX universe has usable local bars.
-- 总体轨迹: 阻塞
-- 本轮增量: 无实质变化
-- 当前 blocker: The frozen research universe exists, but the configured market database has no usable raw bars for it.
-- 下一里程碑: Load usable OKX bars for the frozen universe, then rerun doctor, memory sync, and research audit.
-- 置信度: 低
-
-## 最近一次高阶迭代
-- workflow_mode: campaign
-- target_productive_minutes: 40
-- max_runtime_mode: bounded
-- iteration_count: 0
-- target_iterations: 0
-- max_iterations: 0
-- substantive_action_count: 0 / 3
-- effective_progress_count: 0
-- clarify_only_iterations: 0 / 1
-- controlled_refresh_count: 0 (run_start_read_count=0)
-- stop_reason: not run
-- direction_change: no
-- blocker_escalation: no
-- blocker_key: unknown (repeat_count=0, historical_count=0)
-- last_classification: not run
-- max_active_subagents: 0
-- configured_subagent_gate: AUTO
-- effective_subagent_gate: OFF (blocked/retired/merged/archived=0/0/0/0)
-- subagents_used: none
-- subagent_reason: No iterative loop run has been recorded yet.
-- auto_closed_subagents: none
-- alternative_subagents: none
-- 本轮完成: none recorded
-- 本轮未完成: none recorded
-- 下一步建议: none recorded
-
-## 下一步唯一建议
-Load usable OKX bars for the frozen universe, then rerun doctor, memory sync, and research audit.
-
-## 下一轮先读这些文件
-- C:\Users\asus\Documents\Projects\BackTest\memory\projects\crypto_okx_research_v1\PROJECT_STATE.md
-- C:\Users\asus\Documents\Projects\BackTest\memory\projects\crypto_okx_research_v1\STRATEGY_BOARD.md
-- C:\Users\asus\Documents\Projects\BackTest\memory\projects\crypto_okx_research_v1\STRATEGY_CANDIDATES
-- C:\Users\asus\Documents\Projects\BackTest\memory\projects\crypto_okx_research_v1\VERIFY_LAST.md
-- C:\Users\asus\Documents\Projects\BackTest\memory\projects\crypto_okx_research_v1\MIGRATION_PROMPT_NEXT_CHAT.md
-- C:\Users\asus\Documents\Projects\BackTest\memory\projects\crypto_okx_research_v1\RESEARCH_MEMORY.md
+## Final Reminder
+After the test repair is done, review `C:\Users\asus\Documents\Projects\OpenClaw\docs\BUG_FIX_LEDGER.md` and count the verified bug fixes. Do not guess.
